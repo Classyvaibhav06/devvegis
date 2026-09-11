@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { authenticate, authorize } from '../../middleware/auth';
+import { validateCoupon, getCoupons, getAllCoupons, createCoupon, updateCoupon } from './coupons.controller';
+const router = Router();
+router.get('/', authenticate, getCoupons);
+router.post('/validate', authenticate, validateCoupon);
+router.get('/admin', authenticate, authorize('ADMIN','SUPER_ADMIN'), getAllCoupons);
+router.post('/', authenticate, authorize('ADMIN','SUPER_ADMIN'), createCoupon);
+router.put('/:id', authenticate, authorize('ADMIN','SUPER_ADMIN'), updateCoupon);
+export default router;

@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { authenticate } from '../../middleware/auth';
+import { getAddresses, addAddress, updateAddress, deleteAddress } from './addresses.controller';
+const router = Router();
+router.use(authenticate);
+router.get('/', getAddresses);
+router.post('/', addAddress);
+router.put('/:id', updateAddress);
+router.delete('/:id', deleteAddress);
+export default router;

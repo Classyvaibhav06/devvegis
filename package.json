@@ -1,0 +1,21 @@
+{
+  "name": "devvegis",
+  "version": "1.0.0",
+  "description": "Fresh Fruits & Vegetables Delivered in Minutes",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "build": "npm run build --workspace=server && npm run build --workspace=client",
+    "db:generate": "cd prisma && npx prisma generate",
+    "db:migrate": "cd prisma && npx prisma migrate dev",
+    "db:seed": "cd prisma && npx ts-node seed.ts",
+    "db:studio": "cd prisma && npx prisma studio"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

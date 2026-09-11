@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { authenticate, authorize } from '../../middleware/auth';
+import { getProfile, updateProfile, changePassword, getAllUsers, toggleUserStatus } from './users.controller';
+const router = Router();
+router.use(authenticate);
+router.get('/profile', getProfile);
+router.put('/profile', updateProfile);
+router.patch('/change-password', changePassword);
+router.get('/admin/all', authorize('ADMIN','SUPER_ADMIN'), getAllUsers);
+router.patch('/admin/:id/toggle-status', authorize('ADMIN','SUPER_ADMIN'), toggleUserStatus);
+export default router;
