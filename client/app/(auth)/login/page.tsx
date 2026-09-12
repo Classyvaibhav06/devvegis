@@ -34,11 +34,28 @@ export default function LoginPage() {
       const { user, accessToken } = res.data.data;
       setAuth(user, accessToken);
       toast.success(`Welcome back, ${user.name}! 👋`);
-      router.push('/');
+
+      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+        router.push('/admin');
+      } else if (user.role === 'RIDER') {
+        router.push('/rider');
+      } else if (user.role === 'WHOLESALE_BUYER') {
+        router.push('/wholesale');
+      } else {
+        router.push('/');
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Login failed. Please try again.');
     }
   };
+
+  const demoAccounts = [
+    { label: '👑 Super Admin', email: 'superadmin@devvegis.com', password: 'Password@123' },
+    { label: '🛠️ Admin', email: 'admin@devvegis.com', password: 'Password@123' },
+    { label: '👤 Customer', email: 'priya@example.com', password: 'Password@123' },
+    { label: '🏢 Wholesale', email: 'wholesale@agarwal.com', password: 'Password@123' },
+    { label: '🛵 Rider', email: 'vijay.rider@devvegis.com', password: 'Password@123' },
+  ];
 
   return (
     <motion.div
@@ -103,15 +120,13 @@ export default function LoginPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 mb-6">
-          {[
-            { label: '👤 Customer', email: 'priya@example.com', password: 'password123' },
-            { label: '🛵 Rider', email: 'rider@example.com', password: 'password123' },
-          ].map(demo => (
+          {demoAccounts.map(demo => (
             <button
               key={demo.label}
               type="button"
-              onClick={() => { onSubmit(demo); }}
-              className="btn-secondary text-xs py-2 px-3"
+              disabled={isSubmitting}
+              onClick={() => { onSubmit({ email: demo.email, password: demo.password }); }}
+              className="btn-secondary text-xs py-2 px-3 hover:border-green-500 hover:text-green-600 transition-colors"
             >
               {demo.label}
             </button>

@@ -280,7 +280,12 @@ export default function Header() {
                       className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#0F1520] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 py-2 z-50"
                     >
                       <div className="px-4 py-3 border-b border-slate-100 dark:border-white/[0.07]">
-                        <p className="font-semibold text-slate-900 dark:text-[#E8EEF8] text-sm">{user?.name}</p>
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="font-semibold text-slate-900 dark:text-[#E8EEF8] text-sm truncate">{user?.name}</p>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 shrink-0">
+                            {user?.role?.replace('_', ' ') || 'Customer'}
+                          </span>
+                        </div>
                         <p className="text-xs text-slate-500 dark:text-[#8B96A8] truncate">{user?.email}</p>
                         {user?.wallet && (
                           <span className="inline-flex items-center gap-1 mt-1.5 text-xs bg-emerald-500/15 text-emerald-600 dark:text-[#34D399] border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
@@ -293,6 +298,7 @@ export default function Header() {
                         { href: '/profile', icon: User, label: 'My Profile' },
                         { href: '/orders', icon: Package, label: 'My Orders' },
                         ...(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? [{ href: '/admin', icon: Settings, label: 'Admin Panel' }] : []),
+                        ...(user?.role === 'WHOLESALE_BUYER' ? [{ href: '/wholesale', icon: Store, label: 'Wholesale B2B' }] : []),
                         ...(user?.role === 'RIDER' ? [{ href: '/rider', icon: Package, label: 'Rider Dashboard' }] : []),
                         { href: '/help', icon: Headphones, label: 'Help Center' },
                       ].map(item => (
