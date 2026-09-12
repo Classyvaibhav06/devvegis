@@ -108,8 +108,8 @@ export default function OrdersPage() {
                   <div className="flex items-center gap-2 mb-3">
                     {order.items.slice(0, 4).map((item: any) => (
                       <div key={item.id} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 overflow-hidden shrink-0 relative">
-                        {item.productImage ? (
-                          <Image src={item.productImage} alt={item.productName} fill className="object-cover" sizes="48px" />
+                        {item.productImage && typeof item.productImage === 'string' && item.productImage.trim().length > 0 ? (
+                          <Image src={item.productImage.trim()} alt={item.productName || 'Produce'} fill className="object-cover" sizes="48px" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xl">🥬</div>
                         )}

@@ -31,12 +31,12 @@ export default function CheckoutPage() {
   const [newAddressForm, setNewAddressForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
-    street: '',
+    addressLine1: '',
+    landmark: '',
     city: 'Bengaluru',
     state: 'Karnataka',
     pincode: '560001',
-    landmark: '',
-    type: 'HOME',
+    label: 'HOME',
   });
 
   // Fetch saved addresses
@@ -220,17 +220,17 @@ export default function CheckoutPage() {
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase">
-                            {addr.type || 'HOME'}
-                          </span>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {addr.name}
-                          </span>
-                          <span className="text-xs text-gray-500">({addr.phone})</span>
-                        </div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {addr.street}, {addr.landmark ? `${addr.landmark}, ` : ''}{addr.city}, {addr.state} - {addr.pincode}
-                        </p>
+                           <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase">
+                             {addr.label || 'HOME'}
+                           </span>
+                           <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                             {addr.name}
+                           </span>
+                           <span className="text-xs text-gray-500">({addr.phone})</span>
+                         </div>
+                         <p className="text-xs text-gray-600 dark:text-gray-400">
+                           {addr.addressLine1}, {addr.landmark ? `${addr.landmark}, ` : ''}{addr.city}, {addr.state} - {addr.pincode}
+                         </p>
                       </div>
                     </label>
                   ))
@@ -269,37 +269,68 @@ export default function CheckoutPage() {
                     placeholder="10-digit mobile"
                   />
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Street / House / Apt</label>
-                  <input
-                    type="text"
-                    required
-                    value={newAddressForm.street}
-                    onChange={(e) => setNewAddressForm({ ...newAddressForm, street: e.target.value })}
-                    className="input"
-                    placeholder="Flat 402, Green Meadows Apartment"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">City</label>
-                  <input
-                    type="text"
-                    required
-                    value={newAddressForm.city}
-                    onChange={(e) => setNewAddressForm({ ...newAddressForm, city: e.target.value })}
-                    className="input"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Pincode</label>
-                  <input
-                    type="text"
-                    required
-                    value={newAddressForm.pincode}
-                    onChange={(e) => setNewAddressForm({ ...newAddressForm, pincode: e.target.value })}
-                    className="input"
-                  />
-                </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Tag As</label>
+                    <div className="flex gap-2">
+                      {['Home', 'Work', 'Other'].map((l) => (
+                        <button
+                          type="button"
+                          key={l}
+                          onClick={() => setNewAddressForm({ ...newAddressForm, label: l })}
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                            newAddressForm.label.toUpperCase() === l.toUpperCase()
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                          }`}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Street / House / Apt *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newAddressForm.addressLine1}
+                      onChange={(e) => setNewAddressForm({ ...newAddressForm, addressLine1: e.target.value })}
+                      className="input"
+                      placeholder="Flat 402, Green Meadows Apartment, 12th Main Road"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Landmark (Optional)</label>
+                    <input
+                      type="text"
+                      value={newAddressForm.landmark}
+                      onChange={(e) => setNewAddressForm({ ...newAddressForm, landmark: e.target.value })}
+                      className="input"
+                      placeholder="Near Metro Station / Next to Cafe"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">City *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newAddressForm.city}
+                      onChange={(e) => setNewAddressForm({ ...newAddressForm, city: e.target.value })}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Pincode (6 digits) *</label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      required
+                      value={newAddressForm.pincode}
+                      onChange={(e) => setNewAddressForm({ ...newAddressForm, pincode: e.target.value.replace(/\D/g, '') })}
+                      className="input font-mono"
+                      placeholder="560001"
+                    />
+                  </div>
                 <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
                   <button
                     type="button"

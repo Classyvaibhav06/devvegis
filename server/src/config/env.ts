@@ -46,4 +46,9 @@ export const config = {
   DELIVERY_FEE: parseFloat(process.env.DELIVERY_FEE || '25'),
   FREE_DELIVERY_ABOVE: parseFloat(process.env.FREE_DELIVERY_ABOVE || '199'),
   GST_RATE: parseFloat(process.env.GST_RATE || '0.05'), // 5% GST
+
+  // Google OAuth
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+  GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/v1/auth/google/callback',
 };

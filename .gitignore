@@ -48,3 +48,6 @@ next-env.d.ts
 # Neon
 .neon
 
+# IDE / Scratch
+walkthrough.md
+

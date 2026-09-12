@@ -11,6 +11,7 @@ import { Eye, EyeOff, Loader2, Mail, Lock, User, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
+import GoogleOAuthButton from '@/components/auth/GoogleOAuthButton';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -49,9 +50,24 @@ export default function RegisterPage() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
       <div className="card p-8">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-100">Create Account</h1>
           <p className="text-gray-500 mt-1">Join DevVegis for fresh groceries</p>
+        </div>
+
+        {/* Google OAuth Button */}
+        <div className="mb-5">
+          <GoogleOAuthButton mode="signup" role={watch('role')} />
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-white dark:bg-gray-900 text-xs text-gray-400">
+                or sign up with email
+              </span>
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

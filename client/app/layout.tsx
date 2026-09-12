@@ -80,7 +80,10 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-[#080C14] text-[#0F172A] dark:text-[#E8EEF8] transition-colors duration-200`}>
+      <body
+        suppressHydrationWarning
+        className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-[#080C14] text-[#0F172A] dark:text-[#E8EEF8] transition-colors duration-200`}
+      >
         <Providers>
           {children}
         </Providers>

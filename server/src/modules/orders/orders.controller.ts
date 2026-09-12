@@ -37,14 +37,21 @@ export const getOrders = async (req: AuthRequest, res: Response): Promise<void> 
 
 export const getOrder = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
+  const where: any = { id };
+  const isAdminOrRider = ['ADMIN', 'SUPER_ADMIN', 'RIDER'].includes(req.user?.role || '');
+  if (!isAdminOrRider) {
+    where.userId = req.user!.id;
+  }
+
   const order = await prisma.order.findFirst({
-    where: { id, userId: req.user!.id },
+    where,
     include: {
       items: { include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } } },
       payment: true,
-      delivery: { include: { rider: { select: { name: true, phone: true, rating: true, vehicleType: true, currentLatitude: true, currentLongitude: true } } } },
+      delivery: { include: { rider: { select: { id: true, name: true, phone: true, rating: true, vehicleType: true, vehicleNumber: true, currentLatitude: true, currentLongitude: true } } } },
       address: true,
       coupon: { select: { code: true, type: true, discountValue: true } },
+      user: { select: { id: true, name: true, email: true, phone: true } },
     },
   });
   if (!order) throw new AppError('Order not found', 404);
@@ -207,6 +214,8 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
         userId,
         addressId: address.id,
         couponId,
+        status: 'CONFIRMED',
+        confirmedAt: new Date(),
         subtotal,
         discountAmount,
         deliveryFee,
@@ -220,10 +229,11 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
         items: {
           create: cartItems.map(item => {
             const unitPrice = isWholesale ? (item.product.wholesalePrice || item.product.price) : item.product.price;
+            const rawImg = item.product.images?.[0]?.url || (typeof item.product.images?.[0] === 'string' ? item.product.images[0] : null);
             return {
               productId: item.productId,
               productName: item.product.name,
-              productImage: item.product.images?.[0]?.url || '',
+              productImage: rawImg && rawImg.trim().length > 0 ? rawImg.trim() : null,
               quantity: item.quantity,
               unitPrice,
               totalPrice: unitPrice * item.quantity,
@@ -379,10 +389,21 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<void
   res.json({ success: true, message: 'Order cancelled successfully' });
 };
 
-// Admin: update order status
+// Admin/Rider: update order status
 export const updateOrderStatus = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { status, riderId } = req.body;
+  const { status, riderId, otp } = req.body;
+
+  const existingOrder = await prisma.order.findUnique({ where: { id } });
+  if (!existingOrder) throw new AppError('Order not found', 404);
+
+  if (status === 'DELIVERED' && otp) {
+    const cleanDbOtp = String(existingOrder.deliveryOtp || '').trim();
+    const cleanInputOtp = String(otp || '').trim();
+    if (cleanDbOtp !== cleanInputOtp) {
+      throw new AppError('Invalid delivery OTP. Please ask customer for correct 4-digit code.', 400);
+    }
+  }
 
   const order = await prisma.order.update({
     where: { id },
@@ -395,20 +416,40 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
     },
   });
 
-  if (riderId && status === 'RIDER_ASSIGNED') {
-    await prisma.delivery.update({
+  if (status === 'DELIVERED') {
+    await prisma.delivery.updateMany({
       where: { orderId: id },
-      data: { riderId, status: 'ACCEPTED', acceptedAt: new Date() },
+      data: { status: 'DELIVERED', deliveredAt: new Date(), otpVerified: true },
     });
+  }
+
+  if (status === 'ON_THE_WAY') {
+    await prisma.delivery.updateMany({
+      where: { orderId: id },
+      data: { status: 'ON_THE_WAY', pickedUpAt: new Date() },
+    });
+  }
+
+  if (riderId) {
+    const deliveryStatus = status === 'ON_THE_WAY' ? 'ON_THE_WAY' : status === 'DELIVERED' ? 'DELIVERED' : 'ACCEPTED';
+    await prisma.delivery.updateMany({
+      where: { orderId: id },
+      data: { riderId, status: deliveryStatus, acceptedAt: new Date() },
+    });
+    await prisma.rider.update({
+      where: { id: riderId },
+      data: { isAvailable: false },
+    }).catch(() => {});
+
     await prisma.notification.create({
       data: {
         userId: order.userId,
         type: 'RIDER_ASSIGNED',
         title: '🛵 Rider Assigned!',
-        body: 'Your order has been picked up and is on its way.',
+        body: 'Your order has been assigned to a delivery partner and is being prepared.',
         data: { orderId: id },
       },
-    });
+    }).catch(() => {});
   }
 
   res.json({ success: true, data: order });
@@ -431,11 +472,11 @@ export const getAllOrders = async (req: AuthRequest, res: Response): Promise<voi
       where, skip, take,
       orderBy: { createdAt: 'desc' },
       include: {
-        user: { select: { name: true, email: true, phone: true } },
-        items: { select: { quantity: true, totalPrice: true } },
-        payment: { select: { status: true, method: true } },
-        delivery: { select: { status: true } },
-        address: { select: { city: true, pincode: true } },
+        user: { select: { id: true, name: true, email: true, phone: true } },
+        items: { select: { id: true, quantity: true, unitPrice: true, totalPrice: true, productName: true, productImage: true } },
+        payment: { select: { status: true, method: true, amount: true } },
+        delivery: { include: { rider: { select: { id: true, name: true, phone: true, rating: true, vehicleType: true, vehicleNumber: true } } } },
+        address: true,
       },
     }),
     prisma.order.count({ where }),

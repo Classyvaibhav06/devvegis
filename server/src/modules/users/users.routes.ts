@@ -5,6 +5,7 @@ const router = Router();
 router.use(authenticate);
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
+router.patch('/profile', updateProfile);
 router.patch('/change-password', changePassword);
 router.get('/admin/all', authorize('ADMIN','SUPER_ADMIN'), getAllUsers);
 router.patch('/admin/:id/toggle-status', authorize('ADMIN','SUPER_ADMIN'), toggleUserStatus);

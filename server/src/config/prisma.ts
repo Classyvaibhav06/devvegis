@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { config } from './env';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -7,6 +8,11 @@ declare global {
 }
 
 const prisma = global.__prisma || new PrismaClient({
+  datasources: {
+    db: {
+      url: config.DATABASE_URL,
+    },
+  },
   log: [
     { level: 'query', emit: 'event' },
     { level: 'error', emit: 'stdout' },

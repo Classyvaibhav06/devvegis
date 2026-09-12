@@ -9,5 +9,5 @@ router.get('/admin/all', authorize('ADMIN', 'SUPER_ADMIN'), getAllOrders);
 router.get('/:id', getOrder);
 router.post('/', createOrder);
 router.patch('/:id/cancel', cancelOrder);
-router.patch('/:id/status', authorize('ADMIN', 'SUPER_ADMIN'), updateOrderStatus);
+router.patch('/:id/status', authorize('ADMIN', 'SUPER_ADMIN', 'RIDER'), updateOrderStatus);
 export default router;
