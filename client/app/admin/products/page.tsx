@@ -9,6 +9,7 @@ import {
 import Image from 'next/image';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import S3ImageUploader from '@/components/ui/S3ImageUploader';
 
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
@@ -333,23 +334,12 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold block mb-1">Photo Image URL</label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={editingProduct.image}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
-                    className="input text-xs flex-1"
-                  />
-                  {editingProduct.image && (
-                    <div className="w-10 h-10 relative rounded-lg overflow-hidden shrink-0 border">
-                      <Image src={editingProduct.image} alt="Preview" fill className="object-cover" />
-                    </div>
-                  )}
-                </div>
-              </div>
+              <S3ImageUploader
+                label="Product Image"
+                value={editingProduct.image}
+                onChange={(url) => setEditingProduct({ ...editingProduct, image: url })}
+                folder="products"
+              />
 
               <div className="flex items-center gap-2 pt-1">
                 <input
@@ -465,17 +455,13 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold block mb-1">Photo Image URL</label>
-                <input
-                  type="url"
-                  required
-                  value={newProduct.image}
-                  onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                  placeholder="https://images.unsplash.com/..."
-                  className="input text-xs"
-                />
-              </div>
+              <S3ImageUploader
+                label="Product Image"
+                value={newProduct.image}
+                onChange={(url) => setNewProduct({ ...newProduct, image: url })}
+                folder="products"
+                required
+              />
 
               <div className="flex items-center gap-2 pt-1">
                 <input

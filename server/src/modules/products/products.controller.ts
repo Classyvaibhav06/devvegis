@@ -4,6 +4,7 @@ import { AppError } from '../../middleware/errorHandler';
 import { AuthRequest } from '../../middleware/auth';
 import { config } from '../../config/env';
 import { ProductUnit } from '@prisma/client';
+import { uploadFileBuffer } from '../../services/storage.service';
 
 const parseProductUnit = (unitStr?: string): ProductUnit => {
   if (!unitStr) return ProductUnit.GRAM;
@@ -287,7 +288,14 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
   // Handle uploaded files or provided image URLs
   const imageUrls: string[] = [];
   if (files?.length) {
-    files.forEach(f => imageUrls.push(`${config.API_URL}/uploads/products/${f.filename}`));
+    for (const f of files) {
+      if (f.buffer) {
+        const { url } = await uploadFileBuffer(f.buffer, f.originalname, f.mimetype, 'products');
+        imageUrls.push(url);
+      } else if (f.filename) {
+        imageUrls.push(`${config.API_URL}/uploads/products/${f.filename}`);
+      }
+    }
   }
   if (image && typeof image === 'string') {
     imageUrls.push(image);

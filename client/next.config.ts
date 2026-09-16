@@ -29,6 +29,22 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "via.placeholder.com",
       },
+      {
+        protocol: "https",
+        hostname: "**.neon.tech",
+      },
+      {
+        protocol: "https",
+        hostname: "**.neon.build",
+      },
+      {
+        protocol: "https",
+        hostname: "**.aws.neon.tech",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
     ],
   },
   turbopack: {

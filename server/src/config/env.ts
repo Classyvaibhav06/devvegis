@@ -38,9 +38,14 @@ export const config = {
   APP_URL: process.env.APP_URL || 'http://localhost:3000',
   API_URL: process.env.API_URL || 'http://localhost:5000',
   
-  // Storage
+  // Storage & Neon S3 Object Storage
   UPLOAD_DIR: process.env.UPLOAD_DIR || 'uploads',
   MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || '5242880', 10), // 5MB
+  AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || '',
+  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || '',
+  AWS_ENDPOINT_URL_S3: process.env.AWS_ENDPOINT_URL_S3 || '',
+  AWS_REGION: process.env.AWS_REGION || 'us-east-2',
+  AWS_BUCKET_NAME: process.env.AWS_BUCKET_NAME || 'uploads',
   
   // Delivery
   DELIVERY_FEE: parseFloat(process.env.DELIVERY_FEE || '25'),

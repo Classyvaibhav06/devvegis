@@ -35,6 +35,7 @@ import analyticsRoutes from './modules/analytics/analytics.routes';
 import wholesaleRoutes from './modules/wholesale/wholesale.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import aiRoutes from './modules/ai/ai.routes';
+import uploadRoutes from './modules/upload/upload.routes';
 
 const app = express();
 
@@ -141,6 +142,7 @@ apiRouter.use('/analytics', analyticsRoutes);
 apiRouter.use('/wholesale', wholesaleRoutes);
 apiRouter.use('/admin', adminRoutes);
 apiRouter.use('/ai', aiRoutes);
+apiRouter.use('/upload', uploadRoutes);
 
 app.use('/api/v1', apiRouter);
 

@@ -5,33 +5,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config/env';
 import { AppError } from './errorHandler';
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
 
-function ensureDir(dir: string): void {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-}
-
-const storage = multer.diskStorage({
-  destination: (req, _file, cb) => {
-    const folder = (req as any).uploadFolder || 'general';
-    const uploadPath = path.join(process.cwd(), config.UPLOAD_DIR, folder);
-    ensureDir(uploadPath);
-    cb(null, uploadPath);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const filename = `${uuidv4()}${ext}`;
-    cb(null, filename);
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new AppError('Only JPEG, PNG, WebP images are allowed', 400, 'INVALID_FILE_TYPE'));
+    cb(new AppError('Only JPEG, PNG, WebP, GIF and SVG images are allowed', 400, 'INVALID_FILE_TYPE'));
   }
 };
 

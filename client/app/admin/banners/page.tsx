@@ -8,6 +8,7 @@ import {
   Image as ImageIcon, Plus, ExternalLink, Pencil, Trash2,
   X, Check, Loader2, ToggleLeft, ToggleRight, Eye
 } from 'lucide-react';
+import S3ImageUploader from '@/components/ui/S3ImageUploader';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
@@ -248,17 +249,13 @@ export default function AdminBannersPage() {
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" />
               </div>
 
-              {/* Image URL */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Banner Image URL *</label>
-                <input type="url" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" />
-                {form.imageUrl && (
-                  <img src={form.imageUrl} alt="preview" className="mt-2 w-full h-28 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
-                    onError={e => (e.currentTarget.style.display = 'none')} />
-                )}
-              </div>
+              <S3ImageUploader
+                label="Banner Image"
+                value={form.imageUrl}
+                onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))}
+                folder="banners"
+                required
+              />
 
               {/* Type + Sort Order */}
               <div className="grid grid-cols-2 gap-3">
