@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Building2, Truck, ShieldCheck, Download, ShoppingCart,
@@ -11,15 +11,18 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Live APMC Mandi Commodity Feeds
-const MANDI_TICKER = [
-  { item: 'Nashik Red Onion', modalPrice: 28.0, change: '+1.8%', up: true, arrivals: '4,200 Qtl' },
-  { item: 'Indore Jyoti Potato', modalPrice: 24.0, change: '-0.9%', up: false, arrivals: '6,800 Qtl' },
-  { item: 'Kolar Hybrid Tomato', modalPrice: 31.0, change: '+3.2%', up: true, arrivals: '2,100 Crates' },
-  { item: 'Shimla Capsicum Green', modalPrice: 44.0, change: '-1.4%', up: false, arrivals: '850 Bags' },
-  { item: 'Ooty Table Carrots', modalPrice: 36.0, change: '0.0%', up: true, arrivals: '1,200 Crates' },
-  { item: 'Assam Ginger Coarse', modalPrice: 68.0, change: '+2.1%', up: true, arrivals: '400 Bags' },
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+
+// Fallback static ticker (shown before API loads)
+const MANDI_TICKER_FALLBACK = [
+  { id: 'f1', commodity: 'Nashik Red Onion', modalPrice: 28.0, change: '+1.8%', isUp: true, arrivals: '4,200 Qtl' },
+  { id: 'f2', commodity: 'Indore Jyoti Potato', modalPrice: 24.0, change: '-0.9%', isUp: false, arrivals: '6,800 Qtl' },
+  { id: 'f3', commodity: 'Kolar Hybrid Tomato', modalPrice: 31.0, change: '+3.2%', isUp: true, arrivals: '2,100 Crates' },
+  { id: 'f4', commodity: 'Shimla Capsicum Green', modalPrice: 44.0, change: '-1.4%', isUp: false, arrivals: '850 Bags' },
+  { id: 'f5', commodity: 'Ooty Table Carrots', modalPrice: 36.0, change: '0.0%', isUp: true, arrivals: '1,200 Crates' },
+  { id: 'f6', commodity: 'Assam Ginger Coarse', modalPrice: 68.0, change: '+2.1%', isUp: true, arrivals: '400 Bags' },
 ];
+
 
 interface WholesaleProduct {
   id: string;
@@ -179,6 +182,15 @@ export default function WholesalePage() {
   const [poReference, setPoReference] = useState('');
   const [deliverySlot, setDeliverySlot] = useState('04:30 AM - 06:00 AM (Priority Morning Kitchen Dock)');
   const [showRFQModal, setShowRFQModal] = useState(false);
+
+  // Live APMC Mandi Tickers — fetched from admin-managed database
+  const [mandiTickers, setMandiTickers] = useState(MANDI_TICKER_FALLBACK);
+  useEffect(() => {
+    fetch(`${API}/wholesale/mandi-tickers`)
+      .then(r => r.json())
+      .then(d => { if (d.data && d.data.length > 0) setMandiTickers(d.data); })
+      .catch(() => {});
+  }, []);
 
   // Quantity updates
   const updateQty = (id: string, delta: number) => {
@@ -352,20 +364,20 @@ export default function WholesalePage() {
 
             {/* Commodity Badges Scroll Container */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {MANDI_TICKER.map((ticker, idx) => (
+              {mandiTickers.map((ticker, idx) => (
                 <div
-                  key={idx}
+                  key={ticker.id || idx}
                   className="rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.03] dark:border-white/[0.05] p-3 flex flex-col justify-between hover:border-emerald-500/30 transition-colors"
                 >
                   <span className="text-[11px] font-medium text-gray-600 dark:text-gray-300 truncate">
-                    {ticker.item}
+                    {(ticker as any).commodity || (ticker as any).item}
                   </span>
                   <div className="flex items-baseline justify-between gap-2 mt-1.5">
                     <span className="font-heading font-bold text-sm text-gray-950 dark:text-white">
-                      ₹{ticker.modalPrice.toFixed(1)}<span className="text-[10px] text-gray-500 font-normal">/kg</span>
+                      ₹{ticker.modalPrice.toFixed(1)}<span className="text-[10px] text-gray-500 font-normal">/{(ticker as any).unit || 'kg'}</span>
                     </span>
-                    <span className={`text-[10px] font-mono font-semibold flex items-center gap-0.5 ${ticker.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                      {ticker.up ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                    <span className={`text-[10px] font-mono font-semibold flex items-center gap-0.5 ${(ticker as any).isUp ?? (ticker as any).up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      {(ticker as any).isUp ?? (ticker as any).up ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
                       {ticker.change}
                     </span>
                   </div>

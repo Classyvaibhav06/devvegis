@@ -44,3 +44,15 @@ export const deleteCategory = async (req: AuthRequest, res: Response): Promise<v
   await prisma.category.update({ where: { id }, data: { isActive: false } });
   res.json({ success: true, message: 'Category deactivated' });
 };
+
+export const adminGetAllCategories = async (_req: AuthRequest, res: Response): Promise<void> => {
+  const categories = await prisma.category.findMany({
+    where: { parentId: null },
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      children: { orderBy: { sortOrder: 'asc' } },
+      _count: { select: { products: { where: { isPublished: true } } } },
+    },
+  });
+  res.json({ success: true, data: categories });
+};

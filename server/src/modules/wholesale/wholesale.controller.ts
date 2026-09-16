@@ -2,6 +2,8 @@ import { Response } from 'express';
 import prisma from '../../config/prisma';
 import { AuthRequest } from '../../middleware/auth';
 
+// ─── Wholesale Buyer Registration & Profile ───────────────────────────────────
+
 export const registerWholesale = async (req: AuthRequest, res: Response): Promise<void> => {
   const { businessName, gstin, businessType, panNumber } = req.body;
   const profile = await prisma.wholesaleProfile.upsert({
@@ -32,4 +34,64 @@ export const getWholesaleProducts = async (req: AuthRequest, res: Response): Pro
     prisma.product.count({ where }),
   ]);
   res.json({ success: true, data: products, pagination: { page: parseInt(page), total } });
+};
+
+// ─── Admin: All Wholesale Buyers ─────────────────────────────────────────────
+
+export const adminGetAllBuyers = async (_req: AuthRequest, res: Response): Promise<void> => {
+  const buyers = await prisma.wholesaleProfile.findMany({
+    include: { user: { select: { id: true, name: true, email: true, phone: true, createdAt: true } } },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json({ success: true, data: buyers });
+};
+
+export const adminVerifyBuyer = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { isVerified, creditLimit, paymentTerms } = req.body;
+  const profile = await prisma.wholesaleProfile.update({
+    where: { id },
+    data: {
+      isVerified,
+      verifiedAt: isVerified ? new Date() : null,
+      creditLimit: creditLimit ?? undefined,
+      paymentTerms: paymentTerms ?? undefined,
+    },
+  });
+  res.json({ success: true, data: profile });
+};
+
+// ─── Mandi Ticker CRUD ───────────────────────────────────────────────────────
+
+export const getMandiTickers = async (_req: AuthRequest, res: Response): Promise<void> => {
+  const tickers = await prisma.mandiTicker.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+  });
+  res.json({ success: true, data: tickers });
+};
+
+export const adminGetAllMandiTickers = async (_req: AuthRequest, res: Response): Promise<void> => {
+  const tickers = await prisma.mandiTicker.findMany({ orderBy: { sortOrder: 'asc' } });
+  res.json({ success: true, data: tickers });
+};
+
+export const adminCreateMandiTicker = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { commodity, unit, modalPrice, change, isUp, arrivals, market, sortOrder } = req.body;
+  const ticker = await prisma.mandiTicker.create({
+    data: { commodity, unit, modalPrice, change, isUp, arrivals, market, sortOrder: sortOrder ?? 0 },
+  });
+  res.status(201).json({ success: true, data: ticker });
+};
+
+export const adminUpdateMandiTicker = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const ticker = await prisma.mandiTicker.update({ where: { id }, data: req.body });
+  res.json({ success: true, data: ticker });
+};
+
+export const adminDeleteMandiTicker = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params;
+  await prisma.mandiTicker.delete({ where: { id } });
+  res.json({ success: true, message: 'Ticker deleted' });
 };

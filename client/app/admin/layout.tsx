@@ -1,11 +1,13 @@
 import Link from 'next/link';
-import { Leaf, LayoutDashboard, Package, Users, ShoppingBag, Tag, Image as ImageIcon, TruckIcon, BarChart3, Settings, ChevronRight } from 'lucide-react';
+import { Leaf, LayoutDashboard, Package, Users, ShoppingBag, Tag, Image as ImageIcon, TruckIcon, BarChart3, Settings, ChevronRight, Warehouse, Layers } from 'lucide-react';
 
 const navItems = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/orders', icon: ShoppingBag, label: 'Orders' },
   { href: '/admin/products', icon: Package, label: 'Products' },
+  { href: '/admin/categories', icon: Layers, label: 'Categories' },
   { href: '/admin/inventory', icon: BarChart3, label: 'Inventory' },
+  { href: '/admin/wholesale', icon: Warehouse, label: 'Wholesale' },
   { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/riders', icon: TruckIcon, label: 'Riders' },
   { href: '/admin/coupons', icon: Tag, label: 'Coupons' },

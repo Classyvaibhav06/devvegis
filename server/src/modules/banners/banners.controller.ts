@@ -11,6 +11,11 @@ export const getBanners = async (req: AuthRequest, res: Response): Promise<void>
   res.json({ success: true, data: banners });
 };
 
+export const adminGetAllBanners = async (_req: AuthRequest, res: Response): Promise<void> => {
+  const banners = await prisma.banner.findMany({ orderBy: { sortOrder: 'asc' } });
+  res.json({ success: true, data: banners });
+};
+
 export const createBanner = async (req: AuthRequest, res: Response): Promise<void> => {
   const banner = await prisma.banner.create({ data: req.body });
   res.status(201).json({ success: true, data: banner });

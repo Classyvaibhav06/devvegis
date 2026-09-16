@@ -761,3 +761,24 @@ model AnalyticsEvent {
   @@index([createdAt])
   @@map("analytics_events")
 }
+
+// ─────────────────────────────────────────
+// MANDI TICKER
+// ─────────────────────────────────────────
+
+model MandiTicker {
+  id          String   @id @default(uuid())
+  commodity   String
+  unit        String   @default("kg")
+  modalPrice  Float
+  change      String   @default("0.0%")
+  isUp        Boolean  @default(true)
+  arrivals    String?
+  market      String?  // e.g. "Vashi", "Azadpur"
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@map("mandi_tickers")
+}
