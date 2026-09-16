@@ -85,7 +85,7 @@ function OAuthCallbackContent() {
         }
 
         // Route to appropriate section
-        if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+        if (user.role === 'ADMIN') {
           router.push('/admin');
         } else if (user.role === 'RIDER') {
           router.push('/rider');

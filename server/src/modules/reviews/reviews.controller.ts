@@ -14,8 +14,23 @@ export const createReview = async (req: AuthRequest, res: Response): Promise<voi
   const { productId, rating, title, body, orderId } = req.body;
   const existing = await prisma.review.findFirst({ where: { userId: req.user!.id, productId } });
   if (existing) throw new AppError('You have already reviewed this product', 409);
+  const safeRating = Math.max(1, Math.min(5, parseInt(rating, 10) || 5));
+  const cleanTitle = typeof title === 'string' ? title.trim().slice(0, 150) : '';
+  const cleanBody = typeof body === 'string' ? body.trim().slice(0, 2000) : '';
   const isVerified = orderId ? !!(await prisma.orderItem.findFirst({ where: { orderId, productId, order: { userId: req.user!.id } } })) : false;
-  const review = await prisma.review.create({ data: { id: uuidv4(), userId: req.user!.id, productId, rating, title, body, orderId, isVerifiedPurchase: isVerified, status: 'PENDING' } });
+  const review = await prisma.review.create({
+    data: {
+      id: uuidv4(),
+      userId: req.user!.id,
+      productId,
+      rating: safeRating,
+      title: cleanTitle,
+      body: cleanBody,
+      orderId,
+      isVerifiedPurchase: isVerified,
+      status: 'PENDING'
+    }
+  });
   res.status(201).json({ success: true, data: review });
 };
 

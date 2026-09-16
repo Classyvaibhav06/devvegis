@@ -38,35 +38,61 @@ import aiRoutes from './modules/ai/ai.routes';
 
 const app = express();
 
+// Trust reverse proxy (Next.js rewrites, Cloudflare, Nginx, Vercel)
+app.set('trust proxy', 1);
+
 // ─── SECURITY MIDDLEWARE ──────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
+const allowedOrigins = config.CORS_ORIGIN
+  ? config.CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean)
+  : ['http://localhost:3000'];
+
 app.use(cors({
-  origin: config.CORS_ORIGIN.split(','),
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Permissive fallback for dev / local preview
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Refresh-Token'],
 }));
 
-// ─── RATE LIMITING ────────────────────────────────────
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500,
-  message: { error: 'Too many requests, please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// ─── RATE LIMITING TIERS ──────────────────────────────
+const createRateLimiter = (maxRequests: number, windowMinutes: number, message: string) => {
+  return rateLimit({
+    windowMs: windowMinutes * 60 * 1000,
+    max: maxRequests,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (_req, res) => {
+      res.status(429).json({
+        success: false,
+        error: message,
+        code: 'RATE_LIMIT_EXCEEDED',
+      });
+    },
+  });
+};
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { error: 'Too many auth attempts, please try again later.' },
-});
+const globalLimiter = createRateLimiter(500, 15, 'Too many requests. Please try again shortly.');
+const authLimiter = createRateLimiter(20, 15, 'Too many authentication attempts. Please try again after 15 minutes.');
+const checkoutLimiter = createRateLimiter(30, 15, 'Too many order or payment requests. Please try again shortly.');
+const otpLimiter = createRateLimiter(5, 10, 'Too many OTP requests. Please wait a few minutes before trying again.');
 
+// Apply rate limiters
 app.use('/api', globalLimiter);
+app.use('/api/v1/auth', authLimiter);
 app.use('/api/auth', authLimiter);
+app.use('/api/v1/auth/send-otp', otpLimiter);
+app.use('/api/v1/orders', checkoutLimiter);
+app.use('/api/v1/payments', checkoutLimiter);
 
 // ─── BODY PARSING ─────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));

@@ -41,6 +41,9 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
 };
 
 export const toggleUserStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  if (req.user?.id === req.params.id) {
+    throw new AppError('Cannot deactivate your own admin account', 400, 'SELF_DEACTIVATION_FORBIDDEN');
+  }
   const user = await prisma.user.findUnique({ where: { id: req.params.id } });
   if (!user) throw new AppError('User not found', 404);
   const updated = await prisma.user.update({ where: { id: req.params.id }, data: { isActive: !user.isActive } });

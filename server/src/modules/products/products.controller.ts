@@ -3,6 +3,21 @@ import prisma from '../../config/prisma';
 import { AppError } from '../../middleware/errorHandler';
 import { AuthRequest } from '../../middleware/auth';
 import { config } from '../../config/env';
+import { ProductUnit } from '@prisma/client';
+
+const parseProductUnit = (unitStr?: string): ProductUnit => {
+  if (!unitStr) return ProductUnit.GRAM;
+  const upper = unitStr.toUpperCase().trim();
+  if (['GRAM', 'KG', 'PIECE', 'BUNDLE', 'DOZEN', 'LITRE'].includes(upper)) {
+    return upper as ProductUnit;
+  }
+  if (upper.includes('KG')) return ProductUnit.KG;
+  if (upper.includes('PC') || upper.includes('PIECE')) return ProductUnit.PIECE;
+  if (upper.includes('DOZ')) return ProductUnit.DOZEN;
+  if (upper.includes('LIT') || upper.includes('LTR')) return ProductUnit.LITRE;
+  if (upper.includes('BUN')) return ProductUnit.BUNDLE;
+  return ProductUnit.GRAM;
+};
 
 export const getProducts = async (req: AuthRequest, res: Response): Promise<void> => {
   const {
@@ -46,14 +61,39 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
       skip,
       take,
       orderBy: { [sortField]: sortOrder },
-      include: {
-        images: { where: { isPrimary: true }, take: 1 },
-        category: { select: { name: true, slug: true } },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
+        wholesalePrice: true,
+        comparePrice: true,
+        unit: true,
+        weight: true,
+        minOrderQty: true,
+        isOrganic: true,
+        isFeatured: true,
+        isFreshToday: true,
+        isSeasonalItem: true,
+        isPublished: true,
+        discountPercentage: true,
+        rating: true,
+        reviewCount: true,
+        tags: true,
+        origin: true,
+        images: {
+          select: { id: true, url: true, alt: true, isPrimary: true },
+          where: { isPrimary: true },
+          take: 1,
+        },
+        category: { select: { id: true, name: true, slug: true } },
         inventory: { select: { availableStock: true } },
       },
     }),
     prisma.product.count({ where }),
   ]);
+
+  res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=120, stale-while-revalidate=300');
 
   res.json({
     success: true,
@@ -110,10 +150,12 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
     }).catch(() => {});
   }
 
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.json({ success: true, data: { ...product, similar } });
 };
 
 export const getFeaturedProducts = async (req: AuthRequest, res: Response): Promise<void> => {
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   const products = await prisma.product.findMany({
     where: { isPublished: true, isFeatured: true },
     take: 16,
@@ -199,38 +241,176 @@ export const searchProducts = async (req: AuthRequest, res: Response): Promise<v
 };
 
 export const createProduct = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { categoryId, name, price, wholesalePrice, sku, ...rest } = req.body;
+  const {
+    categoryId, name, price, wholesalePrice, comparePrice, mrp, sku,
+    stock, unit, image, images, description, shortDescription,
+    barcode, tags, costPrice, minOrderQty, wholesaleMinQty,
+    weight, origin, isOrganic, isFeatured, isFreshToday,
+    isSeasonalItem, isPublished
+  } = req.body;
   const files = req.files as Express.Multer.File[];
 
-  const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+  const generatedSlug = `${(name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+  const effectiveSku = sku || `SKU-${Date.now().toString().slice(-6)}`;
+  const effectiveComparePrice = mrp !== undefined && mrp !== '' && mrp !== null
+    ? parseFloat(mrp)
+    : (comparePrice !== undefined && comparePrice !== '' && comparePrice !== null ? parseFloat(comparePrice) : null);
+  const parsedUnit = parseProductUnit(unit);
 
   const product = await prisma.product.create({
-    data: { categoryId, name, slug, price: parseFloat(price), wholesalePrice: parseFloat(wholesalePrice), sku, ...rest },
+    data: {
+      categoryId,
+      name,
+      slug: generatedSlug,
+      sku: effectiveSku,
+      price: parseFloat(price) || 0,
+      wholesalePrice: wholesalePrice !== undefined && wholesalePrice !== '' && wholesalePrice !== null ? parseFloat(wholesalePrice) : null,
+      comparePrice: effectiveComparePrice,
+      costPrice: costPrice !== undefined && costPrice !== '' && costPrice !== null ? parseFloat(costPrice) : null,
+      minOrderQty: minOrderQty ? parseInt(minOrderQty, 10) : 1,
+      wholesaleMinQty: wholesaleMinQty ? parseInt(wholesaleMinQty, 10) : 10,
+      unit: parsedUnit,
+      description: description || null,
+      shortDescription: shortDescription || null,
+      barcode: barcode || null,
+      tags: Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []),
+      weight: weight !== undefined && weight !== '' && weight !== null ? parseFloat(weight) : null,
+      origin: origin || null,
+      isOrganic: Boolean(isOrganic),
+      isFeatured: Boolean(isFeatured),
+      isFreshToday: Boolean(isFreshToday),
+      isSeasonalItem: Boolean(isSeasonalItem),
+      isPublished: isPublished !== undefined ? Boolean(isPublished) : true,
+    },
   });
 
+  // Handle uploaded files or provided image URLs
+  const imageUrls: string[] = [];
   if (files?.length) {
+    files.forEach(f => imageUrls.push(`${config.API_URL}/uploads/products/${f.filename}`));
+  }
+  if (image && typeof image === 'string') {
+    imageUrls.push(image);
+  }
+  if (Array.isArray(images)) {
+    images.forEach((img: any) => {
+      const u = typeof img === 'string' ? img : img?.url;
+      if (u && !imageUrls.includes(u)) imageUrls.push(u);
+    });
+  }
+
+  if (imageUrls.length > 0) {
     await prisma.productImage.createMany({
-      data: files.map((file, i) => ({
+      data: imageUrls.map((url, idx) => ({
         productId: product.id,
-        url: `${config.API_URL}/uploads/products/${file.filename}`,
-        isPrimary: i === 0,
-        sortOrder: i,
+        url,
+        isPrimary: idx === 0,
+        sortOrder: idx,
       })),
     });
   }
 
+  // Stock inventory
+  const initialStock = stock !== undefined && stock !== '' ? (parseInt(stock, 10) || 0) : 0;
   await prisma.inventory.create({
-    data: { productId: product.id, warehouseStock: 0, availableStock: 0 },
+    data: { productId: product.id, warehouseStock: initialStock, availableStock: initialStock },
   });
 
-  res.status(201).json({ success: true, data: product });
+  const fullProduct = await prisma.product.findUnique({
+    where: { id: product.id },
+    include: { images: true, inventory: true, category: true },
+  });
+
+  res.status(201).json({ success: true, data: fullProduct || product });
 };
 
 export const updateProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  const product = await prisma.product.update({ where: { id }, data: req.body });
-  res.json({ success: true, data: product });
+  const {
+    categoryId, name, price, wholesalePrice, comparePrice, mrp, sku,
+    stock, unit, image, images, description, shortDescription,
+    barcode, tags, costPrice, minOrderQty, wholesaleMinQty,
+    weight, origin, isOrganic, isFeatured, isFreshToday,
+    isSeasonalItem, isPublished, slug
+  } = req.body;
+
+  // Build clean update object for Product table only
+  const updateData: any = {};
+  if (name !== undefined) updateData.name = name;
+  if (slug !== undefined) updateData.slug = slug;
+  if (categoryId !== undefined) updateData.categoryId = categoryId;
+  if (price !== undefined && price !== '') updateData.price = parseFloat(price);
+  if (wholesalePrice !== undefined) {
+    updateData.wholesalePrice = wholesalePrice !== '' && wholesalePrice !== null ? parseFloat(wholesalePrice) : null;
+  }
+  if (mrp !== undefined) {
+    updateData.comparePrice = mrp !== '' && mrp !== null ? parseFloat(mrp) : null;
+  } else if (comparePrice !== undefined) {
+    updateData.comparePrice = comparePrice !== '' && comparePrice !== null ? parseFloat(comparePrice) : null;
+  }
+  if (costPrice !== undefined) {
+    updateData.costPrice = costPrice !== '' && costPrice !== null ? parseFloat(costPrice) : null;
+  }
+  if (sku !== undefined) updateData.sku = sku;
+  if (barcode !== undefined) updateData.barcode = barcode || null;
+  if (unit !== undefined) updateData.unit = parseProductUnit(unit);
+  if (description !== undefined) updateData.description = description;
+  if (shortDescription !== undefined) updateData.shortDescription = shortDescription;
+  if (weight !== undefined) {
+    updateData.weight = weight !== '' && weight !== null ? parseFloat(weight) : null;
+  }
+  if (origin !== undefined) updateData.origin = origin;
+  if (minOrderQty !== undefined && minOrderQty !== '') updateData.minOrderQty = parseInt(minOrderQty, 10);
+  if (wholesaleMinQty !== undefined && wholesaleMinQty !== '') updateData.wholesaleMinQty = parseInt(wholesaleMinQty, 10);
+  if (isOrganic !== undefined) updateData.isOrganic = Boolean(isOrganic);
+  if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
+  if (isFreshToday !== undefined) updateData.isFreshToday = Boolean(isFreshToday);
+  if (isSeasonalItem !== undefined) updateData.isSeasonalItem = Boolean(isSeasonalItem);
+  if (isPublished !== undefined) updateData.isPublished = Boolean(isPublished);
+  if (tags !== undefined) {
+    updateData.tags = Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []);
+  }
+
+  const product = await prisma.product.update({
+    where: { id },
+    data: updateData,
+  });
+
+  // Handle stock update in inventory
+  if (stock !== undefined && stock !== '') {
+    const stockVal = Math.max(0, parseInt(stock, 10) || 0);
+    await prisma.inventory.upsert({
+      where: { productId: id },
+      create: { productId: id, availableStock: stockVal, warehouseStock: stockVal },
+      update: { availableStock: stockVal, warehouseStock: stockVal },
+    });
+  }
+
+  // Handle primary image update
+  if (image && typeof image === 'string') {
+    const existingPrimary = await prisma.productImage.findFirst({
+      where: { productId: id, isPrimary: true },
+    });
+    if (existingPrimary) {
+      await prisma.productImage.update({
+        where: { id: existingPrimary.id },
+        data: { url: image },
+      });
+    } else {
+      await prisma.productImage.create({
+        data: { productId: id, url: image, isPrimary: true, sortOrder: 0 },
+      });
+    }
+  }
+
+  const fullProduct = await prisma.product.findUnique({
+    where: { id },
+    include: { images: true, inventory: true, category: true },
+  });
+
+  res.json({ success: true, data: fullProduct || product });
 };
+
 
 export const deleteProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;

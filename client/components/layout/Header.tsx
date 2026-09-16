@@ -297,7 +297,7 @@ export default function Header() {
                       {[
                         { href: '/profile', icon: User, label: 'My Profile' },
                         { href: '/orders', icon: Package, label: 'My Orders' },
-                        ...(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? [{ href: '/admin', icon: Settings, label: 'Admin Panel' }] : []),
+                        ...(user?.role === 'ADMIN' ? [{ href: '/admin', icon: Settings, label: 'Admin Panel' }] : []),
                         ...(user?.role === 'WHOLESALE_BUYER' ? [{ href: '/wholesale', icon: Store, label: 'Wholesale B2B' }] : []),
                         ...(user?.role === 'RIDER' ? [{ href: '/rider', icon: Package, label: 'Rider Dashboard' }] : []),
                         { href: '/help', icon: Headphones, label: 'Help Center' },

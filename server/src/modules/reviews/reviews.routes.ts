@@ -4,6 +4,6 @@ import { getProductReviews, createReview, approveReview, getAllReviews } from '.
 const router = Router();
 router.get('/product/:productId', getProductReviews);
 router.post('/', authenticate, createReview);
-router.patch('/:id/approve', authenticate, authorize('ADMIN','SUPER_ADMIN'), approveReview);
-router.get('/admin', authenticate, authorize('ADMIN','SUPER_ADMIN'), getAllReviews);
+router.patch('/:id/approve', authenticate, authorize('ADMIN'), approveReview);
+router.get('/admin', authenticate, authorize('ADMIN'), getAllReviews);
 export default router;

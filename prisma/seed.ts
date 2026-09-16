@@ -48,7 +48,7 @@ async function main() {
       email: 'superadmin@devvegis.com',
       phone: '9000000001',
       password: hashedPassword,
-      role: Role.SUPER_ADMIN,
+      role: Role.ADMIN,
       isEmailVerified: true,
       isPhoneVerified: true,
       referralCode: 'SUPERADMIN',

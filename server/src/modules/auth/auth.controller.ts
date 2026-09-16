@@ -695,13 +695,13 @@ export const syncNeonAuth = async (req: AuthRequest, res: Response): Promise<voi
   // 1. If a session token was passed, query neon_auth.session joined with neon_auth.user
   if (sessionToken) {
     try {
-      const sessionRecord = await prisma.$queryRawUnsafe<any[]>(`
+      const sessionRecord = await prisma.$queryRaw<any[]>`
         SELECT s.*, u.id as "neonUserId", u.name, u.email, u.image 
         FROM neon_auth.session s
         JOIN neon_auth.user u ON s."userId" = u.id
-        WHERE s.token = $1 AND s."expiresAt" > NOW()
+        WHERE s.token = ${sessionToken} AND s."expiresAt" > NOW()
         LIMIT 1
-      `, sessionToken);
+      `;
       if (sessionRecord && sessionRecord.length > 0) {
         neonUser = sessionRecord[0];
       }
@@ -713,13 +713,13 @@ export const syncNeonAuth = async (req: AuthRequest, res: Response): Promise<voi
   // 2. If no sessionToken or not found, check the most recent user in neon_auth.user (within last 10 minutes)
   if (!neonUser) {
     try {
-      const recentUsers = await prisma.$queryRawUnsafe<any[]>(`
+      const recentUsers = await prisma.$queryRaw<any[]>`
         SELECT id, name, email, image, "createdAt", "updatedAt"
         FROM neon_auth.user
         WHERE "updatedAt" > NOW() - INTERVAL '10 minutes'
         ORDER BY "updatedAt" DESC
         LIMIT 1
-      `);
+      `;
       if (recentUsers && recentUsers.length > 0) {
         neonUser = recentUsers[0];
       }

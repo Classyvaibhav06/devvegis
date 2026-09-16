@@ -188,8 +188,8 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="p-4">
                       <span className="font-extrabold text-green-600 text-sm">₹{p.price}</span>
-                      {p.mrp && p.mrp > p.price && (
-                        <span className="text-gray-400 line-through text-xs ml-1.5">₹{p.mrp}</span>
+                      {(p.comparePrice || p.mrp) && (p.comparePrice || p.mrp) > p.price && (
+                        <span className="text-gray-400 line-through text-xs ml-1.5">₹{p.comparePrice || p.mrp}</span>
                       )}
                     </td>
                     <td className="p-4">
@@ -198,9 +198,14 @@ export default function AdminProductsPage() {
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className={`font-semibold ${p.stock <= 15 ? 'text-rose-600 font-bold' : 'text-green-600'}`}>
-                        {p.stock} units
-                      </span>
+                      {(() => {
+                        const currentStock = p.inventory?.availableStock !== undefined ? p.inventory.availableStock : (p.stock || 0);
+                        return (
+                          <span className={`font-semibold ${currentStock <= 15 ? 'text-rose-600 font-bold' : 'text-green-600'}`}>
+                            {currentStock} units
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="p-4">
                       {p.isOrganic ? (
@@ -216,9 +221,10 @@ export default function AdminProductsPage() {
                             id: p.id,
                             name: p.name,
                             price: p.price,
-                            mrp: p.mrp || p.price + 10,
+                            mrp: p.comparePrice || p.mrp || p.price + 10,
+                            comparePrice: p.comparePrice || p.mrp || p.price + 10,
                             unit: p.unit || '500g',
-                            stock: p.stock || 50,
+                            stock: p.inventory?.availableStock !== undefined ? p.inventory.availableStock : (p.stock || 50),
                             isOrganic: p.isOrganic || false,
                             image: p.images?.[0]?.url || p.images?.[0] || '',
                           })}

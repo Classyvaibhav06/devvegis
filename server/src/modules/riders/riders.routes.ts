@@ -10,6 +10,6 @@ router.get('/available-orders', getAvailableOrders);
 router.post('/accept-order', acceptOrder);
 router.patch('/delivery-status', updateDeliveryStatus);
 router.get('/earnings', getRiderEarnings);
-router.get('/admin/all', authorize('ADMIN','SUPER_ADMIN'), getAllRiders);
-router.patch('/admin/:id/approve', authorize('ADMIN','SUPER_ADMIN'), approveRider);
+router.get('/admin/all', authorize('ADMIN'), getAllRiders);
+router.patch('/admin/:id/approve', authorize('ADMIN'), approveRider);
 export default router;

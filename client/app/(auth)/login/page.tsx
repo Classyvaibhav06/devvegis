@@ -36,7 +36,7 @@ export default function LoginPage() {
       setAuth(user, accessToken);
       toast.success(`Welcome back, ${user.name}! 👋`);
 
-      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+      if (user.role === 'ADMIN') {
         router.push('/admin');
       } else if (user.role === 'RIDER') {
         router.push('/rider');

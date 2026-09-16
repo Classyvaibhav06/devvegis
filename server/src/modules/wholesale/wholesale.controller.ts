@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../../config/prisma';
 import { AuthRequest } from '../../middleware/auth';
+import { memoryCache } from '../../utils/cache';
 
 // ─── Wholesale Buyer Registration & Profile ───────────────────────────────────
 
@@ -61,13 +62,25 @@ export const adminVerifyBuyer = async (req: AuthRequest, res: Response): Promise
   res.json({ success: true, data: profile });
 };
 
+const MANDI_CACHE_KEY = 'public_mandi_tickers';
+
 // ─── Mandi Ticker CRUD ───────────────────────────────────────────────────────
 
 export const getMandiTickers = async (_req: AuthRequest, res: Response): Promise<void> => {
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+
+  const cached = memoryCache.get<any>(MANDI_CACHE_KEY);
+  if (cached) {
+    res.json({ success: true, data: cached });
+    return;
+  }
+
   const tickers = await prisma.mandiTicker.findMany({
     where: { isActive: true },
     orderBy: { sortOrder: 'asc' },
   });
+
+  memoryCache.set(MANDI_CACHE_KEY, tickers, 180); // 3 minutes
   res.json({ success: true, data: tickers });
 };
 
@@ -81,17 +94,20 @@ export const adminCreateMandiTicker = async (req: AuthRequest, res: Response): P
   const ticker = await prisma.mandiTicker.create({
     data: { commodity, unit, modalPrice, change, isUp, arrivals, market, sortOrder: sortOrder ?? 0 },
   });
+  memoryCache.del(MANDI_CACHE_KEY);
   res.status(201).json({ success: true, data: ticker });
 };
 
 export const adminUpdateMandiTicker = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   const ticker = await prisma.mandiTicker.update({ where: { id }, data: req.body });
+  memoryCache.del(MANDI_CACHE_KEY);
   res.json({ success: true, data: ticker });
 };
 
 export const adminDeleteMandiTicker = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   await prisma.mandiTicker.delete({ where: { id } });
+  memoryCache.del(MANDI_CACHE_KEY);
   res.json({ success: true, message: 'Ticker deleted' });
 };

@@ -4,9 +4,9 @@ import { getCategories, getCategory, createCategory, updateCategory, deleteCateg
 
 const router = Router();
 router.get('/', getCategories);
-router.get('/admin/all', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), adminGetAllCategories);
+router.get('/admin/all', authenticate, authorize('ADMIN'), adminGetAllCategories);
 router.get('/:slug', getCategory);
-router.post('/', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), createCategory);
-router.put('/:id', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), updateCategory);
-router.delete('/:id', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), deleteCategory);
+router.post('/', authenticate, authorize('ADMIN'), createCategory);
+router.put('/:id', authenticate, authorize('ADMIN'), updateCategory);
+router.delete('/:id', authenticate, authorize('ADMIN'), deleteCategory);
 export default router;

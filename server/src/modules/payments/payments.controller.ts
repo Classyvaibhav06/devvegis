@@ -10,6 +10,12 @@ const razorpay = new Razorpay({ key_id: config.RAZORPAY_KEY_ID, key_secret: conf
 
 export const createRazorpayOrder = async (req: AuthRequest, res: Response): Promise<void> => {
   const { orderId } = req.body;
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) throw new AppError('Order not found', 404);
+  if (order.userId !== req.user!.id && req.user!.role !== 'ADMIN') {
+    throw new AppError('Unauthorized access to order payment', 403);
+  }
+
   const payment = await prisma.payment.findUnique({ where: { orderId } });
   if (!payment) throw new AppError('Payment record not found', 404);
 
@@ -17,7 +23,7 @@ export const createRazorpayOrder = async (req: AuthRequest, res: Response): Prom
     amount: Math.round(payment.amount * 100),
     currency: 'INR',
     receipt: orderId,
-    notes: { orderId, userId: req.user!.id },
+    notes: { orderId, userId: order.userId },
   });
 
   await prisma.payment.update({ where: { orderId }, data: { razorpayOrderId: rzpOrder.id } });
@@ -27,6 +33,19 @@ export const createRazorpayOrder = async (req: AuthRequest, res: Response): Prom
 
 export const verifyRazorpayPayment = async (req: AuthRequest, res: Response): Promise<void> => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) throw new AppError('Order not found', 404);
+  if (order.userId !== req.user!.id && req.user!.role !== 'ADMIN') {
+    throw new AppError('Unauthorized access to order payment', 403);
+  }
+
+  const payment = await prisma.payment.findUnique({ where: { orderId } });
+  if (!payment) throw new AppError('Payment record not found', 404);
+  if (payment.status === 'PAID') {
+    res.json({ success: true, message: 'Payment already verified' });
+    return;
+  }
 
   const signature = crypto.createHmac('sha256', config.RAZORPAY_KEY_SECRET)
     .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -41,14 +60,11 @@ export const verifyRazorpayPayment = async (req: AuthRequest, res: Response): Pr
     });
     await tx.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED', confirmedAt: new Date() } });
     
-    // Add cashback
-    const order = await tx.order.findUnique({ where: { id: orderId } });
-    if (order) {
-      const cashback = Math.floor(order.totalAmount * 0.02);
-      if (cashback > 0) {
-        const wallet = await tx.wallet.update({ where: { userId: req.user!.id }, data: { balance: { increment: cashback }, totalCredits: { increment: cashback } } });
-        await tx.walletTransaction.create({ data: { walletId: wallet.id, type: 'CASHBACK', amount: cashback, balance: wallet.balance, description: `2% cashback on order #${order.orderNumber}`, orderId } });
-      }
+    // Add cashback to the order's owner
+    const cashback = Math.floor(order.totalAmount * 0.02);
+    if (cashback > 0) {
+      const wallet = await tx.wallet.update({ where: { userId: order.userId }, data: { balance: { increment: cashback }, totalCredits: { increment: cashback } } });
+      await tx.walletTransaction.create({ data: { walletId: wallet.id, type: 'CASHBACK', amount: cashback, balance: wallet.balance, description: `2% cashback on order #${order.orderNumber}`, orderId } });
     }
   });
 

@@ -38,7 +38,7 @@ export const getOrders = async (req: AuthRequest, res: Response): Promise<void> 
 export const getOrder = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   const where: any = { id };
-  const isAdminOrRider = ['ADMIN', 'SUPER_ADMIN', 'RIDER'].includes(req.user?.role || '');
+  const isAdminOrRider = ['ADMIN', 'RIDER'].includes(req.user?.role || '');
   if (!isAdminOrRider) {
     where.userId = req.user!.id;
   }

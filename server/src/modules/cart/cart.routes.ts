@@ -5,6 +5,7 @@ import { getCart, addToCart, updateCartItem, removeFromCart, saveForLater, moveT
 const router = Router();
 router.use(authenticate);
 router.get('/', getCart);
+router.post('/', addToCart);
 router.post('/add', addToCart);
 router.put('/:productId', updateCartItem);
 router.delete('/:productId', removeFromCart);

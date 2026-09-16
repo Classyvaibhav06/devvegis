@@ -13,10 +13,10 @@ router.get('/featured', getFeaturedProducts);
 router.get('/flash-deals', getFlashDeals);
 router.get('/search', searchProducts);
 router.get('/:slug', getProduct);
-router.post('/', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), (req, _res, next) => {
+router.post('/', authenticate, authorize('ADMIN'), (req, _res, next) => {
   (req as any).uploadFolder = 'products'; next();
 }, uploadProduct, createProduct);
-router.put('/:id', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), updateProduct);
-router.delete('/:id', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), deleteProduct);
+router.put('/:id', authenticate, authorize('ADMIN'), updateProduct);
+router.delete('/:id', authenticate, authorize('ADMIN'), deleteProduct);
 
 export default router;

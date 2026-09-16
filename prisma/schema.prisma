@@ -19,7 +19,6 @@ enum Role {
   WHOLESALE_BUYER
   RIDER
   ADMIN
-  SUPER_ADMIN
 }
 
 enum OrderStatus {
@@ -294,6 +293,12 @@ model Product {
   @@index([isPublished])
   @@index([isFeatured])
   @@index([isOrganic])
+  @@index([isPublished, categoryId])
+  @@index([isPublished, isFreshToday])
+  @@index([isPublished, isFeatured])
+  @@index([isPublished, isOrganic])
+  @@index([isPublished, price])
+  @@index([isPublished, rating])
   @@map("products")
 }
 
@@ -338,6 +343,7 @@ model Inventory {
 
   product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
+  @@index([productId])
   @@map("inventory")
 }
 
@@ -467,6 +473,8 @@ model Order {
   @@index([status])
   @@index([orderNumber])
   @@index([createdAt])
+  @@index([userId, status])
+  @@index([status, createdAt])
   @@map("orders")
 }
 
@@ -669,6 +677,7 @@ model Review {
   @@unique([userId, productId, orderId])
   @@index([productId])
   @@index([status])
+  @@index([productId, status])
   @@map("reviews")
 }
 

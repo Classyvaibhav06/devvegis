@@ -4,7 +4,7 @@ import { validateCoupon, getCoupons, getAllCoupons, createCoupon, updateCoupon }
 const router = Router();
 router.get('/', authenticate, getCoupons);
 router.post('/validate', authenticate, validateCoupon);
-router.get('/admin', authenticate, authorize('ADMIN','SUPER_ADMIN'), getAllCoupons);
-router.post('/', authenticate, authorize('ADMIN','SUPER_ADMIN'), createCoupon);
-router.put('/:id', authenticate, authorize('ADMIN','SUPER_ADMIN'), updateCoupon);
+router.get('/admin', authenticate, authorize('ADMIN'), getAllCoupons);
+router.post('/', authenticate, authorize('ADMIN'), createCoupon);
+router.put('/:id', authenticate, authorize('ADMIN'), updateCoupon);
 export default router;

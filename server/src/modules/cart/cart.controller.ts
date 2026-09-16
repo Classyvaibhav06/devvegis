@@ -42,6 +42,7 @@ export const getCart = async (req: AuthRequest, res: Response): Promise<void> =>
 
 export const addToCart = async (req: AuthRequest, res: Response): Promise<void> => {
   const { productId, quantity = 1 } = req.body;
+  const safeQuantity = Math.max(1, Math.min(100, parseInt(quantity, 10) || 1));
   const userId = req.user!.id;
 
   const product = await prisma.product.findUnique({
@@ -50,14 +51,14 @@ export const addToCart = async (req: AuthRequest, res: Response): Promise<void> 
   });
 
   if (!product) throw new AppError('Product not found', 404);
-  if (!product.inventory || product.inventory.availableStock < quantity) {
+  if (!product.inventory || product.inventory.availableStock < safeQuantity) {
     throw new AppError('Insufficient stock', 400, 'OUT_OF_STOCK');
   }
 
   const item = await prisma.cartItem.upsert({
     where: { userId_productId: { userId, productId } },
-    update: { quantity: { increment: quantity } },
-    create: { userId, productId, quantity },
+    update: { quantity: { increment: safeQuantity } },
+    create: { userId, productId, quantity: safeQuantity },
     include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } },
   });
 
@@ -68,16 +69,19 @@ export const updateCartItem = async (req: AuthRequest, res: Response): Promise<v
   const { productId } = req.params;
   const { quantity } = req.body;
   const userId = req.user!.id;
+  const parsedQty = parseInt(quantity, 10);
 
-  if (quantity <= 0) {
+  if (isNaN(parsedQty) || parsedQty <= 0) {
     await prisma.cartItem.deleteMany({ where: { userId, productId } });
     res.json({ success: true, message: 'Item removed from cart' });
     return;
   }
 
+  const safeQuantity = Math.min(100, parsedQty);
+
   const item = await prisma.cartItem.update({
     where: { userId_productId: { userId, productId } },
-    data: { quantity },
+    data: { quantity: safeQuantity },
   });
 
   res.json({ success: true, data: item });

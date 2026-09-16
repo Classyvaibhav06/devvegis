@@ -20,8 +20,9 @@ export const updateAddress = async (req: AuthRequest, res: Response): Promise<vo
   const { id } = req.params;
   const address = await prisma.address.findFirst({ where: { id, userId: req.user!.id } });
   if (!address) throw new AppError('Address not found', 404);
-  if (req.body.isDefault) await prisma.address.updateMany({ where: { userId: req.user!.id }, data: { isDefault: false } });
-  const updated = await prisma.address.update({ where: { id }, data: req.body });
+  const { id: _id, userId: _userId, ...cleanData } = req.body;
+  if (cleanData.isDefault) await prisma.address.updateMany({ where: { userId: req.user!.id }, data: { isDefault: false } });
+  const updated = await prisma.address.update({ where: { id }, data: cleanData });
   res.json({ success: true, data: updated });
 };
 

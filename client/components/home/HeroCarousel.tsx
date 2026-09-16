@@ -27,12 +27,12 @@ export default function HeroBanner() {
       {/* Content */}
       <div className="relative z-10 p-8 sm:p-12 lg:p-16 max-w-xl">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] leading-[1.1] tracking-tight">
-          Don&apos;t miss<br />
-          amazing grocery<br />
-          <span className="text-emerald-600 dark:text-emerald-400">deals.</span>
+          Farm-Fresh Produce.<br />
+          Delivered in<br />
+          <span className="text-emerald-600 dark:text-emerald-400">12 Minutes.</span>
         </h1>
         <p className="text-slate-600 dark:text-[#8B96A8] text-sm sm:text-base mt-4 leading-relaxed max-w-md">
-          Join our daily newsletter and get exclusive grocery discounts, fresh finds, and tasty inspirations straight to your inbox.
+          DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and hydroponic greens harvested at dawn.
         </p>
 
         {/* Newsletter Input */}
