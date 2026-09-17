@@ -13,7 +13,7 @@ import api from '@/lib/api';
 
 const defaultStaples = [
   {
-    id: 'staple-avocado',
+    id: '377ff3cd-a728-46ec-ad9a-462b05e384a2',
     name: 'Organic Hass Avocados',
     price: 149,
     unit: '2 pcs (320g)',
@@ -21,7 +21,7 @@ const defaultStaples = [
     image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=300&q=80',
   },
   {
-    id: 'staple-cucumber',
+    id: '399bfede-c84e-4b0d-a52c-02d4d96a3520',
     name: 'Hydro English Cucumber',
     price: 45,
     unit: '500g (2-3 pcs)',
@@ -29,7 +29,7 @@ const defaultStaples = [
     image: 'https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=300&q=80',
   },
   {
-    id: 'staple-tomatoes',
+    id: 'f6818ca0-71a9-48e4-9778-bf1cdc7f2025',
     name: 'Cherry Vine Tomatoes',
     price: 65,
     unit: '250g punnet',
@@ -37,7 +37,7 @@ const defaultStaples = [
     image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=300&q=80',
   },
   {
-    id: 'staple-spinach',
+    id: '4a172e0d-6f4e-4009-8f07-9adf828d577b',
     name: 'Tender Baby Spinach',
     price: 40,
     unit: '200g bunch',

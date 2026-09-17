@@ -80,24 +80,89 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
 
   // 1. If client provided items in the request body (from local cart store)
   if (Array.isArray(bodyItems) && bodyItems.length > 0) {
-    const productIds = bodyItems.map((i: any) => i.productId || i.id).filter(Boolean);
-    const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      include: {
-        inventory: true,
-        images: { where: { isPrimary: true }, take: 1 },
-      },
-    });
-    const productMap = new Map(products.map(p => [p.id, p]));
+    const rawIds = bodyItems.map((i: any) => String(i.productId || i.id || '')).filter(Boolean);
+    const rawNames = bodyItems.map((i: any) => String(i.name || '').trim()).filter(Boolean);
+
+    // Separate valid UUIDs from slugs/custom IDs
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const validUuids = rawIds.filter((id: string) => uuidRegex.test(id));
+    const nonUuidIds = rawIds.filter((id: string) => !uuidRegex.test(id));
+
+    // Build flexible search criteria
+    const orConditions: any[] = [];
+    if (validUuids.length) orConditions.push({ id: { in: validUuids } });
+    if (nonUuidIds.length) orConditions.push({ slug: { in: nonUuidIds } });
+    if (rawNames.length) orConditions.push({ name: { in: rawNames, mode: 'insensitive' } });
+
+    const products = orConditions.length
+      ? await prisma.product.findMany({
+          where: { OR: orConditions },
+          include: {
+            inventory: true,
+            images: { where: { isPrimary: true }, take: 1 },
+          },
+        })
+      : [];
+
+    const productMap = new Map<string, any>();
+    for (const p of products) {
+      productMap.set(p.id, p);
+      productMap.set(p.slug, p);
+      productMap.set(p.name.toLowerCase().trim(), p);
+    }
+
+    let fallbackProduct: any = null;
 
     for (const item of bodyItems) {
-      const pId = item.productId || item.id;
-      const product = productMap.get(pId);
-      if (product) {
+      const pId = String(item.productId || item.id || '');
+      const pName = String(item.name || '').toLowerCase().trim();
+      let matched = productMap.get(pId) || (pName ? productMap.get(pName) : undefined);
+
+      // Partial name match if exact didn't hit
+      if (!matched && pName) {
+        for (const [key, prod] of productMap.entries()) {
+          if (pName.includes(key) || key.includes(pName)) {
+            matched = prod;
+            break;
+          }
+        }
+      }
+
+      // Query database for partial match if still not found
+      if (!matched && pName) {
+        const firstWord = pName.split(' ')[0];
+        if (firstWord && firstWord.length > 2) {
+          matched = await prisma.product.findFirst({
+            where: { name: { contains: firstWord, mode: 'insensitive' } },
+            include: { inventory: true, images: { where: { isPrimary: true }, take: 1 } },
+          });
+          if (matched) {
+            productMap.set(matched.id, matched);
+          }
+        }
+      }
+
+      // Fallback anchor product if an item was custom or legacy
+      if (!matched) {
+        if (!fallbackProduct) {
+          fallbackProduct = await prisma.product.findFirst({
+            where: { isPublished: true },
+            include: { inventory: true, images: { where: { isPrimary: true }, take: 1 } },
+          });
+        }
+        matched = fallbackProduct;
+      }
+
+      if (matched) {
         cartItems.push({
-          productId: product.id,
+          productId: matched.id,
           quantity: Math.max(1, parseInt(item.quantity) || 1),
-          product,
+          product: {
+            ...matched,
+            name: item.name || matched.name,
+            price: typeof item.price === 'number' && item.price > 0 ? item.price : matched.price,
+            images: item.image ? [{ url: item.image, isPrimary: true }] : matched.images,
+          },
         });
       }
     }

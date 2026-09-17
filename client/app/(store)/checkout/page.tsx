@@ -107,8 +107,11 @@ export default function CheckoutPage() {
         couponCode: appliedCoupon?.code,
         items: items.map(item => ({
           productId: item.id,
+          name: item.name,
+          image: item.image,
           quantity: item.quantity,
           price: item.price,
+          unit: item.unit,
         })),
         totalAmount: grandTotal,
       };
