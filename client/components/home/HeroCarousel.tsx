@@ -9,48 +9,109 @@ const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
 export default function HeroBanner() {
   const [email, setEmail] = useState('');
+  const [heroBanners, setHeroBanners] = useState<any[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    fetch(`${API}/banners?type=HERO&isActive=true`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.data && d.data.length > 0) {
+          setHeroBanners(d.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const activeBanner = heroBanners[currentSlide];
 
   return (
     <section className="relative rounded-3xl overflow-hidden min-h-[340px] sm:min-h-[400px]">
       {/* Background Image */}
       <Image
-        src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80"
-        alt="Fresh grocery background"
+        src={
+          activeBanner?.imageUrl ||
+          'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80'
+        }
+        alt={activeBanner?.title || 'Fresh grocery background'}
         fill
-        className="object-cover"
+        className="object-cover transition-all duration-700"
         sizes="100vw"
         priority
       />
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-white/20 dark:from-[#080C14]/95 dark:via-[#080C14]/80 dark:to-transparent" />
-      
+      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/85 to-white/30 dark:from-[#080C14]/95 dark:via-[#080C14]/85 dark:to-transparent" />
+
       {/* Content */}
       <div className="relative z-10 p-8 sm:p-12 lg:p-16 max-w-xl">
+        {activeBanner?.subtitle && (
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-2">
+            {activeBanner.subtitle}
+          </span>
+        )}
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] leading-[1.1] tracking-tight">
-          Farm-Fresh Produce.<br />
-          Delivered in<br />
-          <span className="text-emerald-600 dark:text-emerald-400">12 Minutes.</span>
+          {activeBanner?.title ? (
+            activeBanner.title
+          ) : (
+            <>
+              Farm-Fresh Produce.<br />
+              Delivered in<br />
+              <span className="text-emerald-600 dark:text-emerald-400">12 Minutes.</span>
+            </>
+          )}
         </h1>
         <p className="text-slate-600 dark:text-[#8B96A8] text-sm sm:text-base mt-4 leading-relaxed max-w-md">
-          DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and hydroponic greens harvested at dawn.
+          {activeBanner?.subtitle
+            ? `Exclusive fresh stock directly sourced and delivered to your kitchen with speed and quality.`
+            : 'DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and hydroponic greens harvested at dawn.'}
         </p>
 
-        {/* Newsletter Input */}
-        <div className="flex items-center mt-6 max-w-md shadow-lg rounded-xl overflow-hidden">
-          <div className="flex-1 flex items-center bg-white dark:bg-[#161E2E] px-4 py-3.5 gap-2.5">
-            <Mail className="w-5 h-5 text-slate-400 dark:text-[#4E5A6B] shrink-0" />
-            <input
-              type="email"
-              placeholder="Your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-transparent text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] outline-none w-full"
-            />
+        {activeBanner?.linkValue ? (
+          <div className="mt-6">
+            <Link
+              href={activeBanner.linkValue}
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md hover:gap-3"
+            >
+              <span>Explore Collection</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-          <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3.5 text-sm font-bold whitespace-nowrap transition-colors flex items-center gap-2 shrink-0">
-            Subscribe 🌿
-          </button>
-        </div>
+        ) : (
+          /* Newsletter Input */
+          <div className="flex items-center mt-6 max-w-md shadow-lg rounded-xl overflow-hidden">
+            <div className="flex-1 flex items-center bg-white dark:bg-[#161E2E] px-4 py-3.5 gap-2.5">
+              <Mail className="w-5 h-5 text-slate-400 dark:text-[#4E5A6B] shrink-0" />
+              <input
+                type="email"
+                placeholder="Your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-transparent text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] outline-none w-full"
+              />
+            </div>
+            <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3.5 text-sm font-bold whitespace-nowrap transition-colors flex items-center gap-2 shrink-0">
+              Subscribe 🌿
+            </button>
+          </div>
+        )}
+
+        {/* Carousel indicators if multiple hero banners exist */}
+        {heroBanners.length > 1 && (
+          <div className="flex items-center gap-2 mt-6">
+            {heroBanners.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  currentSlide === idx
+                    ? 'w-6 bg-emerald-600 dark:bg-emerald-400'
+                    : 'w-2 bg-slate-300 dark:bg-slate-700'
+                }`}
+                aria-label={`Slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

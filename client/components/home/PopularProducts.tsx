@@ -1,22 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Star, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
 import { getFallbackProducts } from '@/lib/fallbackData';
-
-const TABS = [
-  { label: 'All', slug: '' },
-  { label: 'Vegetables', slug: 'vegetables' },
-  { label: 'Fruits', slug: 'fruits' },
-  { label: 'Organic', slug: 'organic' },
-  { label: 'Leafy Greens', slug: 'leafy-greens' },
-  { label: 'Exotic', slug: 'exotic-vegetables' },
-  { label: 'Herbs', slug: 'herbs-spices' },
-];
 
 function ProductSkeleton() {
   return (
@@ -32,6 +22,24 @@ function ProductSkeleton() {
 
 export default function PopularProducts() {
   const [activeTab, setActiveTab] = useState('');
+  const [dynamicTabs, setDynamicTabs] = useState<{ label: string; slug: string }[]>([
+    { label: 'All', slug: '' },
+  ]);
+
+  useEffect(() => {
+    api
+      .get('/categories')
+      .then((res) => {
+        if (res.data?.data && Array.isArray(res.data.data)) {
+          const catTabs = res.data.data.map((c: any) => ({
+            label: c.name,
+            slug: c.slug,
+          }));
+          setDynamicTabs([{ label: 'All', slug: '' }, ...catTabs]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ['popular-products', activeTab],
@@ -63,7 +71,7 @@ export default function PopularProducts() {
           Popular Products
         </h2>
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-          {TABS.map((tab) => (
+          {dynamicTabs.map((tab) => (
             <button
               key={tab.slug}
               onClick={() => setActiveTab(tab.slug)}
