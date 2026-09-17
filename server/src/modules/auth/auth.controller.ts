@@ -7,7 +7,7 @@ import { config } from '../../config/env';
 import { AppError } from '../../middleware/errorHandler';
 import { AuthRequest } from '../../middleware/auth';
 import { logger } from '../../utils/logger';
-import { sendEmail } from '../../utils/email';
+import { sendEmail, sendVerificationEmail } from '../../utils/email';
 import { Role } from '@prisma/client';
 
 function generateTokens(userId: string, email: string, role: Role, name: string) {
@@ -111,28 +111,12 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
     });
   }
 
-  // Send verification email (non-blocking)
-  sendEmail({
+  // Send verification email via Resend (non-blocking)
+  sendVerificationEmail({
     to: email,
-    subject: '🌿 Welcome to DevVegis — Verify your email',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #16a34a; padding: 20px; text-align: center;">
-          <h1 style="color: white; margin: 0;">🥦 DevVegis</h1>
-          <p style="color: #bbf7d0; margin: 5px 0;">Fresh Fruits & Vegetables Delivered in Minutes</p>
-        </div>
-        <div style="padding: 30px;">
-          <h2>Welcome, ${name}! 🎉</h2>
-          <p>Thank you for joining DevVegis. Please verify your email to get started.</p>
-          <a href="${config.APP_URL}/verify-email?token=${emailVerifyToken}" 
-             style="background: #16a34a; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; margin: 20px 0;">
-            Verify Email Address
-          </a>
-          <p style="color: #6b7280; font-size: 14px;">Link expires in 24 hours.</p>
-        </div>
-      </div>
-    `,
-  }).catch(err => logger.error('Failed to send verification email:', err));
+    name,
+    verifyToken: emailVerifyToken,
+  }).catch(err => logger.error('[Resend Verification] Failed to send verification email:', err));
 
   const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role, user.name);
 
@@ -264,6 +248,38 @@ export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void
 
   res.json({ success: true, message: 'Email verified successfully! ₹50 added to your wallet.' });
 };
+
+export const resendVerificationEmail = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { email } = req.body;
+  if (!email) throw new AppError('Email address is required', 400);
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    // For security, don't reveal whether the user exists
+    res.json({ success: true, message: 'If this email is registered, a verification link has been sent.' });
+    return;
+  }
+
+  if (user.isEmailVerified) {
+    res.json({ success: true, message: 'This email is already verified. You can proceed to log in.' });
+    return;
+  }
+
+  const emailVerifyToken = uuidv4();
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { emailVerifyToken },
+  });
+
+  sendVerificationEmail({
+    to: user.email,
+    name: user.name,
+    verifyToken: emailVerifyToken,
+  }).catch((err) => logger.error('[Resend Verification] Failed to resend email:', err));
+
+  res.json({ success: true, message: 'Verification link sent! Please check your inbox.' });
+};
+
 
 export const forgotPassword = async (req: AuthRequest, res: Response): Promise<void> => {
   const { email } = req.body;

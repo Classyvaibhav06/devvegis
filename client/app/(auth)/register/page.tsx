@@ -40,7 +40,9 @@ export default function RegisterPage() {
       const res = await api.post('/auth/register', payload);
       const { user, accessToken } = res.data.data;
       setAuth(user, accessToken);
-      toast.success(`Welcome to DevVegis, ${user.name}! 🎉`);
+      toast.success(`Welcome, ${user.name}! 🎉 Verification email sent. Verify your inbox to claim ₹50 welcome bonus!`, {
+        duration: 6000,
+      });
       router.push('/');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Registration failed');

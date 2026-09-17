@@ -205,3 +205,88 @@ export async function sendOrderOtpEmail(params: {
     text: `Hi ${customerName}, your DevVegis Order #${orderNumber} is confirmed! Your delivery OTP is: ${otp}. Total: ₹${totalAmount}. Please share this code with your rider only upon delivery.`,
   });
 }
+
+/**
+ * Sends a branded Email Verification link via Resend
+ */
+export async function sendVerificationEmail(params: {
+  to: string;
+  name: string;
+  verifyToken: string;
+}): Promise<any> {
+  const { to, name, verifyToken } = params;
+  const verifyUrl = `${config.APP_URL}/verify-email?token=${verifyToken}`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your DevVegis Account</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" max-width="560px" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #10B981, #059669); padding: 32px 24px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">🌿 DevVegis</h1>
+              <p style="margin: 6px 0 0; color: #ecfdf5; font-size: 13px; font-weight: 500;">Fresh Farm Produce Delivered in Minutes</p>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 32px 24px;">
+              <h2 style="margin: 0 0 8px; color: #0f172a; font-size: 20px; font-weight: 700;">Welcome to DevVegis, ${name}! 🎉</h2>
+              <p style="margin: 0 0 20px; color: #475569; font-size: 14px; line-height: 1.6;">
+                Thank you for creating an account with us. Please verify your email address to activate your account and claim your ₹50 wallet welcome bonus.
+              </p>
+
+              <!-- Bonus Card -->
+              <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 14px 18px; margin-bottom: 24px;">
+                <p style="margin: 0; color: #047857; font-size: 14px; font-weight: 600;">
+                  🎁 Instant Bonus: ₹50 will be automatically added to your DevVegis Wallet upon verification!
+                </p>
+              </div>
+
+              <!-- Button -->
+              <div style="text-align: center; margin: 28px 0;">
+                <a href="${verifyUrl}"
+                   target="_blank"
+                   style="background-color: #10B981; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+                  Verify Email Address
+                </a>
+              </div>
+
+              <p style="margin: 20px 0 0; color: #64748b; font-size: 12px; line-height: 1.5; text-align: center;">
+                Button not working? Copy and paste this link into your browser:<br>
+                <a href="${verifyUrl}" style="color: #10B981; word-break: break-all;">${verifyUrl}</a>
+              </p>
+
+              <p style="margin: 24px 0 0; color: #94a3b8; font-size: 12px; border-top: 1px solid #f1f5f9; padding-top: 16px; text-align: center;">
+                This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  return sendEmail({
+    to,
+    subject: '🌿 Verify your DevVegis account (+ claim ₹50 welcome bonus!)',
+    html,
+    text: `Welcome to DevVegis, ${name}! Please verify your email address by visiting: ${verifyUrl}. A ₹50 welcome bonus will be credited to your wallet!`,
+  });
+}
+
