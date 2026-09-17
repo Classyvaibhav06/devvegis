@@ -109,7 +109,9 @@ app.use(morgan('combined', {
 }));
 
 // ─── STATIC FILES ─────────────────────────────────────
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+const uploadsPath = path.resolve(process.cwd(), config.UPLOAD_DIR || 'uploads');
+app.use('/uploads', express.static(uploadsPath, { maxAge: '30d' }));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads'), { maxAge: '30d' }));
 
 // ─── HEALTH CHECK ─────────────────────────────────────
 app.get('/health', (req, res) => {
