@@ -64,20 +64,20 @@ export default function PopularProducts() {
   });
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-3 sm:space-y-5">
       {/* Header + Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-lg sm:text-xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] tracking-tight">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4">
+        <h2 className="text-base sm:text-xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] tracking-tight">
           Popular Products
         </h2>
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
           {dynamicTabs.map((tab) => (
             <button
               key={tab.slug}
               onClick={() => setActiveTab(tab.slug)}
-              className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+              className={`shrink-0 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-bold transition-all ${
                 activeTab === tab.slug
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-[#080C14] shadow-sm'
+                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-[#080C14] shadow-xs'
                   : 'bg-white dark:bg-[#0F1520] border border-slate-200 dark:border-white/[0.07] text-slate-600 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-500/30'
               }`}
             >
@@ -87,8 +87,8 @@ export default function PopularProducts() {
         </div>
       </div>
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+      {/* Product Grid: 2 columns on mobile, 3 on tablet, 4 on md, 5 on lg */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
         {isLoading
           ? Array(10).fill(0).map((_, i) => <ProductSkeleton key={i} />)
           : data?.slice(0, 10).map((product: any) => (
@@ -101,9 +101,9 @@ export default function PopularProducts() {
       <div className="flex justify-center pt-2">
         <Link
           href={activeTab ? `/categories/${activeTab}` : '/categories'}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-sm font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/15 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all"
+          className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/15 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all w-full sm:w-auto text-center"
         >
-          View All Products
+          <span>View All Products</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

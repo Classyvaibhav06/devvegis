@@ -26,7 +26,7 @@ export default function HeroBanner() {
   const activeBanner = heroBanners[currentSlide];
 
   return (
-    <section className="relative rounded-3xl overflow-hidden min-h-[340px] sm:min-h-[400px]">
+    <section className="relative rounded-2xl sm:rounded-3xl overflow-hidden min-h-[300px] sm:min-h-[380px] lg:min-h-[420px] shadow-sm">
       {/* Background Image */}
       <Image
         src={
@@ -39,38 +39,37 @@ export default function HeroBanner() {
         sizes="100vw"
         priority
       />
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/85 to-white/30 dark:from-[#080C14]/95 dark:via-[#080C14]/85 dark:to-transparent" />
+      {/* Overlay: Stronger on mobile for instant crisp readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/98 via-white/90 to-white/60 dark:from-[#080C14]/98 dark:via-[#080C14]/90 dark:to-[#080C14]/60 sm:to-transparent" />
 
       {/* Content */}
-      <div className="relative z-10 p-8 sm:p-12 lg:p-16 max-w-xl">
+      <div className="relative z-10 p-5 sm:p-10 lg:p-14 max-w-xl flex flex-col justify-center min-h-[300px] sm:min-h-[380px]">
         {activeBanner?.subtitle && (
-          <span className="inline-block text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-2">
+          <span className="inline-block text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1.5 sm:mb-2">
             {activeBanner.subtitle}
           </span>
         )}
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] leading-[1.1] tracking-tight">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] leading-[1.15] tracking-tight">
           {activeBanner?.title ? (
             activeBanner.title
           ) : (
             <>
               Farm-Fresh Produce.<br />
-              Delivered in<br />
-              <span className="text-emerald-600 dark:text-emerald-400">12 Minutes.</span>
+              Delivered in <span className="text-emerald-600 dark:text-emerald-400">12 Minutes.</span>
             </>
           )}
         </h1>
-        <p className="text-slate-600 dark:text-[#8B96A8] text-sm sm:text-base mt-4 leading-relaxed max-w-md">
+        <p className="text-slate-600 dark:text-[#8B96A8] text-xs sm:text-sm md:text-base mt-2.5 sm:mt-4 leading-relaxed max-w-md">
           {activeBanner?.subtitle
             ? `Exclusive fresh stock directly sourced and delivered to your kitchen with speed and quality.`
-            : 'DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and hydroponic greens harvested at dawn.'}
+            : 'DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and greens harvested at dawn.'}
         </p>
 
         {activeBanner?.linkValue ? (
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             <Link
               href={activeBanner.linkValue}
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md hover:gap-3"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md hover:gap-3 w-full sm:w-auto"
             >
               <span>Explore Collection</span>
               <ArrowRight className="w-4 h-4" />
@@ -78,18 +77,18 @@ export default function HeroBanner() {
           </div>
         ) : (
           /* Newsletter Input */
-          <div className="flex items-center mt-6 max-w-md shadow-lg rounded-xl overflow-hidden">
-            <div className="flex-1 flex items-center bg-white dark:bg-[#161E2E] px-4 py-3.5 gap-2.5">
-              <Mail className="w-5 h-5 text-slate-400 dark:text-[#4E5A6B] shrink-0" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center mt-4 sm:mt-6 max-w-md shadow-md rounded-xl overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white sm:dark:bg-[#161E2E]">
+            <div className="flex items-center bg-white dark:bg-[#161E2E] px-3.5 py-3 gap-2 rounded-xl sm:rounded-none flex-1">
+              <Mail className="w-4 h-4 text-slate-400 dark:text-[#4E5A6B] shrink-0" />
               <input
                 type="email"
                 placeholder="Your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] outline-none w-full"
+                className="bg-transparent text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] outline-none w-full"
               />
             </div>
-            <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3.5 text-sm font-bold whitespace-nowrap transition-colors flex items-center gap-2 shrink-0">
+            <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-5 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors flex items-center justify-center gap-2 rounded-xl sm:rounded-none shrink-0">
               Subscribe 🌿
             </button>
           </div>
@@ -97,15 +96,15 @@ export default function HeroBanner() {
 
         {/* Carousel indicators if multiple hero banners exist */}
         {heroBanners.length > 1 && (
-          <div className="flex items-center gap-2 mt-6">
+          <div className="flex items-center gap-2 mt-4 sm:mt-6">
             {heroBanners.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
-                className={`h-2 rounded-full transition-all ${
+                className={`h-1.5 sm:h-2 rounded-full transition-all ${
                   currentSlide === idx
-                    ? 'w-6 bg-emerald-600 dark:bg-emerald-400'
-                    : 'w-2 bg-slate-300 dark:bg-slate-700'
+                    ? 'w-5 sm:w-6 bg-emerald-600 dark:bg-emerald-400'
+                    : 'w-1.5 sm:w-2 bg-slate-300 dark:bg-slate-700'
                 }`}
                 aria-label={`Slide ${idx + 1}`}
               />
@@ -161,42 +160,48 @@ export function FeaturedCategories() {
   }
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-3 sm:space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg sm:text-xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] tracking-tight">
-          Featured Categories
-        </h2>
+        <div>
+          <h2 className="text-base sm:text-xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] tracking-tight">
+            Featured Categories
+          </h2>
+          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-[#8B96A8] hidden sm:block">
+            Hand-picked harvest fresh from the farm
+          </p>
+        </div>
         <div className="flex items-center gap-3">
           <Link
             href="/categories"
-            className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1"
+            className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1 shrink-0"
           >
-            All Categories
+            <span>All Categories</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 sm:gap-4">
+      {/* Horizontal smooth snap-scroll on mobile, structured grid on md/lg */}
+      <div className="flex sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 py-1">
         {categories.map((cat, i) => {
           const p = palette[i % palette.length];
           return (
-            <Link key={cat.id} href={`/categories/${cat.slug}`} className="group">
-              <div className="flex flex-col items-center text-center">
+            <Link key={cat.id} href={`/categories/${cat.slug}`} className="group shrink-0 sm:shrink">
+              <div className="flex flex-col items-center text-center w-[76px] sm:w-auto">
                 {cat.image ? (
-                  <div className={`w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] rounded-full overflow-hidden border-2 ${p.border} group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-all duration-200 group-hover:scale-110 group-hover:shadow-xl shadow-sm relative`}>
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-full overflow-hidden border-2 ${p.border} group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-all duration-200 group-hover:scale-105 sm:group-hover:scale-110 shadow-xs relative`}>
                     <Image src={cat.image} alt={cat.name} fill className="object-cover" sizes="96px" />
                   </div>
                 ) : (
-                  <div className={`w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] rounded-full ${p.bg} border-2 ${p.border} group-hover:border-emerald-500 dark:group-hover:border-emerald-400 flex items-center justify-center text-[28px] sm:text-[36px] transition-all duration-200 group-hover:scale-110 group-hover:shadow-xl shadow-sm`}>
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-full ${p.bg} border-2 ${p.border} group-hover:border-emerald-500 dark:group-hover:border-emerald-400 flex items-center justify-center text-2xl sm:text-3xl lg:text-[36px] transition-all duration-200 group-hover:scale-105 sm:group-hover:scale-110 shadow-xs`}>
                     {cat.icon || '📦'}
                   </div>
                 )}
-                <h4 className="font-bold text-[11px] sm:text-xs text-slate-800 dark:text-[#E8EEF8] mt-2 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                <h4 className="font-bold text-[11px] sm:text-xs text-slate-800 dark:text-[#E8EEF8] mt-1.5 sm:mt-2 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1 sm:line-clamp-2 max-w-[76px] sm:max-w-none">
                   {cat.name}
                 </h4>
                 {cat._count?.products != null && (
-                  <span className="text-[10px] text-slate-400 dark:text-[#4E5A6B] mt-0.5">
+                  <span className="text-[10px] text-slate-400 dark:text-[#4E5A6B] mt-0.5 hidden sm:inline-block">
                     {cat._count.products} items
                   </span>
                 )}
@@ -266,7 +271,7 @@ export function PromoBanners() {
   const displayBanners = banners.length > 0 ? banners : FALLBACK_BANNERS;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
       {displayBanners.slice(0, 3).map((b: any, i) => {
         const palette = BANNER_BG_PALETTE[i % BANNER_BG_PALETTE.length];
         const bg = b.bg || palette.bg;
@@ -274,28 +279,28 @@ export function PromoBanners() {
         const subtitleColor = b.subtitleColor || palette.subtitleColor;
         return (
           <Link key={b.id || i} href={b.linkUrl || b.href || '/'} className="group">
-            <div className={`relative rounded-2xl overflow-hidden ${bg} border border-slate-200/60 dark:border-white/[0.07] p-5 sm:p-6 min-h-[200px] flex flex-col justify-between shadow-sm hover:shadow-lg transition-all duration-300`}>
+            <div className={`relative rounded-2xl overflow-hidden ${bg} border border-slate-200/60 dark:border-white/[0.07] p-4 sm:p-5 lg:p-6 min-h-[160px] sm:min-h-[180px] lg:min-h-[200px] flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-300`}>
               {/* Background image (subtle) */}
-              <div className="absolute right-0 bottom-0 w-36 h-36 sm:w-44 sm:h-44 opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
+              <div className="absolute right-0 bottom-0 w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
                 <Image
                   src={b.imageUrl || b.image}
                   alt={b.title}
                   fill
-                  className="object-cover rounded-tl-[40px]"
+                  className="object-cover rounded-tl-[32px] sm:rounded-tl-[40px]"
                   sizes="200px"
                 />
               </div>
 
-              <div className="relative z-10 max-w-[60%]">
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${subtitleColor}`}>
+              <div className="relative z-10 max-w-[65%] sm:max-w-[60%]">
+                <span className={`text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider ${subtitleColor}`}>
                   {b.subtitle}
                 </span>
-                <h3 className={`font-heading font-extrabold text-base sm:text-lg leading-snug mt-1.5 ${textColor}`}>
+                <h3 className={`font-heading font-extrabold text-sm sm:text-base lg:text-lg leading-snug mt-1 sm:mt-1.5 ${textColor} line-clamp-2`}>
                   {b.title}
                 </h3>
               </div>
 
-              <div className="relative z-10 mt-4">
+              <div className="relative z-10 mt-3 sm:mt-4">
                 <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 text-xs font-bold group-hover:gap-2.5 transition-all">
                   {b.ctaText || b.cta || 'Shop Now'} <ArrowRight className="w-3.5 h-3.5" />
                 </span>
@@ -312,26 +317,26 @@ export function PromoBanners() {
 export function TrustStrip() {
   const items = [
     { icon: Clock, label: '12-Min Express', desc: 'Cold-chain dispatch', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/15' },
-    { icon: Leaf, label: '100% Farm Direct', desc: 'Harvested at 4:30 AM', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-500/15' },
+    { icon: Leaf, label: '100% Farm Direct', desc: 'Harvested at dawn', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-500/15' },
     { icon: ShieldCheck, label: 'Zero Chemicals', desc: 'Lab tested organic', color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-500/15' },
     { icon: Truck, label: 'Free Delivery', desc: 'Above ₹199', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-500/15' },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
       {items.map((item, i) => (
         <div
           key={i}
-          className="flex items-center gap-3 bg-white dark:bg-[#0F1520] rounded-2xl border border-slate-200/80 dark:border-white/[0.07] px-4 py-3.5 shadow-sm hover:shadow-md dark:shadow-md transition-shadow"
+          className="flex items-center gap-2.5 sm:gap-3 bg-white dark:bg-[#0F1520] rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-white/[0.07] p-2.5 sm:p-3.5 shadow-xs hover:shadow-sm transition-shadow"
         >
-          <div className={`w-11 h-11 rounded-full ${item.bg} flex items-center justify-center shrink-0`}>
-            <item.icon className={`w-5 h-5 ${item.color}`} />
+          <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-full ${item.bg} flex items-center justify-center shrink-0`}>
+            <item.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${item.color}`} />
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8] truncate">
+            <p className="font-bold text-[11px] sm:text-xs md:text-sm text-slate-900 dark:text-[#E8EEF8] truncate">
               {item.label}
             </p>
-            <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#8B96A8] truncate">
+            <p className="text-[9px] sm:text-[10px] md:text-[11px] text-slate-500 dark:text-[#8B96A8] truncate">
               {item.desc}
             </p>
           </div>

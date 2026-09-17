@@ -105,13 +105,13 @@ export default function ProductCard({ product, variant = 'default', showWishlist
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F1520] rounded-2xl border border-slate-200/80 dark:border-white/[0.07] hover:border-emerald-500/40 p-3.5 transition-all duration-200 flex flex-col justify-between group h-full shadow-xs hover:shadow-md dark:shadow-lg dark:hover:shadow-emerald-500/5 relative overflow-hidden">
+    <div className="bg-white dark:bg-[#0F1520] rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-white/[0.07] hover:border-emerald-500/40 p-2.5 sm:p-3.5 transition-all duration-200 flex flex-col justify-between group h-full shadow-xs hover:shadow-md dark:shadow-lg dark:hover:shadow-emerald-500/5 relative overflow-hidden">
       {/* Subtle top highlight on hover */}
       <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-emerald-500 via-teal-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
       <Link href={`/products/${product.slug}`} className="flex-1 flex flex-col">
         {/* Image Container with Exact Weight Badge and Badges */}
-        <div className="w-full aspect-square rounded-xl bg-slate-50 dark:bg-[#161E2E] border border-slate-100 dark:border-white/[0.06] relative overflow-hidden mb-3">
+        <div className="w-full aspect-square rounded-lg sm:rounded-xl bg-slate-50 dark:bg-[#161E2E] border border-slate-100 dark:border-white/[0.06] relative overflow-hidden mb-2 sm:mb-3">
           {/* Zoom Image */}
           <div className="w-full h-full relative overflow-hidden">
             <Image
@@ -124,25 +124,25 @@ export default function ProductCard({ product, variant = 'default', showWishlist
           </div>
 
           {/* Badges Overlays */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+          <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 flex flex-col gap-1 z-10">
             {product.isOrganic && (
-              <div className="bg-emerald-600 dark:bg-emerald-500/90 text-white dark:text-[#080C14] backdrop-blur-md text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+              <div className="bg-emerald-600 dark:bg-emerald-500/90 text-white dark:text-[#080C14] backdrop-blur-md text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full flex items-center gap-0.5 sm:gap-1 shadow-xs">
                 <Leaf className="w-2.5 h-2.5 fill-current" />
                 <span>Organic</span>
               </div>
             )}
             {product.isFreshToday && !product.isOrganic && (
-              <div className="bg-amber-500 text-white dark:text-[#080C14] text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+              <div className="bg-amber-500 text-white dark:text-[#080C14] text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full flex items-center gap-0.5 sm:gap-1 shadow-xs">
                 <Zap className="w-2.5 h-2.5 fill-current" />
-                <span>Fresh Dawn</span>
+                <span>Fresh</span>
               </div>
             )}
           </div>
 
           {/* Rating Pill Top-Right */}
-          <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
+          <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 flex items-center gap-1 z-10">
             {product.rating && (
-              <div className="bg-white/90 dark:bg-[#080C14]/85 text-slate-800 dark:text-[#E8EEF8] backdrop-blur-md text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-xs border border-slate-200/80 dark:border-white/10">
+              <div className="bg-white/90 dark:bg-[#080C14]/85 text-slate-800 dark:text-[#E8EEF8] backdrop-blur-md text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-xs border border-slate-200/80 dark:border-white/10">
                 <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
                 <span>{product.rating.toFixed(1)}</span>
               </div>
@@ -151,23 +151,23 @@ export default function ProductCard({ product, variant = 'default', showWishlist
             {showWishlist && (
               <button
                 onClick={handleWishlist}
-                className="w-6 h-6 bg-white/90 dark:bg-[#080C14]/85 rounded-full flex items-center justify-center shadow-xs opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 border border-slate-200/80 dark:border-white/10"
+                className="w-5 h-5 sm:w-6 sm:h-6 bg-white/90 dark:bg-[#080C14]/85 rounded-full flex items-center justify-center shadow-xs opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 border border-slate-200/80 dark:border-white/10"
                 title="Save for later"
               >
-                <Heart className={cn('w-3 h-3 transition-colors', isWishlisted ? 'fill-red-500 text-red-500' : 'text-slate-400 dark:text-[#8B96A8]')} />
+                <Heart className={cn('w-2.5 sm:w-3 h-2.5 sm:h-3 transition-colors', isWishlisted ? 'fill-red-500 text-red-500' : 'text-slate-400 dark:text-[#8B96A8]')} />
               </button>
             )}
           </div>
 
           {/* EXACT GRAMS / PIECES UNIT BADGE */}
-          <div className="absolute bottom-2 left-2 bg-white/90 dark:bg-[#080C14]/85 backdrop-blur-md text-slate-800 dark:text-[#E8EEF8] text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-slate-200/80 dark:border-white/10 flex items-center gap-1 z-10 font-mono">
+          <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 bg-white/95 dark:bg-[#080C14]/90 backdrop-blur-md text-slate-800 dark:text-[#E8EEF8] text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-xs border border-slate-200/80 dark:border-white/10 flex items-center gap-1 z-10 font-mono">
             <span>{product.unit || '500g'}</span>
           </div>
 
           {/* Out of stock overlay */}
           {!inStock && (
             <div className="absolute inset-0 bg-slate-900/60 dark:bg-[#080C14]/80 backdrop-blur-xs flex items-center justify-center z-20">
-              <span className="text-white font-bold text-xs bg-slate-950/90 dark:bg-[#161E2E] px-3 py-1 rounded-full border border-white/20">
+              <span className="text-white font-bold text-[10px] sm:text-xs bg-slate-950/90 dark:bg-[#161E2E] px-2.5 sm:px-3 py-1 rounded-full border border-white/20">
                 Out of Stock
               </span>
             </div>
@@ -176,34 +176,34 @@ export default function ProductCard({ product, variant = 'default', showWishlist
 
         {/* Product Title & Subtitle */}
         <div className="space-y-0.5 flex-1">
-          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-            {product.isOrganic ? '100% Certified Farm' : 'Daily Dawn Harvest'}
+          <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+            {product.isOrganic ? 'Certified Organic' : 'Daily Harvest'}
           </span>
-          <h3 className="font-heading font-bold text-slate-900 dark:text-[#E8EEF8] text-sm leading-snug line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+          <h3 className="font-heading font-bold text-slate-900 dark:text-[#E8EEF8] text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
             {product.name}
           </h3>
         </div>
       </Link>
 
       {/* Bottom Area: Pricing & Tactile ADD/Stepper Button */}
-      <div className="pt-3 mt-2 border-t border-slate-100 dark:border-white/[0.07] flex items-center justify-between gap-2">
+      <div className="pt-2 sm:pt-3 mt-1.5 sm:mt-2 border-t border-slate-100 dark:border-white/[0.07] flex items-center justify-between gap-1.5 sm:gap-2">
         <div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="font-heading font-extrabold text-base sm:text-lg text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-baseline gap-1 sm:gap-1.5">
+            <span className="font-heading font-extrabold text-sm sm:text-base md:text-lg text-emerald-600 dark:text-emerald-400">
               {formatCurrency(finalPrice)}
             </span>
             {product.comparePrice && product.comparePrice > finalPrice && (
-              <span className="text-xs text-slate-400 dark:text-[#4E5A6B] line-through">
+              <span className="text-[10px] sm:text-xs text-slate-400 dark:text-[#4E5A6B] line-through">
                 {formatCurrency(product.comparePrice)}
               </span>
             )}
           </div>
           {product.discountPercentage && product.discountPercentage > 0 ? (
-            <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-1.5 py-0.5 rounded">
+            <span className="text-[9px] sm:text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-1 sm:px-1.5 py-0.5 rounded">
               Save {Math.round(product.discountPercentage)}%
             </span>
           ) : (
-            <span className="text-[10px] font-medium text-slate-400 dark:text-[#8B96A8]">
+            <span className="text-[9px] sm:text-[10px] font-medium text-slate-400 dark:text-[#8B96A8]">
               {product.unit}
             </span>
           )}
@@ -218,17 +218,17 @@ export default function ProductCard({ product, variant = 'default', showWishlist
                 onClick={handleAddToCart}
                 disabled={!inStock}
                 className={cn(
-                  'px-3 sm:px-4 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white dark:bg-emerald-500/10 dark:hover:bg-emerald-500 dark:text-emerald-400 dark:hover:text-[#080C14] border border-emerald-300 dark:border-emerald-500/35 hover:border-emerald-600 dark:hover:border-emerald-500 rounded-xl text-xs font-extrabold tracking-wider transition-all duration-150 active:scale-95 flex items-center gap-1 shadow-xs dark:shadow-[0_0_12px_rgba(16,185,129,0.15)]',
+                  'px-2.5 sm:px-4 py-1 sm:py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white dark:bg-emerald-500/10 dark:hover:bg-emerald-500 dark:text-emerald-400 dark:hover:text-[#080C14] border border-emerald-300 dark:border-emerald-500/35 hover:border-emerald-600 dark:hover:border-emerald-500 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold tracking-wider transition-all duration-150 active:scale-95 flex items-center gap-1 shadow-xs dark:shadow-[0_0_12px_rgba(16,185,129,0.15)]',
                   !inStock && 'border-slate-200 dark:border-white/10 text-slate-400 dark:text-[#4E5A6B] hover:bg-transparent hover:text-slate-400 cursor-not-allowed shadow-none'
                 )}
               >
                 <span>ADD</span>
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </button>
             ) : (
               <div
                 key="stepper"
-                className="flex items-center bg-emerald-600 dark:bg-gradient-to-r dark:from-[#10B981] dark:to-[#059669] text-white dark:text-[#080C14] rounded-xl px-2 py-0.5 text-xs font-extrabold gap-2 shadow-md shadow-emerald-500/25"
+                className="flex items-center bg-emerald-600 dark:bg-gradient-to-r dark:from-[#10B981] dark:to-[#059669] text-white dark:text-[#080C14] rounded-lg sm:rounded-xl px-1.5 sm:px-2 py-0.5 text-xs font-extrabold gap-1.5 sm:gap-2 shadow-sm shadow-emerald-500/25"
               >
                 <button
                   onClick={(e) => {
@@ -236,12 +236,12 @@ export default function ProductCard({ product, variant = 'default', showWishlist
                     e.stopPropagation();
                     updateQuantity(product.id, quantity - 1);
                   }}
-                  className="w-5 h-5 flex items-center justify-center hover:bg-black/20 rounded-lg transition-colors active:scale-90"
+                  className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center hover:bg-black/20 rounded-lg transition-colors active:scale-90"
                   aria-label="Decrease quantity"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </button>
-                <span className="px-0.5 text-xs font-extrabold min-w-[14px] text-center">
+                <span className="px-0.5 text-xs font-extrabold min-w-[12px] sm:min-w-[14px] text-center">
                   {quantity}
                 </span>
                 <button
@@ -256,10 +256,10 @@ export default function ProductCard({ product, variant = 'default', showWishlist
                       unit: product.unit,
                     });
                   }}
-                  className="w-5 h-5 flex items-center justify-center hover:bg-black/20 rounded-lg transition-colors active:scale-90"
+                  className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center hover:bg-black/20 rounded-lg transition-colors active:scale-90"
                   aria-label="Increase quantity"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </button>
               </div>
             )}
