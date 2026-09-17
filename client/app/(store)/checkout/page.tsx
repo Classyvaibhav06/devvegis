@@ -56,7 +56,18 @@ export default function CheckoutPage() {
   });
 
   // Calculate bill breakdown
-  const deliveryFee = total >= 199 ? 0 : 25;
+  // Fetch platform settings dynamically
+  const { data: platformSettings } = useQuery({
+    queryKey: ['platform-settings'],
+    queryFn: async () => {
+      const res = await api.get('/admin/settings');
+      return res.data.data;
+    },
+  });
+
+  const freeThreshold = platformSettings?.freeDeliveryThreshold ?? 199;
+  const baseFee = platformSettings?.baseDeliveryFee ?? 25;
+  const deliveryFee = total > freeThreshold ? 0 : baseFee;
   const handlingFee = 5;
   const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
   const grandTotal = Math.max(0, total - couponDiscount + deliveryFee + handlingFee + tip);
@@ -373,20 +384,20 @@ export default function CheckoutPage() {
               {[
                 {
                   id: 'INSTANT' as const,
-                  title: '⚡ Instant (10-15 Min)',
+                  title: `Instant (${platformSettings?.instantDeliverySlot || '10-15 Min'})`,
                   desc: 'Superfast quick delivery',
                   badge: 'Popular',
                 },
                 {
                   id: 'EVENING' as const,
-                  title: '🌅 Today Evening',
-                  desc: 'Between 6 PM - 9 PM',
+                  title: 'Today Evening',
+                  desc: `Between ${platformSettings?.eveningDeliverySlot || '6 PM - 9 PM'}`,
                   badge: 'Free Slot',
                 },
                 {
                   id: 'TOMORROW' as const,
-                  title: '☀️ Tomorrow Morning',
-                  desc: 'Between 7 AM - 9 AM',
+                  title: 'Tomorrow Morning',
+                  desc: `Between ${platformSettings?.morningDeliverySlot || '7 AM - 9 AM'}`,
                   badge: 'Fresh Harvest',
                 },
               ].map(slot => (

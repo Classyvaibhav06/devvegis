@@ -7,6 +7,7 @@ import {
   Plus, Pencil, Trash2, X, Check, Loader2,
   Tag, Star, ToggleLeft, ToggleRight, GripVertical, Search
 } from 'lucide-react';
+import S3ImageUploader from '@/components/ui/S3ImageUploader';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
@@ -51,7 +52,7 @@ export default function AdminCategoriesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const authHeader = () => {
-    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || localStorage.getItem('adminToken');
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
@@ -329,50 +330,14 @@ export default function AdminCategoriesPage() {
                 />
               </div>
 
-              {/* Icon & Color side by side */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Icon / Emoji</label>
-                  <input
-                    type="text"
-                    value={form.icon}
-                    onChange={e => setForm(f => ({ ...f, icon: e.target.value }))}
-                    placeholder="🥦"
-                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Accent Color</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={form.color}
-                      onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
-                      className="w-10 h-9 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={form.color}
-                      onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
-                      className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Image URL */}
+              {/* Category Image Upload */}
               <div>
-                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Image URL</label>
-                <input
-                  type="url"
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5">Category Cover Image</label>
+                <S3ImageUploader
+                  folder="categories"
                   value={form.image}
-                  onChange={e => setForm(f => ({ ...f, image: e.target.value }))}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  onChange={(url) => setForm((f) => ({ ...f, image: url }))}
                 />
-                {form.image && (
-                  <img src={form.image} alt="preview" className="mt-2 w-full h-28 object-cover rounded-xl border border-gray-200 dark:border-gray-700" onError={e => (e.currentTarget.style.display = 'none')} />
-                )}
               </div>
 
               {/* Description */}

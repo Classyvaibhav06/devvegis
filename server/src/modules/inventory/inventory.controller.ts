@@ -21,7 +21,38 @@ export const getLowStockAlerts = async (req: AuthRequest, res: Response): Promis
 
 export const updateStock = async (req: AuthRequest, res: Response): Promise<void> => {
   const { productId } = req.params;
-  const { warehouseStock, availableStock, purchasePrice, supplierName, expiryDate } = req.body;
-  const inventory = await prisma.inventory.update({ where: { productId }, data: { warehouseStock, availableStock, ...(purchasePrice && { purchasePrice }), ...(supplierName && { supplierName }), ...(expiryDate && { expiryDate: new Date(expiryDate) }), lastRestockedAt: new Date() } });
+  const { warehouseStock, availableStock, purchasePrice, supplierName, expiryDate, stock } = req.body;
+
+  let updateData: any = {};
+  if (warehouseStock !== undefined) updateData.warehouseStock = warehouseStock;
+  if (availableStock !== undefined) updateData.availableStock = availableStock;
+  if (purchasePrice !== undefined) updateData.purchasePrice = purchasePrice;
+  if (supplierName !== undefined) updateData.supplierName = supplierName;
+  if (expiryDate !== undefined) updateData.expiryDate = new Date(expiryDate);
+  updateData.lastRestockedAt = new Date();
+
+  // If client sends { stock: addedStock } or direct restock
+  if (stock !== undefined) {
+    const existing = await prisma.inventory.findUnique({ where: { productId } });
+    if (existing) {
+      updateData.availableStock = existing.availableStock + Number(stock);
+      updateData.warehouseStock = existing.warehouseStock + Number(stock);
+    } else {
+      updateData.availableStock = Number(stock);
+      updateData.warehouseStock = Number(stock);
+    }
+  }
+
+  const inventory = await prisma.inventory.upsert({
+    where: { productId },
+    update: updateData,
+    create: {
+      productId,
+      warehouseStock: updateData.warehouseStock || 50,
+      availableStock: updateData.availableStock || 50,
+      lowStockThreshold: 10,
+    },
+  });
+
   res.json({ success: true, data: inventory });
 };

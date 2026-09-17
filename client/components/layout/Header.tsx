@@ -81,33 +81,33 @@ export default function Header() {
         : 'bg-white dark:bg-[#0F1520]'
     )}>
       {/* ─── Top Utility Micro-Bar ──────────────────────────────── */}
-      <div className="bg-slate-100/90 dark:bg-[#080C14] border-b border-slate-200/60 dark:border-white/[0.05] text-xs py-1.5 px-4 hidden sm:block">
+      <div className="bg-slate-100/90 dark:bg-[#080C14] border-b border-slate-200/60 dark:border-white/[0.05] text-xs py-2.5 px-4 hidden sm:block">
         <div className="container-main flex items-center justify-between">
           {/* Mode Switcher */}
-          <div className="flex items-center gap-1.5 bg-slate-200/70 dark:bg-[#161E2E] p-0.5 rounded-full border border-slate-300/60 dark:border-white/[0.07]">
+          <div className="flex items-center gap-1.5 bg-slate-200/70 dark:bg-[#161E2E] p-1 rounded-full border border-slate-300/60 dark:border-white/[0.07]">
             <Link
               href="/"
               className={cn(
-                "px-3 py-0.5 rounded-full text-[11px] font-bold transition-all flex items-center gap-1",
+                "px-3.5 py-1 rounded-full text-[11px] font-bold transition-all flex items-center gap-1.5",
                 !isWholesale
                   ? "bg-[#10B981] text-white shadow-sm shadow-[#10B981]/30"
                   : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
               )}
             >
-              <Zap className="w-3 h-3 fill-white" />
-              <span>⚡ Retail (10-15 Min)</span>
+              <Zap className="w-3 h-3 fill-current" />
+              <span>Retail (10-15 Min)</span>
             </Link>
             <Link
               href="/wholesale"
               className={cn(
-                "px-3 py-0.5 rounded-full text-[11px] font-bold transition-all flex items-center gap-1",
+                "px-3.5 py-1 rounded-full text-[11px] font-bold transition-all flex items-center gap-1.5",
                 isWholesale
                   ? "bg-[#F59E0B] text-[#080C14] font-extrabold shadow-sm"
                   : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
               )}
             >
               <Store className="w-3 h-3" />
-              <span>🏪 Wholesale (Bulk Mandi)</span>
+              <span>Wholesale (Bulk Mandi)</span>
             </Link>
           </div>
 
@@ -115,16 +115,17 @@ export default function Header() {
           <div className="flex items-center gap-5 text-slate-600 dark:text-[#8B96A8] text-[11px] font-medium">
             <Link href="/orders" className="hover:text-[#10B981] transition-colors flex items-center gap-1.5">
               <History className="w-3.5 h-3.5 text-[#10B981]" />
-              <span className="font-semibold text-slate-900 dark:text-[#E8EEF8]">🔁 Buy Again</span>
+              <span className="font-semibold text-slate-900 dark:text-[#E8EEF8]">Buy Again</span>
             </Link>
             <span className="text-slate-300 dark:text-white/10">|</span>
-            <span className="flex items-center gap-1 text-slate-600 dark:text-[#8B96A8]">
+            <span className="flex items-center gap-1.5 text-slate-600 dark:text-[#8B96A8]">
               <Zap className="w-3 h-3 text-[#10B981] fill-[#10B981]" />
-              <span>⚡ 12-Min Delivery Dispatch</span>
+              <span>12-Min Delivery Dispatch</span>
             </span>
             <span className="text-slate-300 dark:text-white/10">|</span>
-            <span className="text-emerald-600 dark:text-[#34D399] font-bold flex items-center gap-1">
-              <span>🎉 Free Delivery Above ₹199</span>
+            <span className="text-emerald-600 dark:text-[#34D399] font-bold flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-emerald-500" />
+              <span>Free Delivery Above ₹199</span>
             </span>
           </div>
         </div>
@@ -384,7 +385,8 @@ export default function Header() {
                   : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
               )}
             >
-              <span>🥦 Daily Produce</span>
+              <Leaf className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Daily Produce</span>
             </Link>
             <Link
               href="/categories/fruits"
@@ -395,7 +397,8 @@ export default function Header() {
                   : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
               )}
             >
-              <span>🍎 Sweet Fruits</span>
+              <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+              <span>Sweet Fruits</span>
             </Link>
             <Link
               href="/categories/organic"
@@ -406,7 +409,8 @@ export default function Header() {
                   : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
               )}
             >
-              <span>🌿 100% Organic</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>100% Organic</span>
             </Link>
             <Link
               href="/categories/exotic-vegetables"
@@ -417,7 +421,8 @@ export default function Header() {
                   : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
               )}
             >
-              <span>✨ Gourmet & Exotic</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Gourmet & Exotic</span>
             </Link>
             <Link
               href="/wholesale"
@@ -428,7 +433,8 @@ export default function Header() {
                   : "text-[#F59E0B] hover:text-amber-600 font-semibold"
               )}
             >
-              <span>🏪 Mandi Wholesale</span>
+              <Store className="w-3.5 h-3.5" />
+              <span>Mandi Wholesale</span>
             </Link>
             <Link
               href="/ai/recipe"

@@ -11,6 +11,7 @@ export default function AdminCouponsPage() {
   const [showModal, setShowModal] = useState(false);
   const [newCoupon, setNewCoupon] = useState({
     code: '',
+    title: '',
     discountType: 'FLAT', // FLAT or PERCENTAGE
     discountValue: 50,
     minOrderAmount: 199,
@@ -30,6 +31,7 @@ export default function AdminCouponsPage() {
     mutationFn: async (payload: typeof newCoupon) => {
       const res = await api.post('/coupons', {
         ...payload,
+        title: payload.title.trim() || `${payload.code} Coupon`,
         code: payload.code.toUpperCase().trim(),
       });
       return res.data.data;
@@ -41,6 +43,20 @@ export default function AdminCouponsPage() {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to create coupon');
+    },
+  });
+
+  const deleteCouponMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.delete(`/coupons/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-coupons'] });
+      toast.success('Coupon deleted successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to delete coupon');
     },
   });
 
@@ -66,29 +82,53 @@ export default function AdminCouponsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {coupons.length === 0 ? (
+        {isLoading ? (
+          <div className="col-span-full card p-12 text-center text-gray-400">
+            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-green-600" />
+            Loading campaigns...
+          </div>
+        ) : coupons.length === 0 ? (
           <div className="col-span-full card p-12 text-center text-gray-500">
-            No active coupons found. Click "Create Coupon" to launch a campaign.
+            No active coupons found. Click &quot;Create Coupon&quot; to launch a campaign.
           </div>
         ) : (
           coupons.map((coupon: any) => (
             <div
               key={coupon.id}
-              className="card p-5 border border-dashed border-green-500 bg-green-50/20 dark:bg-green-950/20 flex flex-col justify-between"
+              className="card p-5 border border-dashed border-green-500 bg-green-50/20 dark:bg-green-950/20 flex flex-col justify-between relative group"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-mono text-base font-extrabold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/60 px-2.5 py-1 rounded-lg">
                     {coupon.code}
                   </span>
-                  <span className="text-xs font-bold text-green-600">
-                    {coupon.discountType === 'PERCENTAGE'
-                      ? `${coupon.discountValue}% OFF`
-                      : `Flat ₹${coupon.discountValue} OFF`}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-green-600">
+                      {coupon.type === 'PERCENTAGE' || coupon.discountType === 'PERCENTAGE'
+                        ? `${coupon.value || coupon.discountValue}% OFF`
+                        : `Flat ₹${coupon.value || coupon.discountValue} OFF`}
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Delete coupon "${coupon.code}"?`)) {
+                          deleteCouponMutation.mutate(coupon.id);
+                        }
+                      }}
+                      disabled={deleteCouponMutation.isPending}
+                      className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                      title="Delete coupon"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
+                {coupon.title && (
+                  <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                    {coupon.title}
+                  </p>
+                )}
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Min order amount: <strong>₹{coupon.minOrderAmount}</strong>
+                  Min order amount: <strong>₹{coupon.minOrderValue || coupon.minOrderAmount || 0}</strong>
                 </p>
                 {coupon.maxDiscount && (
                   <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -96,7 +136,7 @@ export default function AdminCouponsPage() {
                   </p>
                 )}
                 <p className="text-[11px] text-gray-400 mt-2">
-                  Usage: {coupon.usedCount || 0} / {coupon.usageLimit || '∞'} times
+                  Usage: {coupon.usedCount || 0} / {coupon.maxUses || coupon.usageLimit || '∞'} times
                 </p>
               </div>
 
@@ -124,6 +164,18 @@ export default function AdminCouponsPage() {
               }}
               className="space-y-3"
             >
+              <div>
+                <label className="text-xs font-semibold block mb-1">Coupon Title</label>
+                <input
+                  type="text"
+                  required
+                  value={newCoupon.title}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, title: e.target.value })}
+                  placeholder="e.g. Monsoon Produce Super Saver"
+                  className="input text-xs"
+                />
+              </div>
+
               <div>
                 <label className="text-xs font-semibold block mb-1">Coupon Code</label>
                 <input

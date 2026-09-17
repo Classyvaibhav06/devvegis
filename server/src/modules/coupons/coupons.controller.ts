@@ -32,7 +32,34 @@ export const getAllCoupons = async (req: AuthRequest, res: Response): Promise<vo
 };
 
 export const createCoupon = async (req: AuthRequest, res: Response): Promise<void> => {
-  const coupon = await prisma.coupon.create({ data: req.body });
+  const {
+    code, title, description, type, discountType, discountValue,
+    maxDiscount, minOrderValue, minOrderAmount, maxUses, usageLimit,
+    maxUsesPerUser, expiresAt, isActive
+  } = req.body;
+
+  const rawCode = (code || '').toUpperCase().trim();
+  if (!rawCode) throw new AppError('Coupon code is required', 400);
+
+  const resolvedType = type || discountType || 'FLAT';
+  const resolvedMinOrderValue = minOrderValue !== undefined ? Number(minOrderValue) : (minOrderAmount !== undefined ? Number(minOrderAmount) : 0);
+  const resolvedMaxUses = maxUses !== undefined ? (maxUses ? Number(maxUses) : null) : (usageLimit !== undefined ? (usageLimit ? Number(usageLimit) : null) : null);
+
+  const coupon = await prisma.coupon.create({
+    data: {
+      code: rawCode,
+      title: title || `${rawCode} Coupon`,
+      description: description || null,
+      type: resolvedType,
+      discountValue: Number(discountValue) || 0,
+      maxDiscount: maxDiscount ? Number(maxDiscount) : null,
+      minOrderValue: resolvedMinOrderValue,
+      maxUses: resolvedMaxUses,
+      maxUsesPerUser: maxUsesPerUser ? Number(maxUsesPerUser) : 1,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      isActive: isActive !== undefined ? Boolean(isActive) : true,
+    },
+  });
   res.status(201).json({ success: true, data: coupon });
 };
 
@@ -40,3 +67,10 @@ export const updateCoupon = async (req: AuthRequest, res: Response): Promise<voi
   const coupon = await prisma.coupon.update({ where: { id: req.params.id }, data: req.body });
   res.json({ success: true, data: coupon });
 };
+
+export const deleteCoupon = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params;
+  await prisma.coupon.delete({ where: { id } });
+  res.json({ success: true, message: 'Coupon deleted successfully' });
+};
+

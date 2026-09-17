@@ -6,4 +6,5 @@ router.use(authenticate, authorize('ADMIN'));
 router.get('/', getInventory);
 router.get('/low-stock', getLowStockAlerts);
 router.patch('/:productId', updateStock);
+router.patch('/:productId/restock', updateStock);
 export default router;

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, ArrowLeft, Mail, Clock, Leaf, ShieldCheck, Truck, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Mail, Clock, Leaf, ShieldCheck, Truck, ChevronLeft, ChevronRight, Loader2, Send } from 'lucide-react';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
@@ -26,7 +26,7 @@ export default function HeroBanner() {
   const activeBanner = heroBanners[currentSlide];
 
   return (
-    <section className="relative rounded-2xl sm:rounded-3xl overflow-hidden min-h-[300px] sm:min-h-[380px] lg:min-h-[420px] shadow-sm">
+    <section className="relative rounded-2xl sm:rounded-3xl overflow-hidden min-h-[340px] sm:min-h-[400px] lg:min-h-[460px] shadow-sm flex items-center justify-center">
       {/* Background Image */}
       <Image
         src={
@@ -39,17 +39,17 @@ export default function HeroBanner() {
         sizes="100vw"
         priority
       />
-      {/* Overlay: Stronger on mobile for instant crisp readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/98 via-white/90 to-white/60 dark:from-[#080C14]/98 dark:via-[#080C14]/90 dark:to-[#080C14]/60 sm:to-transparent" />
+      {/* Overlay: Balanced centered gradient for premium aesthetic */}
+      <div className="absolute inset-0 bg-white/90 sm:bg-white/80 dark:bg-[#080C14]/90 sm:dark:bg-[#080C14]/80 backdrop-blur-[2px]" />
 
-      {/* Content */}
-      <div className="relative z-10 p-5 sm:p-10 lg:p-14 max-w-xl flex flex-col justify-center min-h-[300px] sm:min-h-[380px]">
+      {/* Centered Content */}
+      <div className="relative z-10 p-6 sm:p-12 lg:p-16 max-w-3xl flex flex-col items-center text-center justify-center min-h-[340px] sm:min-h-[400px] mx-auto">
         {activeBanner?.subtitle && (
-          <span className="inline-block text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1.5 sm:mb-2">
+          <span className="inline-block text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-2">
             {activeBanner.subtitle}
           </span>
         )}
-        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] leading-[1.15] tracking-tight">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] leading-[1.12] tracking-tight">
           {activeBanner?.title ? (
             activeBanner.title
           ) : (
@@ -59,26 +59,26 @@ export default function HeroBanner() {
             </>
           )}
         </h1>
-        <p className="text-slate-600 dark:text-[#8B96A8] text-xs sm:text-sm md:text-base mt-2.5 sm:mt-4 leading-relaxed max-w-md">
+        <p className="text-slate-600 dark:text-[#8B96A8] text-xs sm:text-base md:text-lg mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto">
           {activeBanner?.subtitle
             ? `Exclusive fresh stock directly sourced and delivered to your kitchen with speed and quality.`
-            : 'DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and greens harvested at dawn.'}
+            : 'DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and hydroponic greens harvested at dawn.'}
         </p>
 
         {activeBanner?.linkValue ? (
-          <div className="mt-4 sm:mt-6">
+          <div className="mt-5 sm:mt-8 flex justify-center">
             <Link
               href={activeBanner.linkValue}
-              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md hover:gap-3 w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-7 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md hover:gap-3"
             >
               <span>Explore Collection</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         ) : (
-          /* Newsletter Input */
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center mt-4 sm:mt-6 max-w-md shadow-md rounded-xl overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white sm:dark:bg-[#161E2E]">
-            <div className="flex items-center bg-white dark:bg-[#161E2E] px-3.5 py-3 gap-2 rounded-xl sm:rounded-none flex-1">
+          /* Centered Newsletter Input */
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center mt-5 sm:mt-8 w-full max-w-md shadow-lg rounded-xl overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white sm:dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.08]">
+            <div className="flex items-center bg-white dark:bg-[#161E2E] px-4 py-3 gap-2.5 rounded-xl sm:rounded-none flex-1">
               <Mail className="w-4 h-4 text-slate-400 dark:text-[#4E5A6B] shrink-0" />
               <input
                 type="email"
@@ -88,23 +88,24 @@ export default function HeroBanner() {
                 className="bg-transparent text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] outline-none w-full"
               />
             </div>
-            <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-5 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors flex items-center justify-center gap-2 rounded-xl sm:rounded-none shrink-0">
-              Subscribe 🌿
+            <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors flex items-center justify-center gap-2 rounded-xl sm:rounded-none shrink-0">
+              <span>Subscribe</span>
+              <Send className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
         {/* Carousel indicators if multiple hero banners exist */}
         {heroBanners.length > 1 && (
-          <div className="flex items-center gap-2 mt-4 sm:mt-6">
+          <div className="flex items-center justify-center gap-2 mt-5 sm:mt-8">
             {heroBanners.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
                 className={`h-1.5 sm:h-2 rounded-full transition-all ${
                   currentSlide === idx
-                    ? 'w-5 sm:w-6 bg-emerald-600 dark:bg-emerald-400'
-                    : 'w-1.5 sm:w-2 bg-slate-300 dark:bg-slate-700'
+                    ? 'w-6 bg-emerald-600 dark:bg-emerald-400'
+                    : 'w-2 bg-slate-300 dark:bg-slate-700'
                 }`}
                 aria-label={`Slide ${idx + 1}`}
               />

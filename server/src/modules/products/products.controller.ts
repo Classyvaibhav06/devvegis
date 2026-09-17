@@ -185,7 +185,10 @@ export const getFlashDeals = async (req: AuthRequest, res: Response): Promise<vo
 };
 
 export const searchProducts = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { q, page = '1', limit = '20' } = req.query as Record<string, string>;
+  const {
+    q, page = '1', limit = '20',
+    isOrganic, minPrice, maxPrice, sort, order
+  } = req.query as Record<string, string>;
 
   if (!q || q.trim().length < 2) {
     res.json({ success: true, data: [], suggestions: [] });
@@ -206,32 +209,43 @@ export const searchProducts = async (req: AuthRequest, res: Response): Promise<v
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const take = Math.min(parseInt(limit), 50);
 
+  const where: any = {
+    isPublished: true,
+    OR: [
+      { name: { contains: q, mode: 'insensitive' } },
+      { tags: { hasSome: [q.toLowerCase()] } },
+      { description: { contains: q, mode: 'insensitive' } },
+    ],
+  };
+
+  if (isOrganic === 'true') where.isOrganic = true;
+  if (minPrice || maxPrice) {
+    where.price = {};
+    if (minPrice) where.price.gte = parseFloat(minPrice);
+    if (maxPrice) where.price.lte = parseFloat(maxPrice);
+  }
+
+  let orderBy: any = { rating: 'desc' };
+  if (sort === 'price') {
+    orderBy = { price: order === 'desc' ? 'desc' : 'asc' };
+  } else if (sort === 'createdAt') {
+    orderBy = { createdAt: 'desc' };
+  } else if (sort === 'rating') {
+    orderBy = { rating: 'desc' };
+  }
+
   const [products, total] = await Promise.all([
     prisma.product.findMany({
-      where: {
-        isPublished: true,
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { tags: { hasSome: [q.toLowerCase()] } },
-          { description: { contains: q, mode: 'insensitive' } },
-        ],
-      },
+      where,
       skip,
       take,
+      orderBy,
       include: {
         images: { where: { isPrimary: true }, take: 1 },
         category: { select: { name: true, slug: true } },
       },
     }),
-    prisma.product.count({
-      where: {
-        isPublished: true,
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { tags: { hasSome: [q.toLowerCase()] } },
-        ],
-      },
-    }),
+    prisma.product.count({ where }),
   ]);
 
   res.json({
@@ -251,6 +265,14 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
   } = req.body;
   const files = req.files as Express.Multer.File[];
 
+  // If categoryId is not provided or invalid, resolve to first active category
+  let resolvedCategoryId = categoryId;
+  if (!resolvedCategoryId) {
+    const defaultCat = await prisma.category.findFirst({ where: { isActive: true } });
+    if (defaultCat) resolvedCategoryId = defaultCat.id;
+  }
+  if (!resolvedCategoryId) throw new AppError('Category is required. Please create a category first.', 400);
+
   const generatedSlug = `${(name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
   const effectiveSku = sku || `SKU-${Date.now().toString().slice(-6)}`;
   const effectiveComparePrice = mrp !== undefined && mrp !== '' && mrp !== null
@@ -260,7 +282,7 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
 
   const product = await prisma.product.create({
     data: {
-      categoryId,
+      categoryId: resolvedCategoryId,
       name,
       slug: generatedSlug,
       sku: effectiveSku,
@@ -422,6 +444,14 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
 
 export const deleteProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  await prisma.product.update({ where: { id }, data: { isPublished: false } });
-  res.json({ success: true, message: 'Product unpublished successfully' });
+  try {
+    // Try permanent delete if item has not been ordered
+    await prisma.product.delete({ where: { id } });
+    res.json({ success: true, message: 'Product deleted permanently' });
+  } catch (err: any) {
+    // If foreign key constraint (P2003) because orders exist, soft delete by unpublishing
+    await prisma.product.update({ where: { id }, data: { isPublished: false } });
+    res.json({ success: true, message: 'Product archived and unpublished' });
+  }
 };
+

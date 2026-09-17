@@ -71,11 +71,19 @@ export const updateCategory = async (req: AuthRequest, res: Response): Promise<v
 
 export const deleteCategory = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
-  await prisma.category.update({ where: { id }, data: { isActive: false } });
-  memoryCache.del(CATEGORIES_CACHE_KEY);
-  memoryCache.del('category_');
-  res.json({ success: true, message: 'Category deactivated' });
+  try {
+    await prisma.category.delete({ where: { id } });
+    memoryCache.del(CATEGORIES_CACHE_KEY);
+    memoryCache.del('category_');
+    res.json({ success: true, message: 'Category deleted permanently' });
+  } catch {
+    await prisma.category.update({ where: { id }, data: { isActive: false } });
+    memoryCache.del(CATEGORIES_CACHE_KEY);
+    memoryCache.del('category_');
+    res.json({ success: true, message: 'Category deactivated' });
+  }
 };
+
 
 export const adminGetAllCategories = async (_req: AuthRequest, res: Response): Promise<void> => {
   const categories = await prisma.category.findMany({

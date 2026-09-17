@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Loader2, Mail, Lock, Leaf } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, Leaf, Shield, User, Building2, Bike } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
@@ -34,7 +34,7 @@ export default function LoginPage() {
       const res = await api.post('/auth/login', data);
       const { user, accessToken } = res.data.data;
       setAuth(user, accessToken);
-      toast.success(`Welcome back, ${user.name}! 👋`);
+      toast.success(`Welcome, ${user.name}!`);
 
       if (user.role === 'ADMIN') {
         router.push('/admin');
@@ -51,10 +51,10 @@ export default function LoginPage() {
   };
 
   const demoAccounts = [
-    { label: '🛠️ Admin', email: 'admin@devvegis.com', password: 'Password@123' },
-    { label: '👤 Customer', email: 'priya@example.com', password: 'Password@123' },
-    { label: '🏢 Wholesale', email: 'wholesale@agarwal.com', password: 'Password@123' },
-    { label: '🛵 Rider', email: 'vijay.rider@devvegis.com', password: 'Password@123' },
+    { label: 'Admin', icon: Shield, email: 'admin@devvegis.com', password: 'Password@123' },
+    { label: 'Customer', icon: User, email: 'priya@example.com', password: 'Password@123' },
+    { label: 'Wholesale', icon: Building2, email: 'wholesale@agarwal.com', password: 'Password@123' },
+    { label: 'Rider', icon: Bike, email: 'vijay.rider@devvegis.com', password: 'Password@123' },
   ];
 
   return (
@@ -65,8 +65,8 @@ export default function LoginPage() {
     >
       <div className="card p-8">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-100">Welcome Back!</h1>
-          <p className="text-gray-500 mt-1">Sign in to your DevVegis account</p>
+          <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-100">Sign In</h1>
+          <p className="text-gray-500 mt-1">Access your DevVegis dashboard and orders</p>
         </div>
 
         {/* Google OAuth Button */}
@@ -135,17 +135,21 @@ export default function LoginPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 mb-6">
-          {demoAccounts.map(demo => (
-            <button
-              key={demo.label}
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => { onSubmit({ email: demo.email, password: demo.password }); }}
-              className="btn-secondary text-xs py-2 px-3 hover:border-green-500 hover:text-green-600 transition-colors"
-            >
-              {demo.label}
-            </button>
-          ))}
+          {demoAccounts.map(demo => {
+            const Icon = demo.icon;
+            return (
+              <button
+                key={demo.label}
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => { onSubmit({ email: demo.email, password: demo.password }); }}
+                className="btn-secondary text-xs py-2 px-3 hover:border-green-500 hover:text-green-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <Icon className="w-3.5 h-3.5 text-green-600" />
+                <span>{demo.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         <p className="text-center text-sm text-gray-600 dark:text-gray-400">

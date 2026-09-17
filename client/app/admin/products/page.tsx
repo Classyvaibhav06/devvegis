@@ -414,6 +414,22 @@ export default function AdminProductsPage() {
                 />
               </div>
 
+              <div>
+                <label className="text-xs font-semibold block mb-1">Category</label>
+                <select
+                  value={newProduct.categoryId}
+                  onChange={(e) => setNewProduct({ ...newProduct, categoryId: e.target.value })}
+                  className="input text-xs"
+                >
+                  <option value="">Select Category (or Auto-assign Daily Fresh)</option>
+                  {categories.map((cat: any) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold block mb-1">Selling Rate (₹)</label>

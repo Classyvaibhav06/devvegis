@@ -35,7 +35,7 @@ export default function AdminBannersPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const authHeader = () => {
-    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || localStorage.getItem('adminToken');
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
