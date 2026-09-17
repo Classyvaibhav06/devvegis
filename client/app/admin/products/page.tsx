@@ -10,6 +10,7 @@ import Image from 'next/image';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import S3ImageUploader from '@/components/ui/S3ImageUploader';
+import { resolveImageUrl } from '@/lib/utils';
 
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
@@ -176,7 +177,12 @@ export default function AdminProductsPage() {
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 border border-gray-200 dark:border-gray-700">
                           {p.images?.[0] ? (
-                            <Image src={p.images[0]?.url || p.images[0]} alt={p.name} fill className="object-cover" />
+                            <Image
+                              src={resolveImageUrl(p.images[0]?.url || p.images[0])}
+                              alt={p.name}
+                              fill
+                              className="object-cover"
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-lg">🥦</div>
                           )}

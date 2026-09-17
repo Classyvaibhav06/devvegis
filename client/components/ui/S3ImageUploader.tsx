@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { UploadCloud, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { uploadImageToStorage } from '@/lib/upload';
 import { toast } from 'sonner';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface S3ImageUploaderProps {
   value: string;
@@ -65,7 +66,7 @@ export default function S3ImageUploader({
         <input
           type="url"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => onChange(resolveImageUrl(e.target.value))}
           placeholder="https://... (or click upload)"
           className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           required={required}
@@ -102,7 +103,7 @@ export default function S3ImageUploader({
       {value && (
         <div className="relative mt-2 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 max-h-36 w-full flex items-center justify-center">
           <img
-            src={value}
+            src={resolveImageUrl(value)}
             alt="Preview"
             className="w-full h-32 object-cover"
             onError={(e) => {

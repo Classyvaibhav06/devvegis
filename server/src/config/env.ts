@@ -36,8 +36,8 @@ export const config = {
   EMAIL_FROM: process.env.EMAIL_FROM || 'DevVegis <onboarding@resend.dev>',
   
   // App
-  APP_URL: process.env.APP_URL || 'http://localhost:3000',
-  API_URL: process.env.API_URL || 'http://localhost:5000',
+  APP_URL: (process.env.APP_URL || 'http://localhost:3000').replace(/^.*APP_URL=/, '').replace(/\/$/, ''),
+  API_URL: (process.env.API_URL || (process.env.RENDER_EXTERNAL_URL ? process.env.RENDER_EXTERNAL_URL : 'http://localhost:5000')).replace(/^.*API_URL=/, '').replace(/\/$/, ''),
   
   // Storage & Neon S3 Object Storage
   UPLOAD_DIR: process.env.UPLOAD_DIR || 'uploads',

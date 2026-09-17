@@ -7,7 +7,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Heart, Star, Leaf, Zap, Plus, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCartStore } from '@/store/cartStore';
-import { cn, formatCurrency, getDiscountedPrice } from '@/lib/utils';
+import { cn, formatCurrency, getDiscountedPrice, resolveImageUrl } from '@/lib/utils';
 
 interface Product {
   id: string;
@@ -39,7 +39,7 @@ export default function ProductCard({ product, variant = 'default', showWishlist
 
   const cartItem = items.find(i => i.id === product.id);
   const quantity = cartItem?.quantity || 0;
-  const imageUrl = product.images?.[0]?.url || 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?w=500&q=80';
+  const imageUrl = resolveImageUrl(product.images?.[0]?.url);
   const inStock = !product.inventory || product.inventory.availableStock > 0;
   const finalPrice = product.discountPercentage
     ? getDiscountedPrice(product.price, product.discountPercentage)

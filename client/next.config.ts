@@ -45,6 +45,18 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "localhost",
       },
+      {
+        protocol: "https",
+        hostname: "devvegis.onrender.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.onrender.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.search.brave.com",
+      },
     ],
   },
   turbopack: {

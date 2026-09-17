@@ -93,3 +93,34 @@ export function generateSKU(name: string): string {
   const random = Math.random().toString(36).substring(2, 6).toUpperCase();
   return `DV-${prefix}-${random}`;
 }
+
+/**
+ * Resolves and sanitizes image URLs:
+ * - Fixes pasted or malformed URLs like "API_URL=https://..." or "http://localhost:5000/uploads/..."
+ * - Normalizes local/Render upload paths to point to the live backend URL.
+ */
+export function resolveImageUrl(url?: string | null): string {
+  if (!url) {
+    return 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?w=500&q=80';
+  }
+
+  let cleaned = url.trim();
+
+  // Strip accidental "API_URL=" or "NEXT_PUBLIC_API_URL=" prefix from input
+  if (cleaned.includes('API_URL=')) {
+    cleaned = cleaned.replace(/^.*API_URL=/, '');
+  }
+
+  // Fix broken schemes like "https:/devvegis.onrender.com" -> "https://devvegis.onrender.com"
+  cleaned = cleaned.replace(/^(https?):\/([^\/])/, '$1://$2');
+
+  // If URL points to localhost:5000/uploads on production, redirect to live backend API base
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1').replace(/\/api\/v1\/?$/, '');
+  if (cleaned.startsWith('http://localhost:5000/uploads')) {
+    cleaned = cleaned.replace('http://localhost:5000', apiBase);
+  } else if (cleaned.startsWith('/uploads')) {
+    cleaned = `${apiBase}${cleaned}`;
+  }
+
+  return cleaned;
+}
