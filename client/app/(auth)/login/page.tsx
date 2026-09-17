@@ -51,7 +51,6 @@ export default function LoginPage() {
   };
 
   const demoAccounts = [
-    { label: '👑 Super Admin', email: 'superadmin@devvegis.com', password: 'Password@123' },
     { label: '🛠️ Admin', email: 'admin@devvegis.com', password: 'Password@123' },
     { label: '👤 Customer', email: 'priya@example.com', password: 'Password@123' },
     { label: '🏢 Wholesale', email: 'wholesale@agarwal.com', password: 'Password@123' },
