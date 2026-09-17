@@ -145,7 +145,7 @@ export default function AdminRidersPage() {
                             href={`/admin/orders/${activeDelivery.order.id}`}
                             className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 hover:text-orange-700 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded border border-orange-200 dark:border-orange-800"
                           >
-                            <span>#{activeDelivery.order.orderNumber}</span>
+                            <span>#{activeDelivery.order.orderNumber} (₹{activeDelivery.order.totalAmount})</span>
                             <span className="text-[10px] font-normal">({activeDelivery.status})</span>
                           </Link>
                         ) : (

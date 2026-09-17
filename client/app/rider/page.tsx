@@ -71,7 +71,8 @@ export default function RiderPortalPage() {
 
           const itemsCount = itemsList.reduce((s, it) => s + it.quantity, 0) || o._count?.items || 1;
           const isPicked = o.status === 'ON_THE_WAY' || o.delivery?.status === 'PICKED_UP' || o.delivery?.status === 'ON_THE_WAY';
-          const isCod = o.payment?.method === 'CASH_ON_DELIVERY' || o.paymentMethod === 'COD';
+          const isCod = o.payment?.method === 'CASH_ON_DELIVERY' || o.payment?.method === 'COD' || o.paymentMethod === 'COD' || o.paymentMethod === 'CASH_ON_DELIVERY';
+          const orderTotal = typeof o.totalAmount === 'number' ? o.totalAmount : (typeof o.payment?.amount === 'number' ? o.payment.amount : 0);
 
           return {
             id: o.id,
@@ -83,7 +84,7 @@ export default function RiderPortalPage() {
             payout: 50,
             itemsCount,
             items: itemsList,
-            totalAmount: o.totalAmount || 0,
+            totalAmount: orderTotal,
             isCashOnDelivery: isCod,
             status: isPicked ? 'PICKED_UP' : 'ASSIGNED',
             expectedOtp: o.deliveryOtp ? String(o.deliveryOtp).trim() : '',
@@ -272,24 +273,49 @@ export default function RiderPortalPage() {
                       onClick={() => toggleItemsExpand(order.id)}
                       className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1 bg-slate-800/60 px-2 py-0.5 rounded"
                     >
-                      <span>{order.itemsCount} produce item{order.itemsCount !== 1 ? 's' : ''}</span>
+                      <span>{order.itemsCount} item{order.itemsCount !== 1 ? 's' : ''}</span>
                       {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {order.isCashOnDelivery ? (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        💰 COD: Collect ₹{order.totalAmount}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-green-500/20 text-green-300 border border-green-500/30">
-                        ✓ Prepaid Online
-                      </span>
-                    )}
-                    <span className="text-xs font-extrabold text-green-400">
-                      +₹{order.payout}
+                    <span className="text-xs text-slate-400 font-medium">Bill:</span>
+                    <span className="text-sm font-black text-white font-mono bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">
+                      ₹{order.totalAmount}
                     </span>
+                  </div>
+                </div>
+
+                {/* Order Bill & Payment Collection Banner */}
+                <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
+                  order.isCashOnDelivery
+                    ? 'bg-amber-500/15 border-amber-500/35 text-amber-200'
+                    : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-200'
+                }`}>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-lg shrink-0">{order.isCashOnDelivery ? '💵' : '💳'}</span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-black/40 border border-white/10">
+                          {order.isCashOnDelivery ? 'Cash on Delivery' : 'Prepaid Online'}
+                        </span>
+                        <span className="font-bold text-white font-mono text-sm">
+                          ₹{order.totalAmount}
+                        </span>
+                      </div>
+                      <p className="text-[11px] mt-0.5 font-medium">
+                        {order.isCashOnDelivery ? (
+                          <span className="text-amber-300 font-bold">⚠️ Collect cash ₹{order.totalAmount} from customer</span>
+                        ) : (
+                          <span className="text-emerald-300">✓ Fully paid online (Do NOT collect cash)</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right pl-3 border-l border-slate-800 shrink-0">
+                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Rider Pay</span>
+                    <span className="text-xs font-extrabold text-green-400">+₹{order.payout}</span>
                   </div>
                 </div>
 
@@ -303,17 +329,23 @@ export default function RiderPortalPage() {
                       className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 space-y-1.5 text-xs"
                     >
                       <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                        Produce Verification List:
+                        Produce Verification & Pricing:
                       </span>
                       {order.items.map((it, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-slate-300">
+                        <div key={idx} className="flex items-center justify-between text-slate-300 py-1 border-b border-slate-800/40 last:border-0">
                           <span className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
                             <span>{it.name}</span>
                           </span>
-                          <span className="font-mono text-slate-400">Qty: {it.quantity}</span>
+                          <span className="font-mono text-slate-400 text-right">
+                            {it.quantity} × ₹{it.unitPrice} = <span className="text-white font-bold">₹{it.quantity * it.unitPrice}</span>
+                          </span>
                         </div>
                       ))}
+                      <div className="pt-2 mt-1 border-t border-slate-800 flex items-center justify-between font-bold text-slate-200">
+                        <span>Total Order Bill:</span>
+                        <span className="text-emerald-400 font-mono text-sm">₹{order.totalAmount}</span>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
