@@ -295,7 +295,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                   </linearGradient>
                 </defs>
                 <path
-                  d="M 120 180 Q 280 70 450 150 T 700 90"
+                  d="M 60 190 Q 180 70 280 140 T 360 80"
                   fill="none"
                   stroke="url(#routeGradient)"
                   strokeWidth="4"
@@ -305,22 +305,22 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               </svg>
 
               {/* Hub / Darkstore Node */}
-              <div className="absolute left-12 bottom-12 flex flex-col items-center">
-                <div className="w-10 h-10 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg ring-4 ring-emerald-500/30">
-                  <ShoppingBag className="w-5 h-5" />
+              <div className="absolute left-4 sm:left-12 bottom-8 sm:bottom-12 flex flex-col items-center">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg ring-4 ring-emerald-500/30">
+                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px] font-bold text-white bg-slate-900/90 border border-slate-700 px-2 py-0.5 rounded mt-1.5 whitespace-nowrap">
+                <span className="text-[9px] sm:text-[10px] font-bold text-white bg-slate-900/90 border border-slate-700 px-1.5 sm:px-2 py-0.5 rounded mt-1 whitespace-nowrap">
                   Darkstore Hub #04
                 </span>
               </div>
 
               {/* Customer Destination Node */}
-              <div className="absolute right-12 top-12 flex flex-col items-center">
-                <div className="w-10 h-10 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg ring-4 ring-rose-500/30">
-                  <MapPin className="w-5 h-5" />
+              <div className="absolute right-4 sm:right-12 top-8 sm:top-12 flex flex-col items-center">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-rose-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg ring-4 ring-rose-500/30">
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px] font-bold text-white bg-slate-900/90 border border-slate-700 px-2 py-0.5 rounded mt-1.5 whitespace-nowrap">
-                  Your Delivery Address
+                <span className="text-[9px] sm:text-[10px] font-bold text-white bg-slate-900/90 border border-slate-700 px-1.5 sm:px-2 py-0.5 rounded mt-1 whitespace-nowrap">
+                  Your Address
                 </span>
               </div>
 
@@ -328,42 +328,42 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               {!isDelivered && (
                 <motion.div
                   animate={{
-                    x: order.status === 'ON_THE_WAY' ? [0, 60, 140, 220] : [0, 20, 0],
-                    y: order.status === 'ON_THE_WAY' ? [0, -20, 10, -10] : [0, -5, 0],
+                    x: order.status === 'ON_THE_WAY' ? [0, 35, 75, 110] : [0, 15, 0],
+                    y: order.status === 'ON_THE_WAY' ? [0, -15, 8, -5] : [0, -5, 0],
                   }}
                   transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute left-32 bottom-20 flex flex-col items-center z-10"
+                  className="absolute left-[30%] sm:left-32 bottom-16 sm:bottom-20 flex flex-col items-center z-10"
                 >
                   <div className="relative">
                     <span className="absolute -inset-2 rounded-full bg-green-500/40 animate-ping" />
-                    <div className="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center text-black shadow-xl ring-4 ring-green-400/50">
-                      <Bike className="w-6 h-6" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-black shadow-xl ring-4 ring-green-400/50">
+                      <Bike className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
                   </div>
-                  <span className="text-[10px] font-extrabold text-white bg-green-600 px-2.5 py-0.5 rounded-full shadow mt-2 whitespace-nowrap">
-                    {assignedRider?.name ? `${assignedRider.name} (Rider)` : 'Rider on Route'} • 0.6 km
+                  <span className="text-[9px] sm:text-[10px] font-extrabold text-white bg-green-600 px-2 py-0.5 rounded-full shadow mt-1.5 whitespace-nowrap max-w-[150px] truncate">
+                    {assignedRider?.name ? `${assignedRider.name}` : 'Rider'} • 0.6 km
                   </span>
                 </motion.div>
               )}
             </div>
 
             {/* Delivery Partner Card */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-800/60 flex items-center justify-between">
+            <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/60 flex items-center justify-between gap-3">
               {assignedRider ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-2xl flex items-center justify-center text-sm font-bold shadow-sm">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-xl sm:rounded-2xl flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
                     {assignedRider.name?.[0] || 'R'}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
                         {assignedRider.name}
                       </h4>
-                      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded">
+                      <span className="text-[9px] sm:text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded shrink-0">
                         ⭐ {assignedRider.rating || '4.9'}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 truncate">
                       {assignedRider.vehicleType || 'Bike'} {assignedRider.vehicleNumber ? `• ${assignedRider.vehicleNumber}` : ''} • Vaccinated & Sanitized
                     </p>
                   </div>

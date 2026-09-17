@@ -134,17 +134,17 @@ export default function Header() {
       <div className="container-main">
         <div className="flex items-center justify-between gap-3 md:gap-6 h-18 py-2">
           {/* Brand Logo */}
-          <div className="flex items-center gap-4 shrink-0">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-xl flex items-center justify-center shadow-lg shadow-[#10B981]/25 group-hover:scale-105 transition-transform duration-200">
-                <Leaf className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-xl flex items-center justify-center shadow-md sm:shadow-lg shadow-[#10B981]/25 group-hover:scale-105 transition-transform duration-200">
+                <Leaf className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-baseline leading-none">
-                  <span className="font-display font-extrabold text-2xl tracking-tight text-slate-900 dark:text-[#E8EEF8]">Dev</span>
-                  <span className="font-display font-extrabold text-2xl tracking-tight text-[#10B981]">Vegis</span>
+                  <span className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-slate-900 dark:text-[#E8EEF8]">Dev</span>
+                  <span className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-[#10B981]">Vegis</span>
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-[#4E5A6B] uppercase tracking-wider">
+                <span className="hidden sm:inline-block text-[10px] font-bold text-slate-500 dark:text-[#4E5A6B] uppercase tracking-wider">
                   Farm Fresh in 12 Mins
                 </span>
               </div>
@@ -166,9 +166,9 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Omni Search Bar */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-auto">
-            <div className="relative group">
+          {/* Omni Search Bar (Desktop) */}
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-4">
+            <div className="relative group w-full">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-[#4E5A6B] group-focus-within:text-[#10B981] transition-colors" />
               <input
                 ref={searchRef}
@@ -176,7 +176,7 @@ export default function Header() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search vegetables, fruits, organic herbs..."
-                className="w-full pl-10 pr-16 py-2.5 bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] rounded-xl text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]/40 transition-all shadow-inner"
+                className="w-full pl-10 pr-16 py-2.5 bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] rounded-xl text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]/40 transition-all shadow-inner"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                 {searchQuery ? (
@@ -188,7 +188,7 @@ export default function Header() {
                     <X className="w-3.5 h-3.5" />
                   </button>
                 ) : (
-                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-white dark:bg-[#0F1520] border border-slate-200 dark:border-white/10 text-[10px] font-mono text-slate-400 dark:text-[#4E5A6B] shadow-xs">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white dark:bg-[#0F1520] border border-slate-200 dark:border-white/10 text-[10px] font-mono text-slate-400 dark:text-[#4E5A6B] shadow-xs">
                     ⌘K
                   </span>
                 )}
@@ -343,6 +343,31 @@ export default function Header() {
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
+        </div>
+
+        {/* Dedicated Mobile Search Bar */}
+        <div className="md:hidden pb-2.5 pt-0.5">
+          <form onSubmit={handleSearch} className="w-full">
+            <div className="relative group w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-[#4E5A6B] group-focus-within:text-[#10B981] transition-colors" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search vegetables, fruits, herbs..."
+                className="w-full pl-10 pr-10 py-2 bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] rounded-xl text-xs text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]/40 transition-all shadow-inner"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </form>
         </div>
       </div>
 
