@@ -1,3 +1,5 @@
+import dns from 'dns';
+try { dns.setDefaultResultOrder('ipv4first'); } catch {}
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger';
 import { config } from './env';

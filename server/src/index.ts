@@ -1,4 +1,6 @@
 // DevVegis — Main Server Entry Point
+import dns from 'dns';
+try { dns.setDefaultResultOrder('ipv4first'); } catch {}
 import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';

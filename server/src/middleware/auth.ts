@@ -31,11 +31,21 @@ export const authenticate = async (
       id: string; email: string; role: Role; name: string;
     };
 
-    // Verify user still exists and is active
-    const user = await prisma.user.findUnique({
-      where: { id: payload.id },
-      select: { id: true, email: true, role: true, name: true, isActive: true },
-    });
+    // Verify user still exists and is active (with auto-retry if Neon database was suspended)
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        select: { id: true, email: true, role: true, name: true, isActive: true },
+      });
+    } catch (dbErr: any) {
+      // If Neon is resuming from sleep, pause briefly and retry once
+      await new Promise((r) => setTimeout(r, 800));
+      user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        select: { id: true, email: true, role: true, name: true, isActive: true },
+      });
+    }
 
     if (!user || !user.isActive) {
       throw new AppError('User not found or deactivated', 401, 'UNAUTHORIZED');
