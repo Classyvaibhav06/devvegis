@@ -25,7 +25,7 @@ export const toggleAvailability = async (req: AuthRequest, res: Response): Promi
 export const getAvailableOrders = async (req: AuthRequest, res: Response): Promise<void> => {
   const rider = await prisma.rider.findUnique({ where: { userId: req.user!.id } });
   
-  // Return all active pending/in-progress delivery orders
+  // Return all active pending/in-progress delivery orders (sanitized to protect customer OTP)
   const orders = await prisma.order.findMany({
     where: {
       status: { in: ['CONFIRMED', 'PENDING', 'PACKED', 'RIDER_ASSIGNED', 'ON_THE_WAY'] },
@@ -43,7 +43,10 @@ export const getAvailableOrders = async (req: AuthRequest, res: Response): Promi
     take: 20,
   });
 
-  res.json({ success: true, data: orders });
+  // Strip deliveryOtp so it never reaches rider devices
+  const sanitizedOrders = orders.map(({ deliveryOtp, ...rest }) => rest);
+
+  res.json({ success: true, data: sanitizedOrders });
 };
 
 export const acceptOrder = async (req: AuthRequest, res: Response): Promise<void> => {

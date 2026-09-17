@@ -51,3 +51,8 @@ next-env.d.ts
 # IDE / Scratch
 walkthrough.md
 
+# Uploads
+uploads/
+server/uploads/*
+!server/uploads/.gitkeep
+

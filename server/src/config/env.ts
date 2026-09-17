@@ -27,12 +27,13 @@ export const config = {
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || 'razorpay_secret_placeholder',
   
-  // Email
+  // Email & Resend
+  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
   EMAIL_HOST: process.env.EMAIL_HOST || 'smtp.gmail.com',
   EMAIL_PORT: parseInt(process.env.EMAIL_PORT || '587', 10),
   EMAIL_USER: process.env.EMAIL_USER || '',
   EMAIL_PASS: process.env.EMAIL_PASS || '',
-  EMAIL_FROM: process.env.EMAIL_FROM || 'DevVegis <noreply@devvegis.com>',
+  EMAIL_FROM: process.env.EMAIL_FROM || 'DevVegis <onboarding@resend.dev>',
   
   // App
   APP_URL: process.env.APP_URL || 'http://localhost:3000',

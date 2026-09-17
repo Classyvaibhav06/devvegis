@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2, Clock, Truck, Package, Phone, AlertTriangle,
   ArrowLeft, Download, ShieldCheck, MapPin, Sparkles, XCircle,
-  Copy, Check, Bike, Navigation, ShoppingBag
+  Copy, Check, Bike, Navigation, ShoppingBag, Mail
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -45,6 +45,19 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   const orderId = resolvedParams.id;
   const queryClient = useQueryClient();
   const [copiedOtp, setCopiedOtp] = useState(false);
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
+
+  const handleResendOtpEmail = async () => {
+    setIsResendingOtp(true);
+    try {
+      await api.post(`/orders/${orderId}/resend-otp`);
+      toast.success('📬 Delivery OTP sent to your email via Resend!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to resend OTP email.');
+    } finally {
+      setIsResendingOtp(false);
+    }
+  };
 
   const { data: order, isLoading, error } = useQuery({
     queryKey: ['order', orderId],
@@ -220,9 +233,18 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                       >
                         {copiedOtp ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
                       </button>
+                      <button
+                        onClick={handleResendOtpEmail}
+                        disabled={isResendingOtp}
+                        className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors disabled:opacity-50 flex items-center gap-1 text-xs"
+                        title="Resend OTP to email"
+                      >
+                        <Mail className={`w-4 h-4 ${isResendingOtp ? 'animate-pulse text-amber-300' : ''}`} />
+                        <span className="hidden sm:inline text-[10px]">Email</span>
+                      </button>
                     </div>
                     <span className="text-[10px] text-green-200 block mt-1">
-                      Share with partner ONLY after verification
+                      Share with partner ONLY after verification • Sent via Email
                     </span>
                   </div>
                 )}

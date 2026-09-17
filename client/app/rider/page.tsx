@@ -29,7 +29,6 @@ interface DeliveryOrder {
   totalAmount: number;
   isCashOnDelivery: boolean;
   status: 'ASSIGNED' | 'PICKED_UP' | 'DELIVERED';
-  expectedOtp: string;
 }
 
 export default function RiderPortalPage() {
@@ -87,7 +86,6 @@ export default function RiderPortalPage() {
             totalAmount: orderTotal,
             isCashOnDelivery: isCod,
             status: isPicked ? 'PICKED_UP' : 'ASSIGNED',
-            expectedOtp: o.deliveryOtp ? String(o.deliveryOtp).trim() : '',
           };
         });
         setOrders(mapped);
@@ -356,16 +354,9 @@ export default function RiderPortalPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-white">{order.customerName}</p>
-                      {order.expectedOtp && (
-                        <button
-                          type="button"
-                          onClick={() => setOtpInputs({ ...otpInputs, [order.id]: order.expectedOtp })}
-                          className="text-[10px] text-green-400/80 hover:text-green-300 font-mono underline"
-                          title="Click to fill OTP for testing"
-                        >
-                          Fill OTP: {order.expectedOtp}
-                        </button>
-                      )}
+                      <span className="text-[10px] text-amber-400/90 font-medium flex items-center gap-1">
+                        🔒 Ask customer for OTP
+                      </span>
                     </div>
                     <p className="text-slate-300 text-[11px] mt-0.5 leading-relaxed">
                       {order.address}

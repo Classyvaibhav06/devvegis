@@ -4,6 +4,8 @@ import { AuthRequest } from '../../middleware/auth';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../../config/env';
 import { AppError } from '../../middleware/errorHandler';
+import { sendOrderOtpEmail } from '../../utils/email';
+import { logger } from '../../utils/logger';
 
 export const getOrders = async (req: AuthRequest, res: Response): Promise<void> => {
   const { page = '1', limit = '10', status } = req.query as Record<string, string>;
@@ -399,6 +401,27 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
     },
   });
 
+  // Send Order Confirmation & Delivery OTP email via Resend (async, non-blocking)
+  const recipientEmail = req.user?.email;
+  const recipientName = req.user?.name || address.name || 'Customer';
+  if (recipientEmail) {
+    sendOrderOtpEmail({
+      to: recipientEmail,
+      customerName: recipientName,
+      orderNumber,
+      otp: deliveryOtp,
+      totalAmount: Math.round(totalAmount * 100) / 100,
+      deliveryAddress: `${address.addressLine1}, ${address.city} - ${address.pincode}`,
+      items: cartItems.map((item) => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        price: isWholesale ? (item.product.wholesalePrice || item.product.price) : item.product.price,
+      })),
+    }).catch((err) => {
+      logger.error(`[Resend OTP] Failed to send order OTP email for #${orderNumber}:`, err);
+    });
+  }
+
   const fullOrder = await prisma.order.findUnique({
     where: { id: order.id },
     include: { items: true, payment: true, delivery: true, address: true },
@@ -548,4 +571,50 @@ export const getAllOrders = async (req: AuthRequest, res: Response): Promise<voi
   ]);
 
   res.json({ success: true, data: orders, pagination: { page: parseInt(page), limit: take, total, totalPages: Math.ceil(total / take) } });
+};
+
+export const resendOrderOtp = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const userId = req.user!.id;
+  const userRole = req.user!.role;
+
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      address: true,
+      items: true,
+    },
+  });
+
+  if (!order) throw new AppError('Order not found', 404);
+
+  // Allow customer who placed it, or any ADMIN or RIDER to resend
+  if (userRole === 'CUSTOMER' && order.userId !== userId) {
+    throw new AppError('Unauthorized access to this order', 403);
+  }
+
+  if (order.status === 'DELIVERED' || order.status === 'CANCELLED') {
+    throw new AppError(`Cannot resend OTP for an order that is already ${order.status.toLowerCase()}`, 400);
+  }
+
+  const recipientEmail = order.user?.email;
+  if (!recipientEmail) {
+    throw new AppError('No email associated with this customer account', 400);
+  }
+
+  await sendOrderOtpEmail({
+    to: recipientEmail,
+    customerName: order.user?.name || order.address?.name || 'Customer',
+    orderNumber: order.orderNumber,
+    otp: order.deliveryOtp || '0000',
+    totalAmount: order.totalAmount,
+    deliveryAddress: order.address ? `${order.address.addressLine1}, ${order.address.city} - ${order.address.pincode}` : undefined,
+    items: order.items.map((i) => ({ name: i.productName, quantity: i.quantity, price: i.unitPrice })),
+  });
+
+  res.json({
+    success: true,
+    message: `Delivery OTP email successfully sent to ${recipientEmail}`,
+  });
 };
