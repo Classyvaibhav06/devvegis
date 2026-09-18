@@ -203,7 +203,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-white" />
                     <span className="text-xs uppercase tracking-widest font-extrabold text-green-100">
                       Live Delivery Tracking
                     </span>
@@ -276,7 +276,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 </span>
               </div>
               <span className="text-xs text-green-600 font-semibold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-green-500" />
                 <span>GPS Live Active</span>
               </span>
             </div>
@@ -335,7 +335,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                   className="absolute left-[30%] sm:left-32 bottom-16 sm:bottom-20 flex flex-col items-center z-10"
                 >
                   <div className="relative">
-                    <span className="absolute -inset-2 rounded-full bg-green-500/40 animate-ping" />
+                    <span className="absolute -inset-2 rounded-full bg-green-500/40" />
                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-black shadow-xl ring-4 ring-green-400/50">
                       <Bike className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>

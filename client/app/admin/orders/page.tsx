@@ -65,7 +65,7 @@ export default function AdminOrdersPage() {
           <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <span>Order Fulfillment Management</span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-green-500" />
               <span>Live Sync Active</span>
             </span>
           </h1>

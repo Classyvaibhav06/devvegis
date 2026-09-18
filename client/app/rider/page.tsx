@@ -178,7 +178,7 @@ export default function RiderPortalPage() {
         <div className="flex items-center gap-3">
           <div
             className={`w-3 h-3 rounded-full ${
-              isOnline ? 'bg-emerald-500 animate-ping' : 'bg-rose-500'
+              isOnline ? 'bg-emerald-500' : 'bg-rose-500'
             }`}
           />
           <div>
