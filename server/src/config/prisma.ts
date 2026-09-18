@@ -9,10 +9,22 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
+function getSecureDatabaseUrl(rawUrl: string): string {
+  if (!rawUrl) return rawUrl;
+  let url = rawUrl;
+  if (!url.includes('connection_limit=')) {
+    url += (url.includes('?') ? '&' : '?') + 'connection_limit=10';
+  }
+  if (!url.includes('pool_timeout=')) {
+    url += '&pool_timeout=10';
+  }
+  return url;
+}
+
 const prisma = global.__prisma || new PrismaClient({
   datasources: {
     db: {
-      url: config.DATABASE_URL,
+      url: getSecureDatabaseUrl(config.DATABASE_URL),
     },
   },
   log: [

@@ -9,8 +9,10 @@ import { logger } from '../../utils/logger';
 
 export const getOrders = async (req: AuthRequest, res: Response): Promise<void> => {
   const { page = '1', limit = '10', status } = req.query as Record<string, string>;
-  const skip = (parseInt(page) - 1) * parseInt(limit);
-  const take = parseInt(limit);
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const rawLimit = parseInt(limit) || 10;
+  const take = Math.min(Math.max(1, rawLimit), 50); // Hard cap at 50 max to prevent DB flooding
+  const skip = (pageNum - 1) * take;
   const where: any = { userId: req.user!.id };
   if (status) where.status = status;
 
@@ -33,7 +35,7 @@ export const getOrders = async (req: AuthRequest, res: Response): Promise<void> 
   res.json({
     success: true,
     data: orders,
-    pagination: { page: parseInt(page), limit: take, total, totalPages: Math.ceil(total / take) },
+    pagination: { page: pageNum, limit: take, total, totalPages: Math.ceil(total / take) },
   });
 };
 
@@ -363,8 +365,8 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
 
     return newOrder;
   }, {
-    maxWait: 10000,
-    timeout: 30000,
+    maxWait: 5000,
+    timeout: 10000,
   });
 
   // Map payment method to valid enum

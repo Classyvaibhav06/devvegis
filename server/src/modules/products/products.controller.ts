@@ -5,6 +5,7 @@ import { AuthRequest } from '../../middleware/auth';
 import { config } from '../../config/env';
 import { ProductUnit } from '@prisma/client';
 import { uploadFileBuffer } from '../../services/storage.service';
+import { memoryCache } from '../../utils/cache';
 
 const parseProductUnit = (unitStr?: string): ProductUnit => {
   if (!unitStr) return ProductUnit.GRAM;
@@ -27,8 +28,30 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
     sort = 'sortOrder', order = 'asc', tags, isSeasonalItem
   } = req.query as Record<string, string>;
 
-  const skip = (parseInt(page) - 1) * parseInt(limit);
-  const take = Math.min(parseInt(limit), 100);
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const rawLimit = parseInt(limit) || 20;
+  const take = Math.min(Math.max(1, rawLimit), 50); // Hard cap at 50 max to prevent DB flooding
+  const skip = (pageNum - 1) * take;
+
+  const validSorts = ['price', 'rating', 'reviewCount', 'createdAt', 'sortOrder', 'name'];
+  const sortField = validSorts.includes(sort) ? sort : 'sortOrder';
+  const sortOrder = order === 'desc' ? 'desc' : 'asc';
+
+  // In-memory cache for common listing requests
+  const isSearch = Boolean(search);
+  const cacheKey = !isSearch
+    ? `products_list_${pageNum}_${take}_${categoryId || ''}_${categorySlug || ''}_${isFeatured || ''}_${isFreshToday || ''}_${isOrganic || ''}_${isSeasonalItem || ''}_${minPrice || ''}_${maxPrice || ''}_${tags || ''}_${sortField}_${sortOrder}`
+    : null;
+
+  if (cacheKey) {
+    const cached = memoryCache.get<any>(cacheKey);
+    if (cached) {
+      res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=120, stale-while-revalidate=300');
+      res.setHeader('X-Cache', 'HIT');
+      res.json(cached);
+      return;
+    }
+  }
 
   const where: any = { isPublished: true };
 
@@ -51,10 +74,6 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
     if (maxPrice) where.price.lte = parseFloat(maxPrice);
   }
   if (tags) where.tags = { hasSome: tags.split(',') };
-
-  const validSorts = ['price', 'rating', 'reviewCount', 'createdAt', 'sortOrder', 'name'];
-  const sortField = validSorts.includes(sort) ? sort : 'sortOrder';
-  const sortOrder = order === 'desc' ? 'desc' : 'asc';
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
@@ -94,23 +113,38 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
     prisma.product.count({ where }),
   ]);
 
-  res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=120, stale-while-revalidate=300');
-
-  res.json({
+  const responsePayload = {
     success: true,
     data: products,
     pagination: {
-      page: parseInt(page),
+      page: pageNum,
       limit: take,
       total,
       totalPages: Math.ceil(total / take),
       hasNext: skip + take < total,
     },
-  });
+  };
+
+  if (cacheKey) {
+    memoryCache.set(cacheKey, responsePayload, 60); // 60 seconds
+  }
+
+  res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=120, stale-while-revalidate=300');
+  res.setHeader('X-Cache', 'MISS');
+  res.json(responsePayload);
 };
 
 export const getProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   const { slug } = req.params;
+  const cacheKey = `product_slug_${slug}`;
+
+  const cached = memoryCache.get<any>(cacheKey);
+  if (cached) {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    res.setHeader('X-Cache', 'HIT');
+    res.json({ success: true, data: cached });
+    return;
+  }
 
   const product = await prisma.product.findUnique({
     where: { slug },
@@ -151,22 +185,47 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
     }).catch(() => {});
   }
 
+  const productPayload = { ...product, similar };
+  memoryCache.set(cacheKey, productPayload, 90); // 90 seconds
+
   res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
-  res.json({ success: true, data: { ...product, similar } });
+  res.setHeader('X-Cache', 'MISS');
+  res.json({ success: true, data: productPayload });
 };
 
 export const getFeaturedProducts = async (req: AuthRequest, res: Response): Promise<void> => {
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+  const cacheKey = 'products_featured';
+  const cached = memoryCache.get<any>(cacheKey);
+  if (cached) {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    res.setHeader('X-Cache', 'HIT');
+    res.json({ success: true, data: cached });
+    return;
+  }
+
   const products = await prisma.product.findMany({
     where: { isPublished: true, isFeatured: true },
     take: 16,
     include: { images: { where: { isPrimary: true }, take: 1 } },
     orderBy: { rating: 'desc' },
   });
+
+  memoryCache.set(cacheKey, products, 120); // 2 minutes
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+  res.setHeader('X-Cache', 'MISS');
   res.json({ success: true, data: products });
 };
 
 export const getFlashDeals = async (req: AuthRequest, res: Response): Promise<void> => {
+  const cacheKey = 'products_flash_deals';
+  const cached = memoryCache.get<any>(cacheKey);
+  if (cached) {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    res.setHeader('X-Cache', 'HIT');
+    res.json({ success: true, data: cached });
+    return;
+  }
+
   const now = new Date();
   const products = await prisma.product.findMany({
     where: {
@@ -181,6 +240,10 @@ export const getFlashDeals = async (req: AuthRequest, res: Response): Promise<vo
     include: { images: { where: { isPrimary: true }, take: 1 } },
     orderBy: { discountPercentage: 'desc' },
   });
+
+  memoryCache.set(cacheKey, products, 120); // 2 minutes
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+  res.setHeader('X-Cache', 'MISS');
   res.json({ success: true, data: products });
 };
 
@@ -189,6 +252,11 @@ export const searchProducts = async (req: AuthRequest, res: Response): Promise<v
     q, page = '1', limit = '20',
     isOrganic, minPrice, maxPrice, sort, order
   } = req.query as Record<string, string>;
+
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const rawLimit = parseInt(limit) || 20;
+  const take = Math.min(Math.max(1, rawLimit), 50); // Hard cap at 50 max
+  const skip = (pageNum - 1) * take;
 
   if (!q || q.trim().length < 2) {
     res.json({ success: true, data: [], suggestions: [] });
@@ -205,9 +273,6 @@ export const searchProducts = async (req: AuthRequest, res: Response): Promise<v
       },
     }).catch(() => {});
   }
-
-  const skip = (parseInt(page) - 1) * parseInt(limit);
-  const take = Math.min(parseInt(limit), 50);
 
   const where: any = {
     isPublished: true,
@@ -387,6 +452,9 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
     include: { images: true, inventory: true, category: true },
   });
 
+  memoryCache.del('products_');
+  memoryCache.del('product_slug_');
+
   res.status(201).json({ success: true, data: fullProduct || product });
 };
 
@@ -472,6 +540,9 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     }
   }
 
+  memoryCache.del('products_');
+  memoryCache.del('product_slug_');
+
   const fullProduct = await prisma.product.findUnique({
     where: { id },
     include: { images: true, inventory: true, category: true },
@@ -480,16 +551,19 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
   res.json({ success: true, data: fullProduct || product });
 };
 
-
 export const deleteProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   try {
     // Try permanent delete if item has not been ordered
     await prisma.product.delete({ where: { id } });
+    memoryCache.del('products_');
+    memoryCache.del('product_slug_');
     res.json({ success: true, message: 'Product deleted permanently' });
   } catch (err: any) {
     // If foreign key constraint (P2003) because orders exist, soft delete by unpublishing
     await prisma.product.update({ where: { id }, data: { isPublished: false } });
+    memoryCache.del('products_');
+    memoryCache.del('product_slug_');
     res.json({ success: true, message: 'Product archived and unpublished' });
   }
 };
