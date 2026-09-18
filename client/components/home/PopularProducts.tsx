@@ -6,7 +6,7 @@ import { Star, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
-import { getFallbackProducts } from '@/lib/fallbackData';
+
 
 function ProductSkeleton() {
   return (

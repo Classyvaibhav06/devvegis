@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { getFallbackProducts, type FallbackProduct } from '@/lib/fallbackData';
+
 
 const FILTER_TABS = [
   { label: 'Featured', filter: 'featured' },
@@ -154,9 +154,9 @@ export default function DailyBestSells() {
           return res.data.data;
         }
       } catch {
-        // fallback
+        // network or server error
       }
-      return getFallbackProducts(undefined, { isOrganic: activeFilter === 'featured' }).slice(0, 4);
+      return [];
     },
     staleTime: 1000 * 60 * 5,
   });

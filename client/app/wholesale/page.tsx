@@ -13,16 +13,6 @@ import { toast } from 'sonner';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
-// Fallback static ticker (shown before API loads)
-const MANDI_TICKER_FALLBACK = [
-  { id: 'f1', commodity: 'Nashik Red Onion', modalPrice: 28.0, change: '+1.8%', isUp: true, arrivals: '4,200 Qtl' },
-  { id: 'f2', commodity: 'Indore Jyoti Potato', modalPrice: 24.0, change: '-0.9%', isUp: false, arrivals: '6,800 Qtl' },
-  { id: 'f3', commodity: 'Kolar Hybrid Tomato', modalPrice: 31.0, change: '+3.2%', isUp: true, arrivals: '2,100 Crates' },
-  { id: 'f4', commodity: 'Shimla Capsicum Green', modalPrice: 44.0, change: '-1.4%', isUp: false, arrivals: '850 Bags' },
-  { id: 'f5', commodity: 'Ooty Table Carrots', modalPrice: 36.0, change: '0.0%', isUp: true, arrivals: '1,200 Crates' },
-  { id: 'f6', commodity: 'Assam Ginger Coarse', modalPrice: 68.0, change: '+2.1%', isUp: true, arrivals: '400 Bags' },
-];
-
 
 interface WholesaleProduct {
   id: string;
@@ -39,123 +29,6 @@ interface WholesaleProduct {
   hsnCode: string;
   image: string;
 }
-
-const WHOLESALE_CATALOG: WholesaleProduct[] = [
-  {
-    id: 'w1',
-    name: 'Grade-A Nashik Red Onions',
-    botanicalOrigin: 'Lasalgaon Mandi, Nashik • Export Sizing 55mm+',
-    category: 'roots',
-    packaging: '50 Kg Heavy Jute Gunny Bag',
-    kgPerCrate: 50,
-    retailPrice: 44,
-    baseWholesalePrice: 28,
-    tierDiscounts: [
-      { minCrates: 2, price: 28, label: 'Base Wholesale' },
-      { minCrates: 10, price: 25.5, label: 'HoReCa Tier (-9%)' },
-      { minCrates: 30, price: 23.5, label: 'Institutional (-16%)' },
-    ],
-    minCrates: 2,
-    stockStatus: 'Fresh Arrival',
-    hsnCode: '0703.10.10',
-    image: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'w2',
-    name: 'Cold-Storage Jyoti Potatoes',
-    botanicalOrigin: 'Indore Malwa Belt • Sugar-Free Cured 45mm+',
-    category: 'roots',
-    packaging: '50 Kg Perforated Poly Bag',
-    kgPerCrate: 50,
-    retailPrice: 38,
-    baseWholesalePrice: 24,
-    tierDiscounts: [
-      { minCrates: 2, price: 24, label: 'Base Wholesale' },
-      { minCrates: 10, price: 21.8, label: 'HoReCa Tier (-9%)' },
-      { minCrates: 30, price: 19.5, label: 'Institutional (-19%)' },
-    ],
-    minCrates: 2,
-    stockStatus: 'High Volume',
-    hsnCode: '0701.90.00',
-    image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'w3',
-    name: 'Hydroponic Firm Salad Tomatoes',
-    botanicalOrigin: 'Kolar Polyhouse Clustered • 90% Red Firm Turn',
-    category: 'vine',
-    packaging: '25 Kg Food-Grade Stackable Crate',
-    kgPerCrate: 25,
-    retailPrice: 52,
-    baseWholesalePrice: 32,
-    tierDiscounts: [
-      { minCrates: 4, price: 32, label: 'Base Wholesale' },
-      { minCrates: 15, price: 29.0, label: 'HoReCa Tier (-9%)' },
-      { minCrates: 40, price: 26.5, label: 'Institutional (-17%)' },
-    ],
-    minCrates: 4,
-    stockStatus: 'Fresh Arrival',
-    hsnCode: '0702.00.00',
-    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'w4',
-    name: 'Export-Grade Green Field Cabbage',
-    botanicalOrigin: 'Pune Agricultural Belt • Compact Solid Heads 1.2kg',
-    category: 'greens',
-    packaging: '30 Kg Ventilated Mesh Bag',
-    kgPerCrate: 30,
-    retailPrice: 34,
-    baseWholesalePrice: 19,
-    tierDiscounts: [
-      { minCrates: 3, price: 19, label: 'Base Wholesale' },
-      { minCrates: 12, price: 17.2, label: 'HoReCa Tier (-9%)' },
-      { minCrates: 35, price: 15.0, label: 'Institutional (-21%)' },
-    ],
-    minCrates: 3,
-    stockStatus: 'High Volume',
-    hsnCode: '0704.90.10',
-    image: 'https://images.unsplash.com/photo-1550950158-d0d960dff51b?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'w5',
-    name: 'Green Bell Capsicum (Shimla Cut)',
-    botanicalOrigin: 'Solan Valley Farms • Thick Wall 3-4 Lobe Sort',
-    category: 'vine',
-    packaging: '20 Kg Corrugated Cold Box',
-    kgPerCrate: 20,
-    retailPrice: 65,
-    baseWholesalePrice: 42,
-    tierDiscounts: [
-      { minCrates: 3, price: 42, label: 'Base Wholesale' },
-      { minCrates: 10, price: 38.0, label: 'HoReCa Tier (-10%)' },
-      { minCrates: 25, price: 34.5, label: 'Institutional (-18%)' },
-    ],
-    minCrates: 3,
-    stockStatus: 'Limited Harvest',
-    hsnCode: '0709.60.10',
-    image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'w6',
-    name: 'Washed Red Ooty Table Carrots',
-    botanicalOrigin: 'Nilgiris High-Altitude Sourced • Sweet Crisp Core',
-    category: 'roots',
-    packaging: '25 Kg Perforated Hydro Crate',
-    kgPerCrate: 25,
-    retailPrice: 58,
-    baseWholesalePrice: 36,
-    tierDiscounts: [
-      { minCrates: 3, price: 36, label: 'Base Wholesale' },
-      { minCrates: 12, price: 32.5, label: 'HoReCa Tier (-10%)' },
-      { minCrates: 30, price: 29.0, label: 'Institutional (-19%)' },
-    ],
-    minCrates: 3,
-    stockStatus: 'Fresh Arrival',
-    hsnCode: '0706.10.00',
-    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?w=600&auto=format&fit=crop&q=80',
-  },
-];
 
 export default function WholesalePage() {
   // ─── Wholesale catalog from DB ─────────────────────────────────────
@@ -189,7 +62,7 @@ export default function WholesalePage() {
   const [showRFQModal, setShowRFQModal] = useState(false);
 
   // Live APMC Mandi Tickers — fetched from admin-managed database
-  const [mandiTickers, setMandiTickers] = useState(MANDI_TICKER_FALLBACK);
+  const [mandiTickers, setMandiTickers] = useState<any[]>([]);
   useEffect(() => {
     fetch(`${API}/wholesale/mandi-tickers`)
       .then(r => r.json())
@@ -351,49 +224,51 @@ export default function WholesalePage() {
         </div>
 
         {/* Live APMC Commodity Ticker Bar with Double-Bezel Enclosure */}
-        <div className="p-1 sm:p-1.5 rounded-[2rem] bg-black/[0.02] dark:bg-white/[0.02] ring-1 ring-black/[0.05] dark:ring-white/10">
-          <div className="rounded-[calc(2rem-0.25rem)] bg-white/90 dark:bg-[#0c1017]/90 border border-black/[0.04] dark:border-white/[0.06] p-4 sm:p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
-            <div className="flex items-center justify-between gap-4 mb-3 pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
-              <div className="flex items-center gap-2 text-xs font-heading font-semibold text-gray-900 dark:text-gray-100">
-                <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" strokeWidth={1.5} />
-                <span>APMC Spot Benchmarks</span>
-                <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400 font-normal">
-                  (Updated Today 04:00 AM IST)
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-gray-400">
-                <span className="hidden sm:inline">Index Settlement: <strong>Vashi & Azadpur Central</strong></span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-mono text-[10px] uppercase tracking-wider font-semibold">● Live Clearing</span>
-              </div>
-            </div>
-
-            {/* Commodity Badges Scroll Container */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {mandiTickers.map((ticker, idx) => (
-                <div
-                  key={ticker.id || idx}
-                  className="rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.03] dark:border-white/[0.05] p-3 flex flex-col justify-between hover:border-emerald-500/30 transition-colors"
-                >
-                  <span className="text-[11px] font-medium text-gray-600 dark:text-gray-300 truncate">
-                    {(ticker as any).commodity || (ticker as any).item}
-                  </span>
-                  <div className="flex items-baseline justify-between gap-2 mt-1.5">
-                    <span className="font-heading font-bold text-sm text-gray-950 dark:text-white">
-                      ₹{ticker.modalPrice.toFixed(1)}<span className="text-[10px] text-gray-500 font-normal">/{(ticker as any).unit || 'kg'}</span>
-                    </span>
-                    <span className={`text-[10px] font-mono font-semibold flex items-center gap-0.5 ${(ticker as any).isUp ?? (ticker as any).up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                      {(ticker as any).isUp ?? (ticker as any).up ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
-                      {ticker.change}
-                    </span>
-                  </div>
-                  <span className="text-[9px] text-gray-500 dark:text-gray-400 mt-1 font-mono">
-                    {ticker.arrivals}
+        {mandiTickers.length > 0 && (
+          <div className="p-1 sm:p-1.5 rounded-[2rem] bg-black/[0.02] dark:bg-white/[0.02] ring-1 ring-black/[0.05] dark:ring-white/10">
+            <div className="rounded-[calc(2rem-0.25rem)] bg-white/90 dark:bg-[#0c1017]/90 border border-black/[0.04] dark:border-white/[0.06] p-4 sm:p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+              <div className="flex items-center justify-between gap-4 mb-3 pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
+                <div className="flex items-center gap-2 text-xs font-heading font-semibold text-gray-900 dark:text-gray-100">
+                  <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" strokeWidth={1.5} />
+                  <span>APMC Spot Benchmarks</span>
+                  <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400 font-normal">
+                    (Updated Today 04:00 AM IST)
                   </span>
                 </div>
-              ))}
+                <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-gray-400">
+                  <span className="hidden sm:inline">Index Settlement: <strong>Vashi & Azadpur Central</strong></span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-mono text-[10px] uppercase tracking-wider font-semibold">● Live Clearing</span>
+                </div>
+              </div>
+
+              {/* Commodity Badges Scroll Container */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {mandiTickers.map((ticker, idx) => (
+                  <div
+                    key={ticker.id || idx}
+                    className="rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.03] dark:border-white/[0.05] p-3 flex flex-col justify-between hover:border-emerald-500/30 transition-colors"
+                  >
+                    <span className="text-[11px] font-medium text-gray-600 dark:text-gray-300 truncate">
+                      {(ticker as any).commodity || (ticker as any).item}
+                    </span>
+                    <div className="flex items-baseline justify-between gap-2 mt-1.5">
+                      <span className="font-heading font-bold text-sm text-gray-950 dark:text-white">
+                        ₹{ticker.modalPrice.toFixed(1)}<span className="text-[10px] text-gray-500 font-normal">/{(ticker as any).unit || 'kg'}</span>
+                      </span>
+                      <span className={`text-[10px] font-mono font-semibold flex items-center gap-0.5 ${(ticker as any).isUp ?? (ticker as any).up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        {(ticker as any).isUp ?? (ticker as any).up ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                        {ticker.change}
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-gray-500 dark:text-gray-400 mt-1 font-mono">
+                      {ticker.arrivals}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* ─── SECTION 2: ASYMMETRIC BENTO GRID (TRADING DESK & SUMMARY CONSOLE) ─ */}

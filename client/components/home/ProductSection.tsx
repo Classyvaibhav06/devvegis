@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
-import { getFallbackProducts } from '@/lib/fallbackData';
+
 
 interface ProductSectionProps {
   title: string;
@@ -48,13 +48,9 @@ export default function ProductSection({
           return res.data.data;
         }
       } catch {
-        // Fallback to offline produce catalog
+        // network error
       }
-      return getFallbackProducts(params.categorySlug, {
-        isOrganic: params.isOrganic === 'true',
-        isFreshToday: params.isFreshToday === 'true',
-        maxPrice: params.maxPrice ? Number(params.maxPrice) : undefined,
-      });
+      return [];
     },
     staleTime: 1000 * 60 * 5,
   });
