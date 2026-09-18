@@ -17,10 +17,10 @@ function base64UrlDecode(str: string): ArrayBuffer {
   return bytes.buffer as ArrayBuffer;
 }
 
-async function verifyJwt(token: string, secret: string): Promise<boolean> {
+async function verifyJwt(token: string, secret: string): Promise<{ valid: boolean; payload?: any }> {
   try {
     const parts = token.split('.');
-    if (parts.length !== 3) return false;
+    if (parts.length !== 3) return { valid: false };
 
     const [headerB64, payloadB64, signatureB64] = parts;
     const data = `${headerB64}.${payloadB64}`;
@@ -42,16 +42,16 @@ async function verifyJwt(token: string, secret: string): Promise<boolean> {
       new TextEncoder().encode(data)
     );
 
-    if (!isValid) return false;
+    if (!isValid) return { valid: false };
 
     const payload = JSON.parse(
       new TextDecoder().decode(base64UrlDecode(payloadB64))
     );
-    if (payload.exp && Date.now() / 1000 > payload.exp) return false;
+    if (payload.exp && Date.now() / 1000 > payload.exp) return { valid: false };
 
-    return true;
+    return { valid: true, payload };
   } catch {
-    return false;
+    return { valid: false };
   }
 }
 
@@ -82,24 +82,34 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   // Try access token from Authorization header or cookie
   const authHeader = request.headers.get('authorization') ?? '';
   const tokenFromHeader = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-  const tokenFromCookie = request.cookies.get('accessToken')?.value ?? null;
+  const rawCookie = request.cookies.get('accessToken')?.value;
+  const tokenFromCookie = rawCookie ? decodeURIComponent(rawCookie) : null;
   const token = tokenFromHeader ?? tokenFromCookie;
 
-  const secret = process.env.JWT_ACCESS_SECRET;
+  const secret = process.env.JWT_ACCESS_SECRET || 'devvegis_jwt_access_secret_change_in_production';
 
-  if (!secret || !token) {
+  if (!token) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  const valid = await verifyJwt(token, secret);
-  if (!valid) {
+  const { valid, payload } = await verifyJwt(token, secret);
+  if (!valid || !payload) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Enforce role-based access for administrative portals
+  if (pathname.startsWith('/admin') && payload.role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  if (pathname.startsWith('/rider') && payload.role !== 'RIDER' && payload.role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();

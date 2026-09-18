@@ -21,21 +21,17 @@ interface AuthState {
   logout: () => void;
 }
 
-// ── Cookie helpers (SameSite=Strict; Secure in production) ───────────────────
-// The Edge middleware reads this cookie to perform server-side route protection
-// before the SPA bundle is downloaded by the browser.
-
 function setAuthCookie(token: string): void {
   if (typeof document === 'undefined') return;
   const isSecure = window.location.protocol === 'https:';
-  const maxAgeSeconds = 15 * 60; // 15 minutes — matches JWT access token TTL
+  const maxAgeSeconds = 7 * 24 * 60 * 60; // 7 days
   const secure = isSecure ? '; Secure' : '';
-  document.cookie = `accessToken=${token}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Strict${secure}`;
+  document.cookie = `accessToken=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
 }
 
 function clearAuthCookie(): void {
   if (typeof document === 'undefined') return;
-  document.cookie = 'accessToken=; Path=/; Max-Age=0; SameSite=Strict';
+  document.cookie = 'accessToken=; Path=/; Max-Age=0; SameSite=Lax';
 }
 
 export const useAuthStore = create<AuthState>()(

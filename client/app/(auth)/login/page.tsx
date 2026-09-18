@@ -42,15 +42,23 @@ export default function LoginPage() {
       setAuth(user, accessToken);
       toast.success(`Welcome, ${user.name}!`);
 
-      if (user.role === 'ADMIN') {
-        router.push('/admin');
+      let targetUrl = '/';
+      const redirectParam = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('redirect')
+        : null;
+
+      if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
+        targetUrl = redirectParam;
+      } else if (user.role === 'ADMIN') {
+        targetUrl = '/admin';
       } else if (user.role === 'RIDER') {
-        router.push('/rider');
+        targetUrl = '/rider';
       } else if (user.role === 'WHOLESALE_BUYER') {
-        router.push('/wholesale');
-      } else {
-        router.push('/');
+        targetUrl = '/wholesale';
       }
+
+      // Full document navigation ensures the newly set auth cookie is sent to Next.js Edge Middleware
+      window.location.href = targetUrl;
     } catch (err: any) {
       turnstileRef.current?.reset();
       setTurnstileToken('');
