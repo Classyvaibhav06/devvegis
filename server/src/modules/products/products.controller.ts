@@ -265,28 +265,64 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
   } = req.body;
   const files = req.files as Express.Multer.File[];
 
-  // If categoryId is not provided or invalid, resolve to first active category
-  let resolvedCategoryId = categoryId;
-  if (!resolvedCategoryId) {
-    const defaultCat = await prisma.category.findFirst({ where: { isActive: true } });
-    if (defaultCat) resolvedCategoryId = defaultCat.id;
+  // Validate required product fields
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    throw new AppError('Product name is required.', 400);
   }
-  if (!resolvedCategoryId) throw new AppError('Category is required. Please create a category first.', 400);
 
-  const generatedSlug = `${(name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
-  const effectiveSku = sku || `SKU-${Date.now().toString().slice(-6)}`;
+  const parsedPrice = parseFloat(price);
+  if (isNaN(parsedPrice) || parsedPrice < 0) {
+    throw new AppError('A valid product selling price is required.', 400);
+  }
+
+  // If categoryId is provided, verify it exists. If not provided or invalid, resolve to an active category or auto-create default.
+  let resolvedCategoryId: string | null = categoryId ? String(categoryId).trim() : null;
+  if (resolvedCategoryId) {
+    const exists = await prisma.category.findUnique({ where: { id: resolvedCategoryId } });
+    if (!exists) resolvedCategoryId = null;
+  }
+  if (!resolvedCategoryId) {
+    let defaultCat = await prisma.category.findFirst({ where: { isActive: true } });
+    if (!defaultCat) {
+      defaultCat = await prisma.category.create({
+        data: {
+          name: 'Fresh Vegetables',
+          slug: 'vegetables',
+          icon: '🥦',
+          description: 'Farm-fresh daily vegetables and produce',
+          isActive: true,
+        },
+      });
+    }
+    resolvedCategoryId = defaultCat.id;
+  }
+
+  const cleanName = name.trim();
+  const slugBase = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'produce';
+  const generatedSlug = `${slugBase}-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6)}`;
+  const effectiveSku = sku?.trim() || `DV-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
   const effectiveComparePrice = mrp !== undefined && mrp !== '' && mrp !== null
     ? parseFloat(mrp)
     : (comparePrice !== undefined && comparePrice !== '' && comparePrice !== null ? parseFloat(comparePrice) : null);
   const parsedUnit = parseProductUnit(unit);
 
+  let parsedWeight: number | null = null;
+  if (weight !== undefined && weight !== '' && weight !== null) {
+    parsedWeight = parseFloat(weight);
+  } else if (typeof unit === 'string') {
+    const matchKg = unit.match(/^(\d+(?:\.\d+)?)\s*kg$/i);
+    const matchG = unit.match(/^(\d+(?:\.\d+)?)\s*g(?:rams?)?$/i);
+    if (matchKg) parsedWeight = parseFloat(matchKg[1]) * 1000;
+    else if (matchG) parsedWeight = parseFloat(matchG[1]);
+  }
+
   const product = await prisma.product.create({
     data: {
       categoryId: resolvedCategoryId,
-      name,
+      name: cleanName,
       slug: generatedSlug,
       sku: effectiveSku,
-      price: parseFloat(price) || 0,
+      price: parsedPrice,
       wholesalePrice: wholesalePrice !== undefined && wholesalePrice !== '' && wholesalePrice !== null ? parseFloat(wholesalePrice) : null,
       comparePrice: effectiveComparePrice,
       costPrice: costPrice !== undefined && costPrice !== '' && costPrice !== null ? parseFloat(costPrice) : null,
@@ -297,7 +333,7 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
       shortDescription: shortDescription || null,
       barcode: barcode || null,
       tags: Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []),
-      weight: weight !== undefined && weight !== '' && weight !== null ? parseFloat(weight) : null,
+      weight: parsedWeight,
       origin: origin || null,
       isOrganic: Boolean(isOrganic),
       isFeatured: Boolean(isFeatured),
@@ -368,7 +404,10 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
   const updateData: any = {};
   if (name !== undefined) updateData.name = name;
   if (slug !== undefined) updateData.slug = slug;
-  if (categoryId !== undefined) updateData.categoryId = categoryId;
+  if (categoryId !== undefined && categoryId !== '') {
+    const catExists = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (catExists) updateData.categoryId = categoryId;
+  }
   if (price !== undefined && price !== '') updateData.price = parseFloat(price);
   if (wholesalePrice !== undefined) {
     updateData.wholesalePrice = wholesalePrice !== '' && wholesalePrice !== null ? parseFloat(wholesalePrice) : null;

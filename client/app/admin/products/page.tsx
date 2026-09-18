@@ -64,7 +64,7 @@ export default function AdminProductsPage() {
       toast.success('Product added to catalog!');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'Failed to create product');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to create product');
     },
   });
 
@@ -80,7 +80,7 @@ export default function AdminProductsPage() {
       toast.success('Rate, grams & product details updated successfully!');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'Failed to update product');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to update product');
     },
   });
 
@@ -415,19 +415,29 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold block mb-1">Category</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold">Category</label>
+                  <a href="/admin/categories" target="_blank" className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline">
+                    Manage Categories ↗
+                  </a>
+                </div>
                 <select
                   value={newProduct.categoryId}
                   onChange={(e) => setNewProduct({ ...newProduct, categoryId: e.target.value })}
                   className="input text-xs"
                 >
-                  <option value="">Select Category (or Auto-assign Daily Fresh)</option>
+                  <option value="">Auto-assign (Fresh Vegetables)</option>
                   {categories.map((cat: any) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
                   ))}
                 </select>
+                {categories.length === 0 && (
+                  <p className="text-[11px] text-slate-500 dark:text-[#8B96A8] mt-1">
+                    No custom categories created yet. Produce will be auto-categorized under <strong>Fresh Vegetables</strong>.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
