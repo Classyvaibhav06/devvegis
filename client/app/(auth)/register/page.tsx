@@ -42,9 +42,6 @@ export default function RegisterPage() {
         duration: 6000,
       });
       const params = new URLSearchParams({ email: data.email });
-      if (resData.devOtp) {
-        params.set('devOtp', resData.devOtp);
-      }
       router.push(`/verify-email?${params.toString()}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.');

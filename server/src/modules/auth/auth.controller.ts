@@ -134,14 +134,10 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
 
   res.status(201).json({
     success: true,
-    message: emailSent
-      ? 'Registration successful! A 6-digit verification code has been sent to your email.'
-      : 'Registration successful! Please use the 6-digit verification code shown below to activate your account.',
+    message: 'Registration successful! A 6-digit verification code has been sent to your email.',
     data: {
       user,
       email: user.email,
-      otp,
-      devOtp: otp,
       emailSent,
     },
   });
@@ -345,13 +341,9 @@ export const resendVerificationEmail = async (req: AuthRequest, res: Response): 
 
   res.json({
     success: true,
-    message: emailSent
-      ? 'A new 6-digit verification code has been sent to your email.'
-      : 'Email provider restricted in testing mode. Please use the verification code shown below.',
+    message: 'A new 6-digit verification code has been sent to your email.',
     data: {
       email: user.email,
-      otp,
-      devOtp: otp,
       emailSent,
     },
   });
@@ -363,7 +355,7 @@ export const getVerificationStatus = async (req: AuthRequest, res: Response): Pr
 
   const user = await prisma.user.findFirst({
     where: { email: { equals: email, mode: 'insensitive' } },
-    select: { id: true, email: true, isEmailVerified: true, emailVerifyToken: true, phoneOtpExpiry: true },
+    select: { id: true, email: true, isEmailVerified: true, phoneOtpExpiry: true },
   });
 
   if (!user) throw new AppError('User not found', 404);
@@ -373,7 +365,6 @@ export const getVerificationStatus = async (req: AuthRequest, res: Response): Pr
     data: {
       email: user.email,
       isEmailVerified: user.isEmailVerified,
-      devOtp: user.isEmailVerified ? null : user.emailVerifyToken,
       isExpired: user.phoneOtpExpiry ? new Date() > user.phoneOtpExpiry : false,
     },
   });

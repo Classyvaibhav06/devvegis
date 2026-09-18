@@ -29,14 +29,12 @@ function VerifyEmailContent() {
 
   const tokenParam = searchParams.get('token');
   const emailParam = searchParams.get('email') || '';
-  const devOtpParam = searchParams.get('devOtp') || '';
 
   const [email, setEmail] = useState<string>(emailParam);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [editedEmail, setEditedEmail] = useState(emailParam);
 
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
-  const [devOtp, setDevOtp] = useState<string>(devOtpParam);
 
   const [status, setStatus] = useState<'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'>('IDLE');
   const [message, setMessage] = useState<string>('');
@@ -80,9 +78,9 @@ function VerifyEmailContent() {
     };
   }, [tokenParam, router, setAuth]);
 
-  // Check verification status & retrieve active OTP if in test mode
+  // Check verification status
   useEffect(() => {
-    if (!email || devOtp || tokenParam) return;
+    if (!email || tokenParam) return;
     let isMounted = true;
     api
       .get(`/auth/verification-status?email=${encodeURIComponent(email)}`)
@@ -92,15 +90,13 @@ function VerifyEmailContent() {
           setStatus('SUCCESS');
           setMessage('Your email is already verified! Redirecting to login...');
           setTimeout(() => router.push('/login'), 1500);
-        } else if (res.data?.data?.devOtp) {
-          setDevOtp(res.data.data.devOtp);
         }
       })
       .catch(() => {});
     return () => {
       isMounted = false;
     };
-  }, [email, devOtp, tokenParam, router]);
+  }, [email, tokenParam, router]);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -232,11 +228,6 @@ function VerifyEmailContent() {
       toast.success(res.data.message || 'Verification code resent! Please check your inbox.');
       setResendCooldown(30);
 
-      const returnedOtp = res.data?.data?.devOtp;
-      if (returnedOtp) {
-        setDevOtp(returnedOtp);
-      }
-
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } catch (err: any) {
@@ -244,12 +235,6 @@ function VerifyEmailContent() {
     } finally {
       setIsResending(false);
     }
-  };
-
-  // Fill dev OTP helper
-  const handleFillDevOtp = () => {
-    if (!devOtp) return;
-    handlePasteValue(devOtp);
   };
 
   // Save edited email
@@ -264,9 +249,8 @@ function VerifyEmailContent() {
     // trigger resend for new email
     setTimeout(() => {
       api.post('/auth/resend-verification', { email: editedEmail.trim() })
-        .then((res) => {
+        .then(() => {
           toast.success('New verification code sent!');
-          if (res.data?.data?.devOtp) setDevOtp(res.data.data.devOtp);
           setResendCooldown(30);
         })
         .catch(() => {});
@@ -424,33 +408,6 @@ function VerifyEmailContent() {
                 </div>
               )}
             </div>
-
-            {/* Test / Sandbox helper pill (if restricted domain in testing) */}
-            {devOtp && (
-              <div className="mb-5 p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 text-left">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-amber-800 dark:text-amber-300">
-                    <p className="font-semibold mb-1">Testing Mode Notice</p>
-                    <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400">
-                      Resend sandbox delivers directly to registered test emails. For instant testing, your code is:
-                    </p>
-                    <div className="flex items-center justify-between mt-2 pt-1 border-t border-amber-200/60 dark:border-amber-900/60">
-                      <span className="font-mono text-base font-black tracking-widest text-amber-900 dark:text-amber-200">
-                        {devOtp}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleFillDevOtp}
-                        className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] transition-colors"
-                      >
-                        Fill OTP
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* 6-Digit OTP Inputs */}
             <div className="flex justify-center gap-2.5 sm:gap-3 mb-6" onPaste={handlePaste}>
