@@ -86,7 +86,6 @@ export default function LoginPage() {
               <input
                 {...register('email')}
                 type="email"
-                placeholder="you@example.com"
                 className="input pl-10"
                 autoComplete="email"
               />
@@ -105,7 +104,6 @@ export default function LoginPage() {
               <input
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
                 className="input pl-10 pr-10"
                 autoComplete="current-password"
               />
