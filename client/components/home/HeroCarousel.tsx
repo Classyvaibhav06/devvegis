@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, ArrowLeft, Mail, Clock, Leaf, ShieldCheck, Truck, ChevronLeft, ChevronRight, Loader2, Send } from 'lucide-react';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+import { API_URL as API } from '@/lib/api';
 
 export default function HeroBanner() {
   const [email, setEmail] = useState('');

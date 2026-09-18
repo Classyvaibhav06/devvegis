@@ -1,6 +1,14 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+export const NEON_API_URL = 'https://br-snowy-frog-a5ydvjfe-api.compute.c-1.us-east-2.aws.neon.tech/api/v1';
+
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? NEON_API_URL
+    : process.env.NODE_ENV === 'production'
+    ? NEON_API_URL
+    : 'http://localhost:5000/api/v1');
 
 export const api = axios.create({
   baseURL: API_URL,

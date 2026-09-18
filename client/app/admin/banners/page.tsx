@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import S3ImageUploader from '@/components/ui/S3ImageUploader';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+import { API_URL as API } from '@/lib/api';
 
 const BANNER_TYPES = ['HERO', 'OFFER', 'CATEGORY', 'PRODUCT'] as const;
 

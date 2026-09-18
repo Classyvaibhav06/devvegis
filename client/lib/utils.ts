@@ -114,8 +114,10 @@ export function resolveImageUrl(url?: string | null): string {
   // Fix broken schemes like "https:/devvegis.onrender.com" -> "https://devvegis.onrender.com"
   cleaned = cleaned.replace(/^(https?):\/([^\/])/, '$1://$2');
 
-  // If URL points to localhost:5000/uploads on production, redirect to live backend API base
-  const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1').replace(/\/api\/v1\/?$/, '');
+  const fallbackApi = process.env.NODE_ENV === 'production'
+    ? 'https://br-snowy-frog-a5ydvjfe-api.compute.c-1.us-east-2.aws.neon.tech/api/v1'
+    : 'http://localhost:5000/api/v1';
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL || fallbackApi).replace(/\/api\/v1\/?$/, '');
   if (cleaned.startsWith('http://localhost:5000/uploads')) {
     cleaned = cleaned.replace('http://localhost:5000', apiBase);
   } else if (cleaned.startsWith('/uploads')) {
