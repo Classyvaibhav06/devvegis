@@ -67,6 +67,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Refresh-Token'],
 }));
 
+// ─── BODY PARSING ─────────────────────────────────────
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
 // ─── RATE LIMITING TIERS ──────────────────────────────
 const createRateLimiter = (maxRequests: number, windowMinutes: number, message: string) => {
   return rateLimit({
@@ -85,22 +90,73 @@ const createRateLimiter = (maxRequests: number, windowMinutes: number, message: 
 };
 
 const globalLimiter = createRateLimiter(500, 15, 'Too many requests. Please try again shortly.');
-const authLimiter = createRateLimiter(20, 15, 'Too many authentication attempts. Please try again after 15 minutes.');
+const authLimiter = createRateLimiter(30, 15, 'Too many authentication attempts. Please try again after 15 minutes.');
 const checkoutLimiter = createRateLimiter(30, 15, 'Too many order or payment requests. Please try again shortly.');
-const otpLimiter = createRateLimiter(5, 10, 'Too many OTP requests. Please wait a few minutes before trying again.');
+
+/**
+ * Anti-Abuse Rate Limiters for OTP Endpoints:
+ * 1. otpSendLimiter: Max 5 OTP requests per 10 minutes per IP/email to prevent email inbox flooding and SMS bombing.
+ * 2. otpVerifyLimiter: Max 5 failed attempts per 10 minutes per IP to completely stop brute-forcing 6-digit OTPs.
+ */
+const otpSendLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const email = String(req.body?.email || req.query?.email || '').trim().toLowerCase();
+    const phone = String(req.body?.phone || req.query?.phone || '').trim();
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    return `${ip}:${email || phone || 'anonymous'}`;
+  },
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many OTP requests for this account or network. Please wait 10 minutes before requesting again.',
+      code: 'OTP_SEND_RATE_LIMITED',
+    });
+  },
+});
+
+const otpVerifyLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 5, // 5 attempts per 10 min prevents brute forcing
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const email = String(req.body?.email || req.query?.email || '').trim().toLowerCase();
+    const phone = String(req.body?.phone || req.query?.phone || '').trim();
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    return `verify:${ip}:${email || phone || 'anonymous'}`;
+  },
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many invalid verification attempts. For your security, this account is temporarily locked for 10 minutes.',
+      code: 'OTP_VERIFY_RATE_LIMITED',
+    });
+  },
+});
 
 // Apply rate limiters
 app.use('/api', globalLimiter);
 app.use('/api/v1/auth', authLimiter);
 app.use('/api/auth', authLimiter);
-app.use('/api/v1/auth/send-otp', otpLimiter);
+
+// OTP generation protection
+app.use('/api/v1/auth/send-otp', otpSendLimiter);
+app.use('/api/v1/auth/resend-verification', otpSendLimiter);
+app.use('/api/v1/auth/resend-otp', otpSendLimiter);
+app.use('/api/v1/auth/forgot-password', otpSendLimiter);
+app.use('/api/v1/orders/:id/resend-otp', otpSendLimiter);
+
+// OTP verification protection (anti brute-force)
+app.use('/api/v1/auth/verify-email', otpVerifyLimiter);
+app.use('/api/v1/auth/verify-email-otp', otpVerifyLimiter);
+app.use('/api/v1/auth/verify-otp', otpVerifyLimiter);
+
 app.use('/api/v1/orders', checkoutLimiter);
 app.use('/api/v1/payments', checkoutLimiter);
-
-// ─── BODY PARSING ─────────────────────────────────────
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser());
 
 // ─── LOGGING ─────────────────────────────────────────
 app.use(morgan('combined', {
