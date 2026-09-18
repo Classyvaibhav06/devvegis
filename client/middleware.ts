@@ -17,7 +17,7 @@ function base64UrlDecode(str: string): ArrayBuffer {
   return bytes.buffer as ArrayBuffer;
 }
 
-async function verifyJwt(token: string, secret: string): Promise<{ valid: boolean; payload?: any }> {
+async function verifyJwt(token: string, secret: string): Promise<{ valid: boolean; payload?: any; error?: string }> {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return { valid: false };
@@ -50,8 +50,8 @@ async function verifyJwt(token: string, secret: string): Promise<{ valid: boolea
     if (payload.exp && Date.now() / 1000 > payload.exp) return { valid: false };
 
     return { valid: true, payload };
-  } catch {
-    return { valid: false };
+  } catch (e: any) {
+    return { valid: false, error: e?.message || String(e) };
   }
 }
 
@@ -92,15 +92,19 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+    const res = NextResponse.redirect(loginUrl);
+    res.headers.set('X-Debug-Auth', `missing-token:header=${Boolean(tokenFromHeader)}:cookie=${Boolean(rawCookie)}`);
+    return res;
   }
 
-  const { valid, payload } = await verifyJwt(token, secret);
+  const { valid, payload, error } = await verifyJwt(token, secret);
   if (!valid || !payload) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+    const res = NextResponse.redirect(loginUrl);
+    res.headers.set('X-Debug-Auth', `invalid-token:valid=${valid}:err=${error}`);
+    return res;
   }
 
   // Enforce role-based access for administrative portals

@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  env: {
+    JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'devvegis_jwt_access_secret_change_in_production',
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400,
