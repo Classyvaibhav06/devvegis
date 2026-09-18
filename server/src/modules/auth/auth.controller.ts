@@ -150,8 +150,28 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
   });
 };
 
+// ── Per-account login lockout constants ──────────────────────────────────────
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_SECONDS = 15 * 60; // 15 minutes
+
 export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   const { email, password, turnstileToken } = req.body;
+
+  if (!email) throw new AppError('Email is required', 400, 'VALIDATION_ERROR');
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const lockoutKey = `login_lockout:${normalizedEmail}`;
+  const attemptsKey = `login_attempts:${normalizedEmail}`;
+
+  // ── Check if this account is currently locked out ──────────────────────────
+  const isLockedOut = memoryCache.get<boolean>(lockoutKey);
+  if (isLockedOut) {
+    throw new AppError(
+      'Too many failed login attempts. This account is temporarily locked for 15 minutes.',
+      429,
+      'ACCOUNT_TEMPORARILY_LOCKED'
+    );
+  }
 
   const turnstileResult = await verifyTurnstileToken(turnstileToken, req.ip);
   if (!turnstileResult.success) {
@@ -159,19 +179,49 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   }
 
   const user = await prisma.user.findUnique({
-    where: { email },
+    where: { email: normalizedEmail },
     select: { id: true, name: true, email: true, phone: true, password: true, role: true, isActive: true, isEmailVerified: true, avatar: true },
   });
 
-  if (!user) throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+  if (!user) {
+    // Increment attempt counter even for non-existent accounts to prevent user enumeration
+    const attempts = (memoryCache.get<number>(attemptsKey) ?? 0) + 1;
+    if (attempts >= LOGIN_MAX_ATTEMPTS) {
+      memoryCache.set(lockoutKey, true, LOGIN_LOCKOUT_SECONDS);
+      memoryCache.del(attemptsKey);
+    } else {
+      memoryCache.set(attemptsKey, attempts, LOGIN_LOCKOUT_SECONDS);
+    }
+    throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+  }
+
   if (!user.isActive) throw new AppError('Account has been deactivated', 403, 'ACCOUNT_DEACTIVATED');
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+  if (!isPasswordValid) {
+    // Increment per-account failure counter
+    const attempts = (memoryCache.get<number>(attemptsKey) ?? 0) + 1;
+    if (attempts >= LOGIN_MAX_ATTEMPTS) {
+      memoryCache.set(lockoutKey, true, LOGIN_LOCKOUT_SECONDS);
+      memoryCache.del(attemptsKey);
+      logger.warn(`[AUTH] Account locked after ${LOGIN_MAX_ATTEMPTS} failed attempts: ${normalizedEmail}`);
+      throw new AppError(
+        'Too many failed login attempts. This account is temporarily locked for 15 minutes.',
+        429,
+        'ACCOUNT_TEMPORARILY_LOCKED'
+      );
+    }
+    memoryCache.set(attemptsKey, attempts, LOGIN_LOCKOUT_SECONDS);
+    throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+  }
 
   if (!user.isEmailVerified && user.role !== 'ADMIN') {
     throw new AppError('Please verify your email address before logging in.', 403, 'EMAIL_NOT_VERIFIED');
   }
+
+  // ── Successful login — reset any per-account failure counters ────────────
+  memoryCache.del(attemptsKey);
+  memoryCache.del(lockoutKey);
 
   const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role, user.name);
 
