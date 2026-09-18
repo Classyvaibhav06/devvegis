@@ -43,8 +43,8 @@ export default function RegisterPage() {
         ...payload,
         turnstileToken,
       });
-      const resData = res.data?.data || {};
-      toast.success('Account created! Please enter the 6-digit verification code sent to your email.', {
+      const msg = res.data?.message || 'Account created! Please enter the 6-digit verification code sent to your email.';
+      toast.success(msg, {
         duration: 6000,
       });
       const params = new URLSearchParams({ email: data.email });
@@ -52,7 +52,11 @@ export default function RegisterPage() {
     } catch (err: any) {
       turnstileRef.current?.reset();
       setTurnstileToken('');
-      toast.error(err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.');
+      const message = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.';
+      toast.error(message);
+      if (message.toLowerCase().includes('already registered') && message.toLowerCase().includes('sign in')) {
+        setTimeout(() => router.push(`/login?email=${encodeURIComponent(data.email)}`), 1500);
+      }
     }
   };
 

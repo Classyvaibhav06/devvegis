@@ -443,6 +443,17 @@ function VerifyEmailContent() {
               <span>{isSubmitting ? 'Verifying Code...' : 'Verify & Activate Account'}</span>
             </button>
 
+            {/* Spam / Junk Notice Banner */}
+            <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/50 flex items-start gap-2.5 text-left">
+              <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+                <span className="font-semibold">Can't find the email in your inbox?</span>
+                <p className="mt-0.5 text-amber-800/90 dark:text-amber-300/90">
+                  Please check your <strong>Spam</strong>, <strong>Junk</strong>, or <strong>Promotions</strong> folder. Automated verification emails are often routed there.
+                </p>
+              </div>
+            </div>
+
             {/* Resend Code Section */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
               <span className="text-slate-500 dark:text-slate-400">

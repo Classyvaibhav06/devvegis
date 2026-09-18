@@ -73,10 +73,61 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
   });
 
   if (existingUser) {
-    throw new AppError(
-      existingUser.email === email ? 'Email already registered' : 'Phone already registered',
-      409, 'DUPLICATE_USER'
-    );
+    if (existingUser.isEmailVerified) {
+      throw new AppError(
+        existingUser.email === email ? 'Email already registered. Please sign in.' : 'Phone already registered',
+        409, 'DUPLICATE_USER'
+      );
+    }
+
+    // Existing account is unverified — refresh credentials & send fresh OTP
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const otp = generateOtp();
+    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    const allowedSelfRoles: Role[] = [Role.CUSTOMER, Role.WHOLESALE_BUYER];
+    const assignedRole = allowedSelfRoles.includes(role) ? role : Role.CUSTOMER;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        name,
+        password: hashedPassword,
+        phone: phone || existingUser.phone,
+        role: assignedRole,
+        emailVerifyToken: otp,
+        phoneOtp: otp,
+        phoneOtpExpiry: otpExpiry,
+      },
+      select: { id: true, name: true, email: true, role: true, phone: true },
+    });
+
+    let emailSent = false;
+    try {
+      const emailResult = await sendVerificationOtpEmail({
+        to: email,
+        name,
+        otp,
+      });
+      emailSent = emailResult.success === true;
+      if (!emailSent) {
+        logger.warn(`[Email Notice] Direct delivery to ${email} was restricted or failed. Verification OTP is: ${otp}`);
+      }
+    } catch (err) {
+      logger.error('[Resend Verification] Failed to send verification OTP:', err);
+      emailSent = false;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Account pending verification! A new 6-digit verification code has been sent to your email.',
+      data: {
+        user: updatedUser,
+        email: updatedUser.email,
+        emailSent,
+      },
+    });
+    return;
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);

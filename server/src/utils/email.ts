@@ -252,7 +252,7 @@ export async function sendVerificationOtpEmail(params: {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #10B981, #059669); padding: 28px 24px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">🌿 DevVegis</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">DevVegis</h1>
               <p style="margin: 6px 0 0; color: #ecfdf5; font-size: 13px; font-weight: 500;">Farm-Fresh Produce Delivered to Your Door</p>
             </td>
           </tr>
@@ -274,7 +274,7 @@ export async function sendVerificationOtpEmail(params: {
                   ${otp}
                 </div>
                 <p style="margin: 10px 0 0; color: #059669; font-size: 12px; font-weight: 500;">
-                  🔒 Valid for the next 15 minutes
+                  Valid for the next 15 minutes
                 </p>
               </div>
 
@@ -307,7 +307,7 @@ export async function sendVerificationOtpEmail(params: {
 
   return sendEmail({
     to,
-    subject: `🌿 DevVegis — Verification Code: ${otp}`,
+    subject: `Your DevVegis Verification Code: ${otp}`,
     html,
     text: `Hi ${name}, your DevVegis verification code is: ${otp}. This code is valid for 15 minutes. Please do not share it with anyone.`,
   });
