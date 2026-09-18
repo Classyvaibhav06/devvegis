@@ -86,7 +86,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const tokenFromCookie = rawCookie ? decodeURIComponent(rawCookie) : null;
   const token = tokenFromHeader ?? tokenFromCookie;
 
-  const secret = process.env.JWT_ACCESS_SECRET || 'devvegis_jwt_access_secret_change_in_production';
+  const secret = (process.env.JWT_ACCESS_SECRET || 'devvegis_jwt_access_secret_change_in_production').trim();
 
   if (!token) {
     const loginUrl = request.nextUrl.clone();
@@ -103,7 +103,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('redirect', pathname);
     const res = NextResponse.redirect(loginUrl);
-    res.headers.set('X-Debug-Auth', `invalid-token:valid=${valid}:err=${error}`);
+    res.headers.set('X-Debug-Auth', `invalid-token:secPrefix=${secret.slice(0, 8)}:secLen=${secret.length}:valid=${valid}:err=${error}`);
     return res;
   }
 
