@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 
 import api from '@/lib/api';
 import GoogleOAuthButton from '@/components/auth/GoogleOAuthButton';
+import TurnstileWidget, { TurnstileWidgetRef } from '@/components/common/TurnstileWidget';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -26,6 +27,8 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileWidgetRef>(null);
   const router = useRouter();
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
@@ -36,7 +39,10 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     try {
       const { confirmPassword, ...payload } = data;
-      const res = await api.post('/auth/register', payload);
+      const res = await api.post('/auth/register', {
+        ...payload,
+        turnstileToken,
+      });
       const resData = res.data?.data || {};
       toast.success('Account created! Please enter the 6-digit verification code sent to your email.', {
         duration: 6000,
@@ -44,6 +50,8 @@ export default function RegisterPage() {
       const params = new URLSearchParams({ email: data.email });
       router.push(`/verify-email?${params.toString()}`);
     } catch (err: any) {
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
       toast.error(err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.');
     }
   };
@@ -146,6 +154,14 @@ export default function RegisterPage() {
             </div>
             {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
           </div>
+
+          {/* Cloudflare Turnstile Verification */}
+          <TurnstileWidget
+            ref={turnstileRef}
+            onSuccess={(token) => setTurnstileToken(token)}
+            onError={() => setTurnstileToken('')}
+            onExpire={() => setTurnstileToken('')}
+          />
 
           <p className="text-xs text-gray-400">
             By creating an account you agree to our{' '}

@@ -1,7 +1,10 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import prisma from '../../config/prisma';
 import { AuthRequest } from '../../middleware/auth';
 import { memoryCache } from '../../utils/cache';
+import { AppError } from '../../middleware/errorHandler';
+import { logger } from '../../utils/logger';
+import { verifyTurnstileToken } from '../../utils/turnstile';
 
 // ─── Wholesale Buyer Registration & Profile ───────────────────────────────────
 
@@ -110,4 +113,32 @@ export const adminDeleteMandiTicker = async (req: AuthRequest, res: Response): P
   await prisma.mandiTicker.delete({ where: { id } });
   memoryCache.del(MANDI_CACHE_KEY);
   res.json({ success: true, message: 'Ticker deleted' });
+};
+
+// ─── Public Institutional RFQ ────────────────────────────────────────────────
+export const submitWholesaleRFQ = async (req: Request, res: Response): Promise<void> => {
+  const { estimatedVolume, commodities, phone, notes, turnstileToken } = req.body;
+
+  if (!phone) {
+    throw new AppError('Procurement officer phone is required', 400, 'VALIDATION_ERROR');
+  }
+
+  const turnstileResult = await verifyTurnstileToken(turnstileToken, req.ip);
+  if (!turnstileResult.success) {
+    throw new AppError(turnstileResult.error || 'Security verification failed', 400, 'BOT_VERIFICATION_FAILED');
+  }
+
+  logger.info(`[Wholesale RFQ] Received RFQ from ${phone} for volume "${estimatedVolume || 'Standard'}", commodities: "${commodities || 'Standard'}"`);
+
+  res.status(200).json({
+    success: true,
+    message: 'RFQ submitted successfully. Our Agri-Commodity Desk will contact you within 2 hours.',
+    data: {
+      estimatedVolume,
+      commodities,
+      phone,
+      notes,
+      submittedAt: new Date(),
+    },
+  });
 };

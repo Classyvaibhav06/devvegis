@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
 import GoogleOAuthButton from '@/components/auth/GoogleOAuthButton';
+import TurnstileWidget, { TurnstileWidgetRef } from '@/components/common/TurnstileWidget';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -22,6 +23,8 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileWidgetRef>(null);
   const router = useRouter();
   const { setAuth } = useAuthStore();
 
@@ -31,7 +34,10 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const res = await api.post('/auth/login', data);
+      const res = await api.post('/auth/login', {
+        ...data,
+        turnstileToken,
+      });
       const { user, accessToken } = res.data.data;
       setAuth(user, accessToken);
       toast.success(`Welcome, ${user.name}!`);
@@ -46,6 +52,8 @@ export default function LoginPage() {
         router.push('/');
       }
     } catch (err: any) {
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
       const code = err.response?.data?.code;
       const message = err.response?.data?.message || 'Login failed. Please try again.';
       toast.error(message);
@@ -120,6 +128,14 @@ export default function LoginPage() {
             </div>
             {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
           </div>
+
+          {/* Cloudflare Turnstile Verification */}
+          <TurnstileWidget
+            ref={turnstileRef}
+            onSuccess={(token) => setTurnstileToken(token)}
+            onError={() => setTurnstileToken('')}
+            onExpire={() => setTurnstileToken('')}
+          />
 
           <button type="submit" disabled={isSubmitting} className="btn-primary w-full flex items-center justify-center gap-2">
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}

@@ -8,6 +8,7 @@ import { AppError } from '../../middleware/errorHandler';
 import { AuthRequest } from '../../middleware/auth';
 import { logger } from '../../utils/logger';
 import { sendEmail, sendVerificationEmail, sendVerificationOtpEmail } from '../../utils/email';
+import { verifyTurnstileToken } from '../../utils/turnstile';
 import { Role } from '@prisma/client';
 
 function generateTokens(userId: string, email: string, role: Role, name: string) {
@@ -59,7 +60,12 @@ function generateReferralCode(name: string): string {
  *                 type: string
  */
 export const register = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { name, email, password, phone, referralCode, role } = req.body;
+  const { name, email, password, phone, referralCode, role, turnstileToken } = req.body;
+
+  const turnstileResult = await verifyTurnstileToken(turnstileToken, req.ip);
+  if (!turnstileResult.success) {
+    throw new AppError(turnstileResult.error || 'Turnstile verification failed', 400, 'BOT_VERIFICATION_FAILED');
+  }
 
   const existingUser = await prisma.user.findFirst({
     where: { OR: [{ email }, ...(phone ? [{ phone }] : [])] },
@@ -144,7 +150,12 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
 };
 
 export const login = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { email, password } = req.body;
+  const { email, password, turnstileToken } = req.body;
+
+  const turnstileResult = await verifyTurnstileToken(turnstileToken, req.ip);
+  if (!turnstileResult.success) {
+    throw new AppError(turnstileResult.error || 'Turnstile verification failed', 400, 'BOT_VERIFICATION_FAILED');
+  }
 
   const user = await prisma.user.findUnique({
     where: { email },

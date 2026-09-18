@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, type Variants } from 'framer-motion';
 import {
@@ -8,11 +8,12 @@ import {
   Percent, FileSpreadsheet, Check, ArrowRight, ArrowUpRight,
   Plus, Minus, TrendingUp, TrendingDown, Clock, Sparkles,
   FileText, CheckCircle2, ChevronDown, Filter, HelpCircle,
-  PhoneCall, RefreshCw, X, AlertCircle
+  PhoneCall, RefreshCw, X, AlertCircle, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { API_URL as API } from '@/lib/api';
+import api, { API_URL as API } from '@/lib/api';
+import TurnstileWidget, { TurnstileWidgetRef } from '@/components/common/TurnstileWidget';
 
 // ─── Animation variants ────────────────────────────────────────────────────
 const fadeUp: Variants = {
@@ -81,6 +82,39 @@ export default function WholesalePage() {
   const [poReference, setPoReference] = useState('');
   const [deliverySlot, setDeliverySlot] = useState('04:30 AM - 06:00 AM (Priority Morning Kitchen Dock)');
   const [showRFQModal, setShowRFQModal] = useState(false);
+  const [rfqVolume, setRfqVolume] = useState('500 kg – 1,000 kg Daily (Cloud Kitchens / Banquets)');
+  const [rfqCommodities, setRfqCommodities] = useState('Onions, Potatoes, Tomatoes, Capsicum, Ginger, Coriander');
+  const [rfqPhone, setRfqPhone] = useState('+91 98765 43210');
+  const [rfqTurnstileToken, setRfqTurnstileToken] = useState('');
+  const [rfqSubmitting, setRfqSubmitting] = useState(false);
+  const rfqTurnstileRef = useRef<TurnstileWidgetRef>(null);
+
+  const handleRFQSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rfqPhone.trim()) {
+      toast.error('Please enter procurement officer phone number');
+      return;
+    }
+    try {
+      setRfqSubmitting(true);
+      const res = await api.post('/wholesale/rfq', {
+        estimatedVolume: rfqVolume,
+        commodities: rfqCommodities,
+        phone: rfqPhone,
+        turnstileToken: rfqTurnstileToken,
+      });
+      toast.success(res.data?.message || 'RFQ submitted. Our Agri-Commodity Desk will contact you within 2 hours.');
+      setShowRFQModal(false);
+      rfqTurnstileRef.current?.reset();
+      setRfqTurnstileToken('');
+    } catch (err: any) {
+      rfqTurnstileRef.current?.reset();
+      setRfqTurnstileToken('');
+      toast.error(err.response?.data?.message || 'Failed to submit RFQ. Please try again.');
+    } finally {
+      setRfqSubmitting(false);
+    }
+  };
 
   // Live APMC Mandi Tickers
   const [mandiTickers, setMandiTickers] = useState<any[]>([]);
@@ -904,51 +938,71 @@ export default function WholesalePage() {
                 </button>
               </div>
 
-              <div className="space-y-3 text-[12px]">
-                <div>
-                  <label className={`block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider ${sg}`}>
-                    Estimated Daily Volume
-                  </label>
-                  <select className="w-full rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.09] px-3.5 py-2.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-[#1A7A4A]">
-                    <option>500 kg – 1,000 kg Daily (Cloud Kitchens / Banquets)</option>
-                    <option>1,000 kg – 3,000 kg Daily (Hotel Chains / University Hostels)</option>
-                    <option>3,000 kg+ Daily (Food Processing / Industrial Canteens)</option>
-                  </select>
+              <form onSubmit={handleRFQSubmit} className="space-y-4">
+                <div className="space-y-3 text-[12px]">
+                  <div>
+                    <label className={`block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider ${sg}`}>
+                      Estimated Daily Volume
+                    </label>
+                    <select
+                      value={rfqVolume}
+                      onChange={(e) => setRfqVolume(e.target.value)}
+                      className="w-full rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.09] px-3.5 py-2.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-[#1A7A4A]"
+                    >
+                      <option>500 kg – 1,000 kg Daily (Cloud Kitchens / Banquets)</option>
+                      <option>1,000 kg – 3,000 kg Daily (Hotel Chains / University Hostels)</option>
+                      <option>3,000 kg+ Daily (Food Processing / Industrial Canteens)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={`block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider ${sg}`}>
+                      Key Commodities Required
+                    </label>
+                    <input
+                      type="text"
+                      value={rfqCommodities}
+                      onChange={(e) => setRfqCommodities(e.target.value)}
+                      className="w-full rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.09] px-3.5 py-2.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-[#1A7A4A]"
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider ${sg}`}>
+                      Procurement Officer Phone
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={rfqPhone}
+                      onChange={(e) => setRfqPhone(e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className="w-full rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.09] px-3.5 py-2.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-[#1A7A4A]"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className={`block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider ${sg}`}>
-                    Key Commodities Required
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue="Onions, Potatoes, Tomatoes, Capsicum, Ginger, Coriander"
-                    className="w-full rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.09] px-3.5 py-2.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-[#1A7A4A]"
-                  />
-                </div>
-                <div>
-                  <label className={`block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider ${sg}`}>
-                    Procurement Officer Phone
-                  </label>
-                  <input
-                    type="tel"
-                    defaultValue="+91 98765 43210"
-                    className="w-full rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.09] px-3.5 py-2.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-[#1A7A4A]"
-                  />
-                </div>
-              </div>
 
-              <button
-                onClick={() => {
-                  toast.success('RFQ submitted. Our Agri-Commodity Desk will contact you within 2 hours.');
-                  setShowRFQModal(false);
-                }}
-                className={`w-full ${sg} rounded-xl pl-6 pr-2 py-3 text-[13px] font-semibold text-white bg-[#1A7A4A] hover:bg-[#166B3F] shadow-md flex items-center justify-between transition-all active:scale-[0.98]`}
-              >
-                <span>Submit Forward Contract RFQ</span>
-                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                  <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
-                </div>
-              </button>
+                {/* Cloudflare Turnstile Verification */}
+                <TurnstileWidget
+                  ref={rfqTurnstileRef}
+                  onSuccess={(token) => setRfqTurnstileToken(token)}
+                  onError={() => setRfqTurnstileToken('')}
+                  onExpire={() => setRfqTurnstileToken('')}
+                />
+
+                <button
+                  type="submit"
+                  disabled={rfqSubmitting}
+                  className={`w-full ${sg} rounded-xl pl-6 pr-2 py-3 text-[13px] font-semibold text-white bg-[#1A7A4A] hover:bg-[#166B3F] shadow-md flex items-center justify-between transition-all active:scale-[0.98] disabled:opacity-60`}
+                >
+                  <span>{rfqSubmitting ? 'Submitting RFQ...' : 'Submit Forward Contract RFQ'}</span>
+                  <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                    {rfqSubmitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    ) : (
+                      <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+                    )}
+                  </div>
+                </button>
+              </form>
             </div>
           </motion.div>
         </div>

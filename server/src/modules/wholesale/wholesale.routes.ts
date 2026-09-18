@@ -11,13 +11,15 @@ import {
   adminCreateMandiTicker,
   adminUpdateMandiTicker,
   adminDeleteMandiTicker,
+  submitWholesaleRFQ,
 } from './wholesale.controller';
 
 const router = Router();
 
-// Public — no auth needed for mandi tickers display or product catalog
+// Public — no auth needed for mandi tickers display, product catalog, or RFQ inquiries
 router.get('/mandi-tickers', getMandiTickers);
 router.get('/products', getWholesaleProducts);
+router.post('/rfq', submitWholesaleRFQ);
 
 // Authenticated routes
 router.use(authenticate);

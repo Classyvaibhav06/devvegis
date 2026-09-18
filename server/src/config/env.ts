@@ -57,4 +57,7 @@ export const config = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
   GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/v1/auth/google/callback',
+
+  // Cloudflare Turnstile
+  TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAE8RCUNEXvz4suaK2mFj6g4TYW0',
 };
