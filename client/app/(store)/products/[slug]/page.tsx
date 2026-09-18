@@ -139,8 +139,8 @@ export default function ProductDetailPage() {
 
           {/* Stock */}
           <div className="flex items-center gap-2 text-sm">
-            {product.inventory?.availableStock > 0 ? (
-              <span className="text-green-600 font-medium flex items-center gap-1"><Check className="w-4 h-4" />In Stock ({product.inventory.availableStock} available)</span>
+            {(product.inStock !== undefined ? product.inStock : (product.inventory?.availableStock > 0)) ? (
+              <span className="text-green-600 font-medium flex items-center gap-1"><Check className="w-4 h-4" />In Stock</span>
             ) : (
               <span className="text-red-500 font-medium">Out of Stock</span>
             )}
@@ -152,7 +152,11 @@ export default function ProductDetailPage() {
           {/* Cart Controls */}
           <div className="flex items-center gap-3">
             {quantity === 0 ? (
-              <button onClick={handleAddToCart} disabled={!product.inventory?.availableStock} className="btn-primary flex items-center gap-2 flex-1 justify-center">
+              <button
+                onClick={handleAddToCart}
+                disabled={!(product.inStock !== undefined ? product.inStock : (product.inventory?.availableStock > 0))}
+                className="btn-primary flex items-center gap-2 flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ShoppingCart className="w-5 h-5" />
                 Add to Cart
               </button>

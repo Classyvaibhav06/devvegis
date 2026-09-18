@@ -68,6 +68,10 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: [
           {
+            key: 'Access-Control-Allow-Origin',
+            value: 'https://devvegis.com',
+          },
+          {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
           },

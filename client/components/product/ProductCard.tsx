@@ -23,6 +23,7 @@ interface Product {
   isFeatured?: boolean;
   rating?: number;
   reviewCount?: number;
+  inStock?: boolean;
   inventory?: { availableStock: number };
 }
 
@@ -40,7 +41,7 @@ export default function ProductCard({ product, variant = 'default', showWishlist
   const cartItem = items.find(i => i.id === product.id);
   const quantity = cartItem?.quantity || 0;
   const imageUrl = resolveImageUrl(product.images?.[0]?.url);
-  const inStock = !product.inventory || product.inventory.availableStock > 0;
+  const inStock = product.inStock !== undefined ? product.inStock : (!product.inventory || product.inventory.availableStock > 0);
   const finalPrice = product.discountPercentage
     ? getDiscountedPrice(product.price, product.discountPercentage)
     : product.price;

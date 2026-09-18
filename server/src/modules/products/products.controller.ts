@@ -37,10 +37,11 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
   const sortField = validSorts.includes(sort) ? sort : 'sortOrder';
   const sortOrder = order === 'desc' ? 'desc' : 'asc';
 
-  // In-memory cache for common listing requests
+  // In-memory cache for common listing requests (segmented by role to prevent data leakage)
   const isSearch = Boolean(search);
+  const roleKey = req.user?.role || 'public';
   const cacheKey = !isSearch
-    ? `products_list_${pageNum}_${take}_${categoryId || ''}_${categorySlug || ''}_${isFeatured || ''}_${isFreshToday || ''}_${isOrganic || ''}_${isSeasonalItem || ''}_${minPrice || ''}_${maxPrice || ''}_${tags || ''}_${sortField}_${sortOrder}`
+    ? `products_list_${roleKey}_${pageNum}_${take}_${categoryId || ''}_${categorySlug || ''}_${isFeatured || ''}_${isFreshToday || ''}_${isOrganic || ''}_${isSeasonalItem || ''}_${minPrice || ''}_${maxPrice || ''}_${tags || ''}_${sortField}_${sortOrder}`
     : null;
 
   if (cacheKey) {
@@ -113,18 +114,18 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
     prisma.product.count({ where }),
   ]);
 
-  const isWholesaleUser = req.user?.role === 'WHOLESALE_BUYER' || req.user?.role === 'ADMIN';
+  const isAdmin = req.user?.role === 'ADMIN';
+  const isWholesaleUser = req.user?.role === 'WHOLESALE_BUYER' || isAdmin;
 
   const sanitizedProducts = products.map((p: any) => {
     const rawStock = p.inventory?.availableStock ?? 0;
     const inStock = rawStock > 0;
+    const { inventory, ...rest } = p;
     return {
-      ...p,
+      ...rest,
       wholesalePrice: isWholesaleUser ? p.wholesalePrice : undefined,
-      inventory: {
-        inStock,
-        availableStock: inStock ? (rawStock <= 5 ? rawStock : 10) : 0,
-      },
+      inStock,
+      ...(isAdmin ? { inventory: { availableStock: rawStock } } : {}),
     };
   });
 
@@ -151,7 +152,8 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
 
 export const getProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   const { slug } = req.params;
-  const cacheKey = `product_slug_${slug}`;
+  const roleKey = req.user?.role || 'public';
+  const cacheKey = `product_slug_${roleKey}_${slug}`;
 
   const cached = memoryCache.get<any>(cacheKey);
   if (cached) {
@@ -186,7 +188,10 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
       id: { not: product.id },
     },
     take: 8,
-    include: { images: { where: { isPrimary: true }, take: 1 } },
+    include: {
+      images: { where: { isPrimary: true }, take: 1 },
+      inventory: { select: { availableStock: true } },
+    },
   });
 
   // Track analytics
@@ -200,22 +205,26 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
     }).catch(() => {});
   }
 
-  const isWholesaleUser = req.user?.role === 'WHOLESALE_BUYER' || req.user?.role === 'ADMIN';
+  const isAdmin = req.user?.role === 'ADMIN';
+  const isWholesaleUser = req.user?.role === 'WHOLESALE_BUYER' || isAdmin;
   const rawStock = product.inventory?.availableStock ?? 0;
   const inStock = rawStock > 0;
+  const { inventory, ...restProduct } = product;
 
   const productPayload = {
-    ...product,
+    ...restProduct,
     wholesalePrice: isWholesaleUser ? product.wholesalePrice : undefined,
-    inventory: product.inventory ? {
-      ...product.inventory,
-      inStock,
-      availableStock: inStock ? (rawStock <= 5 ? rawStock : 10) : 0,
-    } : null,
-    similar: similar.map((s: any) => ({
-      ...s,
-      wholesalePrice: isWholesaleUser ? s.wholesalePrice : undefined,
-    })),
+    inStock,
+    ...(isAdmin && inventory ? { inventory } : {}),
+    similar: similar.map((s: any) => {
+      const { inventory: simInventory, ...simRest } = s;
+      return {
+        ...simRest,
+        wholesalePrice: isWholesaleUser ? s.wholesalePrice : undefined,
+        inStock: (simInventory?.availableStock ?? 0) > 0,
+        ...(isAdmin && simInventory ? { inventory: simInventory } : {}),
+      };
+    }),
   };
 
   memoryCache.set(cacheKey, productPayload, 90); // 90 seconds
