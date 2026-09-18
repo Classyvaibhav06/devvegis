@@ -15,14 +15,14 @@ import {
 
 const router = Router();
 
-// Public — no auth needed for mandi tickers display
+// Public — no auth needed for mandi tickers display or product catalog
 router.get('/mandi-tickers', getMandiTickers);
+router.get('/products', getWholesaleProducts);
 
 // Authenticated routes
 router.use(authenticate);
 router.post('/register', registerWholesale);
 router.get('/profile', getWholesaleProfile);
-router.get('/products', getWholesaleProducts);
 
 // Admin only
 router.get('/admin/buyers', authorize('ADMIN'), adminGetAllBuyers);

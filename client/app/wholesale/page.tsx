@@ -158,24 +158,29 @@ const WHOLESALE_CATALOG: WholesaleProduct[] = [
 ];
 
 export default function WholesalePage() {
+  // ─── Wholesale catalog from DB ─────────────────────────────────────
+  const [catalog, setCatalog] = useState<WholesaleProduct[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API}/wholesale/products`)
+      .then(r => r.json())
+      .then(d => { setCatalog(d.data || []); })
+      .catch(() => setCatalog([]))
+      .finally(() => setCatalogLoading(false));
+  }, []);
+
   // State for item crate counts
-  const [quantities, setQuantities] = useState<Record<string, number>>({
-    w1: 4,
-    w2: 4,
-    w3: 6,
-    w4: 0,
-    w5: 0,
-    w6: 0,
-  });
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const [activeCategory, setActiveCategory] = useState<'all' | 'roots' | 'vine' | 'greens'>('all');
   const [paymentTerms, setPaymentTerms] = useState<'rtgs' | 'net15' | 'cod'>('net15');
 
   // Business & GSTIN registration state
-  const [businessName, setBusinessName] = useState('Spice Route Luxury Hospitality Ltd');
-  const [gstin, setGstin] = useState('27AAACS1429B1Z8');
-  const [businessType, setBusinessType] = useState('Hotel & Fine Dining Chain');
-  const [isVerified, setIsVerified] = useState(true);
+  const [businessName, setBusinessName] = useState('');
+  const [gstin, setGstin] = useState('');
+  const [businessType, setBusinessType] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
 
   // Modals & Drawers
   const [showPOModal, setShowPOModal] = useState(false);
@@ -231,7 +236,7 @@ export default function WholesalePage() {
     let subtotalWholesale = 0;
     let subtotalRetail = 0;
 
-    WHOLESALE_CATALOG.forEach(item => {
+    catalog.forEach(item => {
       const crates = quantities[item.id] || 0;
       if (crates > 0) {
         const weight = crates * item.kgPerCrate;
@@ -290,9 +295,9 @@ export default function WholesalePage() {
 
   // Filter items
   const filteredCatalog = useMemo(() => {
-    if (activeCategory === 'all') return WHOLESALE_CATALOG;
-    return WHOLESALE_CATALOG.filter(item => item.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === 'all') return catalog;
+    return catalog.filter(item => item.category === activeCategory);
+  }, [activeCategory, catalog]);
 
   return (
     <div className="pt-24 sm:pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
@@ -432,6 +437,31 @@ export default function WholesalePage() {
 
           {/* Product Items List (Double-Bezel Architecture) */}
           <div className="space-y-4">
+            {catalogLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="text-center space-y-2">
+                  <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Loading wholesale catalog...</p>
+                </div>
+              </div>
+            ) : filteredCatalog.length === 0 ? (
+              <div className="p-1 sm:p-1.5 rounded-[2.25rem] bg-black/[0.02] dark:bg-white/[0.02] ring-1 ring-black/[0.05] dark:ring-white/10">
+                <div className="rounded-[calc(2.25rem-0.25rem)] bg-white dark:bg-[#0c1018] border border-black/[0.04] dark:border-white/[0.06] p-12 flex flex-col items-center justify-center text-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                    <Filter className="w-8 h-8 text-emerald-600 dark:text-emerald-400" strokeWidth={1.5} />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-heading font-bold text-lg text-gray-900 dark:text-white">No Products Available</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+                      The wholesale catalog is currently empty. Please contact our B2B team or check back soon.
+                    </p>
+                  </div>
+                  <a href="/contact" className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 underline underline-offset-2">
+                    Contact B2B Sales Team
+                  </a>
+                </div>
+              </div>
+            ) : null}
             {filteredCatalog.map((item) => {
               const currentCrates = quantities[item.id] || 0;
               const { activePrice, tierLabel } = getItemPricing(item, currentCrates);

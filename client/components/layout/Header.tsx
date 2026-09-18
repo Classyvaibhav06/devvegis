@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,8 +8,9 @@ import {
   Search, ShoppingCart, Heart, Bell, User, Menu, X, MapPin,
   ChevronDown, Package, LogOut, Settings, Headphones,
   Sparkles, Leaf, History, Zap, Store, ShieldCheck,
-  Sun, Moon
+  Sun, Moon, CheckCheck, Info, AlertCircle
 } from 'lucide-react';
+import api from '@/lib/api';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/providers/themeProvider';
@@ -21,6 +22,9 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
   const [location, setLocation] = useState('Indiranagar, Bengaluru');
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { itemCount, total } = useCartStore();
@@ -28,6 +32,7 @@ export default function Header() {
   const { theme, toggleTheme, isDark } = useTheme();
   const searchRef = useRef<HTMLInputElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 10);
@@ -39,6 +44,17 @@ export default function Header() {
     const handleClickOutside = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close notif panel on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setIsNotifOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -69,6 +85,24 @@ export default function Header() {
     logout();
     setIsProfileOpen(false);
     router.push('/');
+  };
+
+  const fetchNotifications = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setNotifLoading(true);
+    try {
+      const res = await api.get('/notifications?limit=10');
+      setNotifications(res.data?.data || []);
+    } catch {
+      setNotifications([]);
+    } finally {
+      setNotifLoading(false);
+    }
+  }, [isAuthenticated]);
+
+  const handleOpenNotif = () => {
+    setIsNotifOpen(prev => !prev);
+    if (!isNotifOpen) fetchNotifications();
   };
 
   const isWholesale = pathname?.startsWith('/wholesale');
@@ -233,14 +267,76 @@ export default function Header() {
 
             {/* Notifications */}
             {isAuthenticated && (
-              <Link
-                href="/notifications"
-                className="w-9 h-9 rounded-xl hidden sm:flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8] hover:bg-slate-100 dark:hover:bg-[#161E2E] transition-colors relative border border-transparent hover:border-slate-200 dark:hover:border-white/[0.07]"
-                title="Notifications"
-              >
-                <Bell className="w-4.5 h-4.5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-[#EF4444] rounded-full ring-2 ring-white dark:ring-[#0F1520]" />
-              </Link>
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={handleOpenNotif}
+                  className="w-9 h-9 rounded-xl hidden sm:flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8] hover:bg-slate-100 dark:hover:bg-[#161E2E] transition-colors relative border border-transparent hover:border-slate-200 dark:hover:border-white/[0.07]"
+                  title="Notifications"
+                  aria-label="Open notifications"
+                >
+                  <Bell className="w-4.5 h-4.5" />
+                  {notifications.length > 0 && (
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-[#EF4444] rounded-full ring-2 ring-white dark:ring-[#0F1520]" />
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {isNotifOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#0F1520] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 overflow-hidden"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/[0.07]">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-[#10B981]" />
+                          <span className="font-bold text-sm text-slate-900 dark:text-[#E8EEF8]">Notifications</span>
+                        </div>
+                        <button onClick={() => setIsNotifOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Body */}
+                      <div className="max-h-80 overflow-y-auto">
+                        {notifLoading ? (
+                          <div className="flex items-center justify-center py-10">
+                            <span className="text-xs text-slate-400 dark:text-[#4E5A6B]">Loading...</span>
+                          </div>
+                        ) : notifications.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-10 gap-2">
+                            <CheckCheck className="w-8 h-8 text-slate-300 dark:text-[#2A3447]" />
+                            <p className="text-xs font-semibold text-slate-400 dark:text-[#4E5A6B]">You're all caught up!</p>
+                            <p className="text-[11px] text-slate-400 dark:text-[#4E5A6B]">No new notifications</p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-slate-100 dark:divide-white/[0.04]">
+                            {notifications.map((n: any) => (
+                              <div key={n.id} className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#161E2E] transition-colors">
+                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                                  {n.type === 'ORDER' ? <Package className="w-4 h-4 text-[#10B981]" /> :
+                                   n.type === 'ALERT' ? <AlertCircle className="w-4 h-4 text-amber-500" /> :
+                                   <Info className="w-4 h-4 text-blue-500" />}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-slate-900 dark:text-[#E8EEF8] leading-snug">{n.title}</p>
+                                  <p className="text-[11px] text-slate-500 dark:text-[#8B96A8] mt-0.5 leading-snug">{n.message}</p>
+                                  <p className="text-[10px] text-slate-400 dark:text-[#4E5A6B] mt-1">
+                                    {new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
 
             {/* Cart Button with Neon Emerald Gradient */}
@@ -436,13 +532,7 @@ export default function Header() {
               <Store className="w-3.5 h-3.5" />
               <span>Mandi Wholesale</span>
             </Link>
-            <Link
-              href="/ai/recipe"
-              className="pb-1 transition-colors flex items-center gap-1 text-purple-600 dark:text-[#8B5CF6] hover:text-purple-700 dark:hover:text-purple-300 font-semibold"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI Recipe Chef</span>
-            </Link>
+
           </div>
 
           <div className="hidden lg:flex items-center gap-4 text-slate-500 dark:text-[#8B96A8] shrink-0">

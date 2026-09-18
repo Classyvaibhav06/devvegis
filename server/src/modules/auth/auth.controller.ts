@@ -228,25 +228,7 @@ export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void
     data: { isEmailVerified: true, emailVerifyToken: null },
   });
 
-  // Give welcome bonus
-  const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
-  if (wallet && wallet.balance === 0) {
-    await prisma.wallet.update({
-      where: { userId: user.id },
-      data: { balance: { increment: 50 }, totalCredits: { increment: 50 } },
-    });
-    await prisma.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        type: 'CREDIT',
-        amount: 50,
-        balance: 50,
-        description: '🎁 Welcome bonus for verifying email',
-      },
-    });
-  }
-
-  res.json({ success: true, message: 'Email verified successfully! ₹50 added to your wallet.' });
+  res.json({ success: true, message: 'Email verified successfully! Your account is now active.' });
 };
 
 export const resendVerificationEmail = async (req: AuthRequest, res: Response): Promise<void> => {

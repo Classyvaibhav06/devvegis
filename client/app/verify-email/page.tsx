@@ -31,8 +31,8 @@ function VerifyEmailContent() {
         const res = await api.get(`/auth/verify-email?token=${encodeURIComponent(token)}`);
         if (!isMounted) return;
         setStatus('SUCCESS');
-        setMessage(res.data.message || 'Email verified successfully! ₹50 welcome bonus credited.');
-        toast.success('🎉 Email verified! Welcome bonus added to your wallet.');
+        setMessage(res.data.message || 'Email verified successfully! Your account is now active.');
+        toast.success('Email verified! Your account is now active.');
       } catch (err: any) {
         if (!isMounted) return;
         setStatus('ERROR');
@@ -117,20 +117,6 @@ function VerifyEmailContent() {
               {message}
             </p>
 
-            {/* Wallet Bonus Card */}
-            <div className="bg-gradient-to-br from-emerald-50 to-green-100/60 dark:from-emerald-950/30 dark:to-green-900/20 border border-green-200 dark:border-green-800/60 rounded-2xl p-4 mb-6 text-left">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🎁</span>
-                <div>
-                  <p className="text-xs font-bold text-green-800 dark:text-green-300">
-                    Welcome Bonus Applied
-                  </p>
-                  <p className="text-sm font-extrabold text-green-900 dark:text-green-100">
-                    ₹50 has been added to your DevVegis Wallet
-                  </p>
-                </div>
-              </div>
-            </div>
 
             <div className="space-y-2.5">
               <Link
@@ -216,7 +202,7 @@ function VerifyEmailContent() {
               Verify Your Email
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-              Enter your email address below and we will send you a verification link with your ₹50 wallet welcome bonus.
+              Enter your email address below and we will send you a verification link to activate your account.
             </p>
 
             <form onSubmit={handleResend} className="space-y-3">

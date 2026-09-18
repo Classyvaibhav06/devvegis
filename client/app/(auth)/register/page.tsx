@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Loader2, Mail, Lock, User, Phone } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuthStore } from '@/store/authStore';
+
 import api from '@/lib/api';
 import GoogleOAuthButton from '@/components/auth/GoogleOAuthButton';
 
@@ -27,7 +27,6 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const router = useRouter();
-  const { setAuth } = useAuthStore();
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -37,13 +36,11 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     try {
       const { confirmPassword, ...payload } = data;
-      const res = await api.post('/auth/register', payload);
-      const { user, accessToken } = res.data.data;
-      setAuth(user, accessToken);
-      toast.success(`Welcome, ${user.name}! 🎉 Verification email sent. Verify your inbox to claim ₹50 welcome bonus!`, {
-        duration: 6000,
+      await api.post('/auth/register', payload);
+      toast.success('Account created! Please check your email to verify your account before logging in.', {
+        duration: 7000,
       });
-      router.push('/');
+      router.push('/verify-email');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Registration failed');
     }
