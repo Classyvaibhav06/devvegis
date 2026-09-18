@@ -49,18 +49,29 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-const allowedOrigins = config.CORS_ORIGIN
-  ? config.CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean)
-  : ['http://localhost:3000'];
+const explicitAllowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://devvegis.com',
+  'https://www.devvegis.com',
+  'https://devvegis-client.vercel.app',
+  ...(config.CORS_ORIGIN ? config.CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean) : []),
+];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, server-to-server)
+    // Allow requests with no origin (like native mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+
+    const isExplicit = explicitAllowedOrigins.includes(origin);
+    const isVercelPreview = /^https:\/\/devvegis(-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
+
+    if (isExplicit || isVercelPreview) {
       return callback(null, true);
     }
-    return callback(null, true); // Permissive fallback for dev / preview
+
+    // Strictly reject unknown origins — NEVER reflect arbitrary origin headers with credentials
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -172,8 +183,6 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads'), { maxAge:
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'DevVegis API',
-    version: '1.0.0',
     timestamp: new Date().toISOString(),
   });
 });
@@ -184,8 +193,6 @@ const apiRouter = express.Router();
 apiRouter.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'DevVegis API',
-    version: '1.0.0',
     timestamp: new Date().toISOString(),
   });
 });

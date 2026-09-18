@@ -113,9 +113,24 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
     prisma.product.count({ where }),
   ]);
 
+  const isWholesaleUser = req.user?.role === 'WHOLESALE_BUYER' || req.user?.role === 'ADMIN';
+
+  const sanitizedProducts = products.map((p: any) => {
+    const rawStock = p.inventory?.availableStock ?? 0;
+    const inStock = rawStock > 0;
+    return {
+      ...p,
+      wholesalePrice: isWholesaleUser ? p.wholesalePrice : undefined,
+      inventory: {
+        inStock,
+        availableStock: inStock ? (rawStock <= 5 ? rawStock : 10) : 0,
+      },
+    };
+  });
+
   const responsePayload = {
     success: true,
-    data: products,
+    data: sanitizedProducts,
     pagination: {
       page: pageNum,
       limit: take,
@@ -185,7 +200,24 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
     }).catch(() => {});
   }
 
-  const productPayload = { ...product, similar };
+  const isWholesaleUser = req.user?.role === 'WHOLESALE_BUYER' || req.user?.role === 'ADMIN';
+  const rawStock = product.inventory?.availableStock ?? 0;
+  const inStock = rawStock > 0;
+
+  const productPayload = {
+    ...product,
+    wholesalePrice: isWholesaleUser ? product.wholesalePrice : undefined,
+    inventory: product.inventory ? {
+      ...product.inventory,
+      inStock,
+      availableStock: inStock ? (rawStock <= 5 ? rawStock : 10) : 0,
+    } : null,
+    similar: similar.map((s: any) => ({
+      ...s,
+      wholesalePrice: isWholesaleUser ? s.wholesalePrice : undefined,
+    })),
+  };
+
   memoryCache.set(cacheKey, productPayload, 90); // 90 seconds
 
   res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');

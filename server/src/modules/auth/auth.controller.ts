@@ -9,6 +9,7 @@ import { AuthRequest } from '../../middleware/auth';
 import { logger } from '../../utils/logger';
 import { sendEmail, sendVerificationEmail, sendVerificationOtpEmail } from '../../utils/email';
 import { verifyTurnstileToken } from '../../utils/turnstile';
+import { memoryCache } from '../../utils/cache';
 import { Role } from '@prisma/client';
 
 function generateTokens(userId: string, email: string, role: Role, name: string) {
@@ -383,9 +384,31 @@ export const getVerificationStatus = async (req: AuthRequest, res: Response): Pr
 
 
 export const forgotPassword = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { email } = req.body;
+  const { email, turnstileToken } = req.body;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  if (turnstileToken || config.NODE_ENV === 'production') {
+    const turnstileResult = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!turnstileResult.success) {
+      throw new AppError(turnstileResult.error || 'Security verification failed', 400, 'BOT_VERIFICATION_FAILED');
+    }
+  }
+
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  if (!cleanEmail) {
+    throw new AppError('Valid email address is required', 400, 'VALIDATION_ERROR');
+  }
+
+  // Per-email rate limit: max 3 reset emails per 15 minutes to stop email flooding/bombing
+  const rateLimitKey = `forgot_pwd_count_${cleanEmail}`;
+  const attempts = memoryCache.get<number>(rateLimitKey) || 0;
+  if (attempts >= 3) {
+    logger.warn(`[ForgotPassword] Rate limit hit for email: ${cleanEmail}`);
+    res.json({ success: true, message: 'If this email exists, a reset link has been sent.' });
+    return;
+  }
+  memoryCache.set(rateLimitKey, attempts + 1, 900); // 15-minute window
+
+  const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
 
   // Always return success to prevent user enumeration
   if (user) {
