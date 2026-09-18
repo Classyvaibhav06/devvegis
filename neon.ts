@@ -17,6 +17,7 @@ export default defineConfig({
           CORS_ORIGIN: "https://devvegis-client.vercel.app,http://localhost:3000",
           RESEND_API_KEY: process.env.RESEND_API_KEY || "",
           EMAIL_FROM: process.env.EMAIL_FROM || "DevVegis <onboarding@resend.dev>",
+          AWS_BUCKET_NAME: "uploads",
         },
       },
     },

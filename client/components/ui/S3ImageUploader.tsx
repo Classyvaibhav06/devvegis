@@ -40,7 +40,8 @@ export default function S3ImageUploader({
       onChange(url);
       toast.success('Image uploaded to Neon S3 successfully!');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to upload image');
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to upload image';
+      toast.error(msg);
     } finally {
       setUploading(false);
       if (fileInputRef.current) {

@@ -125,6 +125,15 @@ app.get('/health', (req, res) => {
 // ─── API ROUTES ───────────────────────────────────────
 const apiRouter = express.Router();
 
+apiRouter.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'DevVegis API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/users', userRoutes);
 apiRouter.use('/products', productRoutes);

@@ -31,6 +31,17 @@ export const errorHandler = (
     return;
   }
 
+  // Multer file upload errors
+  if (err.name === 'MulterError') {
+    logger.warn(`Multer upload error: ${err.message} — ${req.method} ${req.url}`);
+    res.status(400).json({
+      success: false,
+      error: `File upload error: ${err.message}`,
+      code: 'FILE_UPLOAD_ERROR',
+    });
+    return;
+  }
+
   // Prisma client validation error (e.g. unknown arguments or invalid types)
   if (err.name === 'PrismaClientValidationError') {
     logger.warn(`Prisma Validation Error: ${err.message.split('\n').pop() || err.message}`);

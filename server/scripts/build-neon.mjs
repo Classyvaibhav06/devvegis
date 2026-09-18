@@ -17,40 +17,61 @@ const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
 const emailPort = process.env.EMAIL_PORT || '465';
 const emailUser = process.env.EMAIL_USER || '';
 const emailPass = process.env.EMAIL_PASS || '';
+const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID || '';
+const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || '';
+const awsEndpointUrlS3 = process.env.AWS_ENDPOINT_URL_S3 || '';
+const awsRegion = process.env.AWS_REGION || 'us-east-2';
+const awsBucketName = process.env.AWS_BUCKET_NAME || 'uploads';
 
 if (!fs.existsSync(dist)) {
   fs.mkdirSync(dist, { recursive: true });
 }
 
 console.log('📦 Bundling Neon Function with esbuild...');
+const bannerStr = `import{createRequire as ___cr}from'module';const require=___cr(import.meta.url);const __filename=require('url').fileURLToPath(import.meta.url);const __dirname=require('path').dirname(__filename);try{const ___fs=require('fs');const ___p=require('path');const t='/tmp/prisma-engines';if(!___fs.existsSync(t))___fs.mkdirSync(t,{recursive:true});for(const d of[__dirname,process.cwd(),'/app','/']){if(___fs.existsSync(d)){for(const f of ___fs.readdirSync(d)){if(f.endsWith('.so.node')){const dst=___p.join(t,f);if(!___fs.existsSync(dst))___fs.copyFileSync(___p.join(d,f),dst);}}}}}catch(e){}`;
+
 execSync(
   `npx esbuild src/function.ts --bundle --platform=node --target=node24 --format=esm ` +
-  `--banner:js="import{createRequire as ___cr}from'module';import{fileURLToPath as ___f}from'url';import{dirname as ___d}from'path';const require=___cr(import.meta.url);const __filename=___f(import.meta.url);const __dirname=___d(__filename);" ` +
+  `--banner:js="${bannerStr}" ` +
   `--define:process.env.RESEND_API_KEY='${JSON.stringify(resendApiKey)}' ` +
   `--define:process.env.EMAIL_FROM='${JSON.stringify(emailFrom)}' ` +
   `--define:process.env.EMAIL_HOST='${JSON.stringify(emailHost)}' ` +
   `--define:process.env.EMAIL_PORT='${JSON.stringify(emailPort)}' ` +
   `--define:process.env.EMAIL_USER='${JSON.stringify(emailUser)}' ` +
   `--define:process.env.EMAIL_PASS='${JSON.stringify(emailPass)}' ` +
+  `--define:process.env.AWS_ACCESS_KEY_ID='${JSON.stringify(awsAccessKeyId)}' ` +
+  `--define:process.env.AWS_SECRET_ACCESS_KEY='${JSON.stringify(awsSecretAccessKey)}' ` +
+  `--define:process.env.AWS_ENDPOINT_URL_S3='${JSON.stringify(awsEndpointUrlS3)}' ` +
+  `--define:process.env.AWS_REGION='${JSON.stringify(awsRegion)}' ` +
+  `--define:process.env.AWS_BUCKET_NAME='${JSON.stringify(awsBucketName)}' ` +
   `--outfile=dist-function/index.mjs`,
   { stdio: 'inherit', cwd: root }
 );
 
-console.log('📋 Copying Prisma engine and schema...');
-const engineCandidates = [
-  path.join(root, '../node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node'),
-  path.join(root, 'node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node'),
+console.log('📋 Copying Prisma engines and schema...');
+const prismaClientDirs = [
+  path.join(root, '../node_modules/.prisma/client'),
+  path.join(root, 'node_modules/.prisma/client'),
 ];
-const engineSrc = engineCandidates.find(p => fs.existsSync(p));
-const schemaSrc = path.join(root, 'prisma/schema.prisma');
 
-if (engineSrc) {
-  fs.copyFileSync(engineSrc, path.join(dist, 'libquery_engine-linux-arm64-openssl-3.0.x.so.node'));
-  console.log(`✓ Copied engine from ${engineSrc}`);
-} else {
-  console.warn('⚠️ Warning: libquery_engine-linux-arm64-openssl-3.0.x.so.node not found!');
+let enginesFound = 0;
+for (const dir of prismaClientDirs) {
+  if (fs.existsSync(dir)) {
+    const armEngine = path.join(dir, 'libquery_engine-linux-arm64-openssl-3.0.x.so.node');
+    if (fs.existsSync(armEngine)) {
+      fs.copyFileSync(armEngine, path.join(dist, 'libquery_engine-linux-arm64-openssl-3.0.x.so.node'));
+      console.log('✓ Copied engine: libquery_engine-linux-arm64-openssl-3.0.x.so.node');
+      enginesFound++;
+      break;
+    }
+  }
 }
 
+if (enginesFound === 0) {
+  console.warn('⚠️ Warning: No Prisma query engine .so.node files found!');
+}
+
+const schemaSrc = path.join(root, 'prisma/schema.prisma');
 if (fs.existsSync(schemaSrc)) {
   fs.copyFileSync(schemaSrc, path.join(dist, 'schema.prisma'));
   console.log('✓ Copied schema.prisma');
