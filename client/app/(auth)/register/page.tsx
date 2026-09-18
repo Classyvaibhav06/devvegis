@@ -36,11 +36,16 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     try {
       const { confirmPassword, ...payload } = data;
-      await api.post('/auth/register', payload);
-      toast.success('Account created! Please check your email to verify your account before logging in.', {
-        duration: 8000,
+      const res = await api.post('/auth/register', payload);
+      const resData = res.data?.data || {};
+      toast.success('Account created! Please enter the 6-digit verification code sent to your email.', {
+        duration: 6000,
       });
-      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+      const params = new URLSearchParams({ email: data.email });
+      if (resData.devOtp) {
+        params.set('devOtp', resData.devOtp);
+      }
+      router.push(`/verify-email?${params.toString()}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.');
     }

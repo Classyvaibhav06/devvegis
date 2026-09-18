@@ -22,15 +22,25 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+export interface SendEmailResult {
+  success: boolean;
+  id?: string;
+  error?: any;
+  isRestricted?: boolean;
+}
+
 /**
  * Universal email sender: uses Resend if RESEND_API_KEY is configured,
  * otherwise falls back to Nodemailer SMTP or dev logging.
  */
-export async function sendEmail(options: EmailOptions): Promise<any> {
+export async function sendEmail(options: EmailOptions): Promise<SendEmailResult> {
+  const apiKey = config.RESEND_API_KEY;
+
   // 1. Prioritize Resend when API key is set
-  if (resend) {
+  if (apiKey) {
     try {
-      const res = await resend.emails.send({
+      const client = new Resend(apiKey);
+      const res = await client.emails.send({
         from: config.EMAIL_FROM || 'DevVegis <onboarding@resend.dev>',
         to: options.to,
         subject: options.subject,
@@ -40,40 +50,44 @@ export async function sendEmail(options: EmailOptions): Promise<any> {
 
       if (res.error) {
         logger.error(`[Resend Error] Failed to send email to ${options.to}:`, res.error);
-        // If Resend fails, allow falling back to nodemailer below if configured
+        const errMsg = String(res.error.message || '');
+        const isRestricted = res.error.statusCode === 403 || errMsg.includes('testing emails to your own email');
+        return { success: false, error: res.error, isRestricted };
       } else {
         logger.info(`[Resend] Successfully sent email to ${options.to} (ID: ${res.data?.id})`);
-        return res.data;
+        return { success: true, id: res.data?.id };
       }
-    } catch (err) {
+    } catch (err: any) {
       logger.error(`[Resend Exception] Failed to send to ${options.to}:`, err);
+      const errMsg = String(err?.message || '');
+      const isRestricted = err?.statusCode === 403 || errMsg.includes('testing emails to your own email');
+      return { success: false, error: err, isRestricted };
     }
   }
 
   // 2. Nodemailer SMTP fallback
-  if (config.EMAIL_USER) {
+  if (config.EMAIL_USER && config.EMAIL_PASS && config.EMAIL_USER !== 'your@gmail.com') {
     try {
       const info = await transporter.sendMail({
-        from: config.EMAIL_FROM,
+        from: config.EMAIL_FROM || config.EMAIL_USER,
         to: options.to,
         subject: options.subject,
         html: options.html,
         text: options.text,
       });
       logger.info(`[Nodemailer] Sent to ${options.to}: ${options.subject}`);
-      return info;
-    } catch (err) {
+      return { success: true, id: info.messageId };
+    } catch (err: any) {
       logger.error(`[Nodemailer] Failed to send to ${options.to}:`, err);
+      return { success: false, error: err };
     }
   }
 
   // 3. Dev preview fallback (so local testing never blocks without credentials)
   logger.warn(
-    `[Email Mock] No active email service configured (RESEND_API_KEY or EMAIL_USER missing).
-To: ${options.to}
-Subject: ${options.subject}`
+    `[Email Mock] No active email service configured. To: ${options.to}, Subject: ${options.subject}`
   );
-  return { id: 'mock-email-dev' };
+  return { success: false, isRestricted: true };
 }
 
 /**
@@ -207,15 +221,14 @@ export async function sendOrderOtpEmail(params: {
 }
 
 /**
- * Sends a branded Email Verification link via Resend
+ * Sends a branded Email Verification OTP via Resend
  */
-export async function sendVerificationEmail(params: {
+export async function sendVerificationOtpEmail(params: {
   to: string;
   name: string;
-  verifyToken: string;
-}): Promise<any> {
-  const { to, name, verifyToken } = params;
-  const verifyUrl = `${config.APP_URL}/verify-email?token=${verifyToken}`;
+  otp: string;
+}): Promise<SendEmailResult> {
+  const { to, name, otp } = params;
 
   const html = `
 <!DOCTYPE html>
@@ -223,53 +236,58 @@ export async function sendVerificationEmail(params: {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify Your DevVegis Account</title>
+  <title>Your DevVegis Verification Code</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 32px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" max-width="560px" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        <table role="presentation" width="100%" max-width="540px" cellspacing="0" cellpadding="0" style="max-width: 540px; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
           
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #10B981, #059669); padding: 32px 24px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #10B981, #059669); padding: 28px 24px; text-align: center;">
               <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">🌿 DevVegis</h1>
-              <p style="margin: 6px 0 0; color: #ecfdf5; font-size: 13px; font-weight: 500;">Fresh Farm Produce Delivered in Minutes</p>
+              <p style="margin: 6px 0 0; color: #ecfdf5; font-size: 13px; font-weight: 500;">Farm-Fresh Produce Delivered to Your Door</p>
             </td>
           </tr>
 
           <!-- Main Content -->
           <tr>
-            <td style="padding: 32px 24px;">
-              <h2 style="margin: 0 0 8px; color: #0f172a; font-size: 20px; font-weight: 700;">Welcome to DevVegis, ${name}! 🎉</h2>
-              <p style="margin: 0 0 20px; color: #475569; font-size: 14px; line-height: 1.6;">
-                Thank you for creating an account with us. Please verify your email address to activate your account and claim your ₹50 wallet welcome bonus.
+            <td style="padding: 32px 24px; text-align: center;">
+              <h2 style="margin: 0 0 8px; color: #0f172a; font-size: 20px; font-weight: 700;">Verify Your Email Address</h2>
+              <p style="margin: 0 0 24px; color: #475569; font-size: 14px; line-height: 1.6;">
+                Hi ${name || 'Customer'}, please use the 6-digit verification code below to complete your registration and activate your DevVegis account.
               </p>
 
-              <!-- Bonus Card -->
-              <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 14px 18px; margin-bottom: 24px;">
-                <p style="margin: 0; color: #047857; font-size: 14px; font-weight: 600;">
-                  🎁 Instant Bonus: ₹50 will be automatically added to your DevVegis Wallet upon verification!
+              <!-- OTP Box -->
+              <div style="background-color: #f0fdf4; border: 2px dashed #10B981; border-radius: 16px; padding: 24px 16px; margin: 0 auto 24px; max-width: 360px;">
+                <span style="display: block; color: #047857; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">
+                  Your Verification Code
+                </span>
+                <div style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 900; letter-spacing: 12px; color: #065f46; text-indent: 12px; margin: 4px 0;">
+                  ${otp}
+                </div>
+                <p style="margin: 10px 0 0; color: #059669; font-size: 12px; font-weight: 500;">
+                  🔒 Valid for the next 15 minutes
                 </p>
               </div>
 
-              <!-- Button -->
-              <div style="text-align: center; margin: 28px 0;">
-                <a href="${verifyUrl}"
-                   target="_blank"
-                   style="background-color: #10B981; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
-                  Verify Email Address
-                </a>
-              </div>
-
-              <p style="margin: 20px 0 0; color: #64748b; font-size: 12px; line-height: 1.5; text-align: center;">
-                Button not working? Copy and paste this link into your browser:<br>
-                <a href="${verifyUrl}" style="color: #10B981; word-break: break-all;">${verifyUrl}</a>
+              <p style="margin: 0 0 16px; color: #64748b; font-size: 13px; line-height: 1.5;">
+                Never share this verification code with anyone. DevVegis representatives will never ask you for this code.
               </p>
 
-              <p style="margin: 24px 0 0; color: #94a3b8; font-size: 12px; border-top: 1px solid #f1f5f9; padding-top: 16px; text-align: center;">
-                This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+              <p style="margin: 20px 0 0; color: #94a3b8; font-size: 11px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                If you did not request this registration, please safely ignore this email.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 16px 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0; color: #64748b; font-size: 11px;">
+                © 2026 DevVegis Technologies Pvt Ltd. All rights reserved.
               </p>
             </td>
           </tr>
@@ -284,9 +302,25 @@ export async function sendVerificationEmail(params: {
 
   return sendEmail({
     to,
-    subject: '🌿 Verify your DevVegis account (+ claim ₹50 welcome bonus!)',
+    subject: `🌿 DevVegis — Verification Code: ${otp}`,
     html,
-    text: `Welcome to DevVegis, ${name}! Please verify your email address by visiting: ${verifyUrl}. A ₹50 welcome bonus will be credited to your wallet!`,
+    text: `Hi ${name}, your DevVegis verification code is: ${otp}. This code is valid for 15 minutes. Please do not share it with anyone.`,
   });
 }
+
+/**
+ * Backward compatibility wrapper
+ */
+export async function sendVerificationEmail(params: {
+  to: string;
+  name: string;
+  verifyToken: string;
+}): Promise<any> {
+  return sendVerificationOtpEmail({
+    to: params.to,
+    name: params.name,
+    otp: params.verifyToken,
+  });
+}
+
 

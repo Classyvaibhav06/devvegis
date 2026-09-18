@@ -7,7 +7,7 @@ import { config } from '../../config/env';
 import { AppError } from '../../middleware/errorHandler';
 import { AuthRequest } from '../../middleware/auth';
 import { logger } from '../../utils/logger';
-import { sendEmail, sendVerificationEmail } from '../../utils/email';
+import { sendEmail, sendVerificationEmail, sendVerificationOtpEmail } from '../../utils/email';
 import { Role } from '@prisma/client';
 
 function generateTokens(userId: string, email: string, role: Role, name: string) {
@@ -73,7 +73,8 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
-  const emailVerifyToken = uuidv4();
+  const otp = generateOtp();
+  const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
   const userReferralCode = generateReferralCode(name);
 
   // Find referrer
@@ -94,7 +95,10 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
       phone,
       password: hashedPassword,
       role: assignedRole,
-      emailVerifyToken,
+      isEmailVerified: false,
+      emailVerifyToken: otp,
+      phoneOtp: otp,
+      phoneOtpExpiry: otpExpiry,
       referralCode: userReferralCode,
       referredBy,
     },
@@ -111,28 +115,31 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
     });
   }
 
-  // Send verification email via Resend (non-blocking)
-  sendVerificationEmail({
-    to: email,
-    name,
-    verifyToken: emailVerifyToken,
-  }).catch(err => logger.error('[Resend Verification] Failed to send verification email:', err));
-
-  const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role, user.name);
-
-  await prisma.user.update({ where: { id: user.id }, data: { refreshToken } });
-
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: config.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+  // Send verification OTP email via Resend
+  let emailRestricted = false;
+  try {
+    const emailResult = await sendVerificationOtpEmail({
+      to: email,
+      name,
+      otp,
+    });
+    if (emailResult.isRestricted) {
+      emailRestricted = true;
+      logger.warn(`[Resend Sandbox] Email restricted for ${email}. Dev OTP: ${otp}`);
+    }
+  } catch (err) {
+    logger.error('[Resend Verification] Failed to send verification OTP:', err);
+    emailRestricted = true;
+  }
 
   res.status(201).json({
     success: true,
-    message: 'Registration successful. Please verify your email.',
-    data: { user, accessToken },
+    message: 'Registration successful! A 6-digit verification code has been sent to your email.',
+    data: {
+      user,
+      email: user.email,
+      ...(emailRestricted || config.NODE_ENV !== 'production' ? { devOtp: otp, emailRestricted: true } : {}),
+    },
   });
 };
 
@@ -149,6 +156,10 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+
+  if (!user.isEmailVerified && user.role !== 'ADMIN') {
+    throw new AppError('Please verify your email address before logging in.', 403, 'EMAIL_NOT_VERIFIED');
+  }
 
   const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role, user.name);
 
@@ -217,18 +228,76 @@ export const logout = async (req: AuthRequest, res: Response): Promise<void> => 
 };
 
 export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { token } = req.query as { token: string };
+  const email = (req.body?.email || req.query?.email || '') as string;
+  const otp = (req.body?.otp || req.query?.otp || req.query?.token || '') as string;
 
-  const user = await prisma.user.findFirst({ where: { emailVerifyToken: token } });
+  if (!otp) {
+    throw new AppError('Verification code (OTP) is required', 400, 'MISSING_OTP');
+  }
 
-  if (!user) throw new AppError('Invalid or expired verification link', 400, 'INVALID_TOKEN');
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { isEmailVerified: true, emailVerifyToken: null },
+  // Match by email if provided, or directly by OTP
+  const user = await prisma.user.findFirst({
+    where: email
+      ? { email }
+      : { OR: [{ emailVerifyToken: otp }, { phoneOtp: otp }] },
   });
 
-  res.json({ success: true, message: 'Email verified successfully! Your account is now active.' });
+  if (!user) {
+    throw new AppError('User not found or invalid verification code', 400, 'INVALID_OTP');
+  }
+
+  if (user.isEmailVerified) {
+    const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role, user.name);
+    await prisma.user.update({ where: { id: user.id }, data: { refreshToken } });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: config.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.json({
+      success: true,
+      message: 'Account is already verified! Logged in successfully.',
+      data: { user: { id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone }, accessToken },
+    });
+    return;
+  }
+
+  const isMatch = user.emailVerifyToken === otp || user.phoneOtp === otp;
+  if (!isMatch) {
+    throw new AppError('Invalid 6-digit verification code. Please check and try again.', 400, 'INVALID_OTP');
+  }
+
+  if (user.phoneOtpExpiry && new Date() > user.phoneOtpExpiry) {
+    throw new AppError('Verification code has expired. Please click resend to get a new code.', 400, 'OTP_EXPIRED');
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isEmailVerified: true,
+      emailVerifyToken: null,
+      phoneOtp: null,
+      phoneOtpExpiry: null,
+    },
+    select: { id: true, name: true, email: true, role: true, phone: true },
+  });
+
+  const { accessToken, refreshToken } = generateTokens(updatedUser.id, updatedUser.email, updatedUser.role, updatedUser.name);
+  await prisma.user.update({ where: { id: updatedUser.id }, data: { refreshToken } });
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.json({
+    success: true,
+    message: 'Email verified successfully! Welcome to DevVegis.',
+    data: { user: updatedUser, accessToken },
+  });
 };
 
 export const resendVerificationEmail = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -237,29 +306,47 @@ export const resendVerificationEmail = async (req: AuthRequest, res: Response): 
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    // For security, don't reveal whether the user exists
-    res.json({ success: true, message: 'If this email is registered, a verification link has been sent.' });
+    res.json({ success: true, message: 'If this email is registered, a new verification code has been sent.' });
     return;
   }
 
   if (user.isEmailVerified) {
-    res.json({ success: true, message: 'This email is already verified. You can proceed to log in.' });
+    res.json({ success: true, message: 'This account is already verified. You can log in directly.' });
     return;
   }
 
-  const emailVerifyToken = uuidv4();
+  const otp = generateOtp();
+  const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
+
   await prisma.user.update({
     where: { id: user.id },
-    data: { emailVerifyToken },
+    data: {
+      emailVerifyToken: otp,
+      phoneOtp: otp,
+      phoneOtpExpiry: otpExpiry,
+    },
   });
 
-  sendVerificationEmail({
-    to: user.email,
-    name: user.name,
-    verifyToken: emailVerifyToken,
-  }).catch((err) => logger.error('[Resend Verification] Failed to resend email:', err));
+  let emailRestricted = false;
+  try {
+    const result = await sendVerificationOtpEmail({ to: user.email, name: user.name, otp });
+    if (result.isRestricted) {
+      emailRestricted = true;
+      logger.warn(`[Resend Sandbox] Email restricted for ${email}. Resend Dev OTP: ${otp}`);
+    }
+  } catch (err) {
+    logger.error('[Resend Verification] Failed to resend email:', err);
+    emailRestricted = true;
+  }
 
-  res.json({ success: true, message: 'Verification link sent! Please check your inbox.' });
+  res.json({
+    success: true,
+    message: 'A new 6-digit verification code has been sent to your email.',
+    data: {
+      email: user.email,
+      ...(emailRestricted || config.NODE_ENV !== 'production' ? { devOtp: otp, emailRestricted: true } : {}),
+    },
+  });
 };
 
 

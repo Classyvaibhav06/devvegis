@@ -46,7 +46,12 @@ export default function LoginPage() {
         router.push('/');
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Login failed. Please try again.');
+      const code = err.response?.data?.code;
+      const message = err.response?.data?.message || 'Login failed. Please try again.';
+      toast.error(message);
+      if (code === 'EMAIL_NOT_VERIFIED') {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+      }
     }
   };
 
