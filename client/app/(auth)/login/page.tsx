@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Loader2, Mail, Lock, Leaf, Shield, User, Building2, Bike } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, Leaf } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
@@ -49,10 +49,6 @@ export default function LoginPage() {
       toast.error(err.response?.data?.message || 'Login failed. Please try again.');
     }
   };
-
-  const demoAccounts = [
-    { label: 'Store Admin', icon: Shield, email: 'admin@devvegis.com', password: 'Password@123' },
-  ];
 
   return (
     <motion.div
@@ -126,30 +122,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-700" /></div>
-          <div className="relative flex justify-center"><span className="px-3 bg-white dark:bg-gray-800 text-xs text-gray-500">Demo Accounts</span></div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-6">
-          {demoAccounts.map(demo => {
-            const Icon = demo.icon;
-            return (
-              <button
-                key={demo.label}
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => { onSubmit({ email: demo.email, password: demo.password }); }}
-                className="btn-secondary text-xs py-2 px-3 hover:border-green-500 hover:text-green-600 transition-colors flex items-center justify-center gap-2"
-              >
-                <Icon className="w-3.5 h-3.5 text-green-600" />
-                <span>{demo.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
           Don't have an account?{' '}
           <Link href="/register" className="text-green-600 font-semibold hover:text-green-700">
             Create one →
