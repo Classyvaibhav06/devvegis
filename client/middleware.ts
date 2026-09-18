@@ -86,25 +86,29 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const tokenFromCookie = rawCookie ? decodeURIComponent(rawCookie) : null;
   const token = tokenFromHeader ?? tokenFromCookie;
 
-  const secret = (process.env.JWT_ACCESS_SECRET || 'devvegis_jwt_access_secret_change_in_production').trim();
+  const rawSecret = process.env.JWT_ACCESS_SECRET || 'devvegis_jwt_access_secret_change_in_production';
+  const cleanSecret = rawSecret.replace(/^[\s"'\r\n]+|[\s"'\r\n]+$/g, '');
+  const fallbackSecret = 'devvegis_jwt_access_secret_change_in_production';
 
   if (!token) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('redirect', pathname);
-    const res = NextResponse.redirect(loginUrl);
-    res.headers.set('X-Debug-Auth', `missing-token:header=${Boolean(tokenFromHeader)}:cookie=${Boolean(rawCookie)}`);
-    return res;
+    return NextResponse.redirect(loginUrl);
   }
 
-  const { valid, payload, error } = await verifyJwt(token, secret);
+  // Attempt verification with clean secret, fallback to default if needed
+  let verification = await verifyJwt(token, cleanSecret);
+  if (!verification.valid && cleanSecret !== fallbackSecret) {
+    verification = await verifyJwt(token, fallbackSecret);
+  }
+
+  const { valid, payload } = verification;
   if (!valid || !payload) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('redirect', pathname);
-    const res = NextResponse.redirect(loginUrl);
-    res.headers.set('X-Debug-Auth', `invalid-token:secPrefix=${secret.slice(0, 8)}:secLen=${secret.length}:valid=${valid}:err=${error}`);
-    return res;
+    return NextResponse.redirect(loginUrl);
   }
 
   // Enforce role-based access for administrative portals
