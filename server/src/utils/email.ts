@@ -34,9 +34,32 @@ export interface SendEmailResult {
  * otherwise falls back to Nodemailer SMTP or dev logging.
  */
 export async function sendEmail(options: EmailOptions): Promise<SendEmailResult> {
-  const apiKey = config.RESEND_API_KEY;
+  // 1. Prioritize configured SMTP (Gmail) for 100% universal inbox delivery without domain restrictions
+  if (config.EMAIL_USER && config.EMAIL_PASS && config.EMAIL_USER !== 'your@gmail.com') {
+    try {
+      const smtpTransporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: config.EMAIL_USER,
+          pass: config.EMAIL_PASS,
+        },
+      });
+      const info = await smtpTransporter.sendMail({
+        from: config.EMAIL_FROM || `"DevVegis" <${config.EMAIL_USER}>`,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      });
+      logger.info(`[Gmail SMTP] Sent to ${options.to}: ${options.subject} (ID: ${info.messageId})`);
+      return { success: true, id: info.messageId };
+    } catch (err: any) {
+      logger.error(`[Gmail SMTP Error] Failed to send to ${options.to}:`, err);
+    }
+  }
 
-  // 1. Prioritize Resend when API key is set
+  // 2. Fallback to Resend
+  const apiKey = config.RESEND_API_KEY;
   if (apiKey) {
     try {
       const client = new Resend(apiKey);
@@ -65,25 +88,7 @@ export async function sendEmail(options: EmailOptions): Promise<SendEmailResult>
     }
   }
 
-  // 2. Nodemailer SMTP fallback
-  if (config.EMAIL_USER && config.EMAIL_PASS && config.EMAIL_USER !== 'your@gmail.com') {
-    try {
-      const info = await transporter.sendMail({
-        from: config.EMAIL_FROM || config.EMAIL_USER,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-      });
-      logger.info(`[Nodemailer] Sent to ${options.to}: ${options.subject}`);
-      return { success: true, id: info.messageId };
-    } catch (err: any) {
-      logger.error(`[Nodemailer] Failed to send to ${options.to}:`, err);
-      return { success: false, error: err };
-    }
-  }
-
-  // 3. Dev preview fallback (so local testing never blocks without credentials)
+  // 3. Dev preview fallback
   logger.warn(
     `[Email Mock] No active email service configured. To: ${options.to}, Subject: ${options.subject}`
   );

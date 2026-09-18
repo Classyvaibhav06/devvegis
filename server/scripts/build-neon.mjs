@@ -12,7 +12,11 @@ const dist = path.join(root, 'dist-function');
 
 dotenv.config({ path: path.join(root, '.env') });
 const resendApiKey = process.env.RESEND_API_KEY || '';
-const emailFrom = process.env.EMAIL_FROM || 'DevVegis <onboarding@resend.dev>';
+const emailFrom = process.env.EMAIL_FROM || 'DevVegis <vaibhavghoshi0@gmail.com>';
+const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
+const emailPort = process.env.EMAIL_PORT || '465';
+const emailUser = process.env.EMAIL_USER || '';
+const emailPass = process.env.EMAIL_PASS || '';
 
 if (!fs.existsSync(dist)) {
   fs.mkdirSync(dist, { recursive: true });
@@ -24,6 +28,10 @@ execSync(
   `--banner:js="import{createRequire as ___cr}from'module';import{fileURLToPath as ___f}from'url';import{dirname as ___d}from'path';const require=___cr(import.meta.url);const __filename=___f(import.meta.url);const __dirname=___d(__filename);" ` +
   `--define:process.env.RESEND_API_KEY='${JSON.stringify(resendApiKey)}' ` +
   `--define:process.env.EMAIL_FROM='${JSON.stringify(emailFrom)}' ` +
+  `--define:process.env.EMAIL_HOST='${JSON.stringify(emailHost)}' ` +
+  `--define:process.env.EMAIL_PORT='${JSON.stringify(emailPort)}' ` +
+  `--define:process.env.EMAIL_USER='${JSON.stringify(emailUser)}' ` +
+  `--define:process.env.EMAIL_PASS='${JSON.stringify(emailPass)}' ` +
   `--outfile=dist-function/index.mjs`,
   { stdio: 'inherit', cwd: root }
 );
