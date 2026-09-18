@@ -101,7 +101,6 @@ app.use('/api/v1/payments', checkoutLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
-app.use(compression());
 
 // ─── LOGGING ─────────────────────────────────────────
 app.use(morgan('combined', {

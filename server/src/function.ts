@@ -28,6 +28,7 @@ export default {
     const targetUrl = `${baseUrl}${url.pathname}${url.search}`;
 
     const headers = new Headers(request.headers);
+    headers.delete('accept-encoding');
     headers.set('x-forwarded-host', url.host);
     headers.set('x-forwarded-proto', url.protocol.replace(':', ''));
 
@@ -37,12 +38,21 @@ export default {
       redirect: 'manual',
     };
 
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
+    if (request.method !== 'GET' && request.method !== 'HEAD' && request.body) {
       init.body = request.body;
       // @ts-ignore
       init.duplex = 'half';
     }
 
-    return fetch(targetUrl, init);
+    const localRes = await fetch(targetUrl, init);
+    const resHeaders = new Headers(localRes.headers);
+    resHeaders.delete('content-encoding');
+    resHeaders.delete('content-length');
+
+    return new Response(localRes.body, {
+      status: localRes.status,
+      statusText: localRes.statusText,
+      headers: resHeaders,
+    });
   },
 };

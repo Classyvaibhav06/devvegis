@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Plus, Pencil, Trash2, X, Check, Loader2,
@@ -9,7 +8,7 @@ import {
 } from 'lucide-react';
 import S3ImageUploader from '@/components/ui/S3ImageUploader';
 
-import { API_URL as API } from '@/lib/api';
+import api from '@/lib/api';
 
 interface Category {
   id: string;
@@ -51,21 +50,16 @@ export default function AdminCategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const authHeader = () => {
-    const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || localStorage.getItem('adminToken');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
-
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${API}/categories/admin/all`, { headers: authHeader() });
-      setCategories(data.data || []);
+      const res = await api.get('/categories/admin/all');
+      setCategories(res.data?.data || []);
     } catch {
       // Fallback to public endpoint
       try {
-        const { data } = await axios.get(`${API}/categories`);
-        setCategories(data.data || []);
+        const res = await api.get('/categories');
+        setCategories(res.data?.data || []);
       } catch {
         toast.error('Failed to load categories');
       }
@@ -108,16 +102,16 @@ export default function AdminCategoriesPage() {
     try {
       const payload = { ...form, sortOrder: Number(form.sortOrder) };
       if (editId) {
-        await axios.put(`${API}/categories/${editId}`, payload, { headers: authHeader() });
+        await api.put(`/categories/${editId}`, payload);
         toast.success('Category updated!');
       } else {
-        await axios.post(`${API}/categories`, payload, { headers: authHeader() });
+        await api.post('/categories', payload);
         toast.success('Category created!');
       }
       setShowModal(false);
       fetchCategories();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Save failed');
+      toast.error(err?.response?.data?.message || err?.response?.data?.error || 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -127,7 +121,7 @@ export default function AdminCategoriesPage() {
     if (!confirm('Deactivate this category?')) return;
     setDeletingId(id);
     try {
-      await axios.delete(`${API}/categories/${id}`, { headers: authHeader() });
+      await api.delete(`/categories/${id}`);
       toast.success('Category deactivated');
       fetchCategories();
     } catch {
@@ -139,7 +133,7 @@ export default function AdminCategoriesPage() {
 
   const handleQuickToggle = async (cat: Category, field: 'isActive' | 'isFeatured') => {
     try {
-      await axios.put(`${API}/categories/${cat.id}`, { [field]: !cat[field] }, { headers: authHeader() });
+      await api.put(`/categories/${cat.id}`, { [field]: !cat[field] });
       toast.success(`${field === 'isFeatured' ? 'Featured' : 'Active'} status updated`);
       fetchCategories();
     } catch {

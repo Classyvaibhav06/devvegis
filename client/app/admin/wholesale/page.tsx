@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Plus, Pencil, Trash2, X, Check, Loader2,
@@ -10,7 +9,7 @@ import {
   CheckCircle2, XCircle, AlertCircle
 } from 'lucide-react';
 
-import { API_URL as API } from '@/lib/api';
+import api from '@/lib/api';
 
 interface MandiTicker {
   id: string;
@@ -87,13 +86,13 @@ export default function AdminWholesalePage() {
     setLoading(true);
     try {
       const [t, b, p] = await Promise.allSettled([
-        axios.get(`${API}/wholesale/admin/mandi-tickers`, { headers: authHeader() }),
-        axios.get(`${API}/wholesale/admin/buyers`, { headers: authHeader() }),
-        axios.get(`${API}/wholesale/products`, { headers: authHeader() }),
+        api.get('/wholesale/admin/mandi-tickers'),
+        api.get('/wholesale/admin/buyers'),
+        api.get('/wholesale/products'),
       ]);
-      if (t.status === 'fulfilled') setTickers(t.value.data.data || []);
-      if (b.status === 'fulfilled') setBuyers(b.value.data.data || []);
-      if (p.status === 'fulfilled') setProducts(p.value.data.data || []);
+      if (t.status === 'fulfilled') setTickers(t.value.data?.data || []);
+      if (b.status === 'fulfilled') setBuyers(b.value.data?.data || []);
+      if (p.status === 'fulfilled') setProducts(p.value.data?.data || []);
     } finally {
       setLoading(false);
     }
@@ -130,10 +129,10 @@ export default function AdminWholesalePage() {
     try {
       const payload = { ...tickerForm, modalPrice: Number(tickerForm.modalPrice), sortOrder: Number(tickerForm.sortOrder) };
       if (editTickerId) {
-        await axios.patch(`${API}/wholesale/admin/mandi-tickers/${editTickerId}`, payload, { headers: authHeader() });
+        await api.patch(`/wholesale/admin/mandi-tickers/${editTickerId}`, payload);
         toast.success('Ticker updated — live on wholesale portal!');
       } else {
-        await axios.post(`${API}/wholesale/admin/mandi-tickers`, payload, { headers: authHeader() });
+        await api.post('/wholesale/admin/mandi-tickers', payload);
         toast.success('Ticker added to live APMC board!');
       }
       setShowTickerModal(false);
@@ -149,7 +148,7 @@ export default function AdminWholesalePage() {
     if (!confirm('Delete this mandi commodity?')) return;
     setDeletingId(id);
     try {
-      await axios.delete(`${API}/wholesale/admin/mandi-tickers/${id}`, { headers: authHeader() });
+      await api.delete(`/wholesale/admin/mandi-tickers/${id}`);
       toast.success('Ticker removed');
       fetchAll();
     } catch { toast.error('Delete failed'); } finally { setDeletingId(null); }
@@ -160,10 +159,9 @@ export default function AdminWholesalePage() {
   const handleVerifyBuyer = async (buyer: WholesaleBuyer, approve: boolean) => {
     setVerifyingId(buyer.id);
     try {
-      await axios.patch(
-        `${API}/wholesale/admin/buyers/${buyer.id}/verify`,
-        { isVerified: approve, creditLimit: approve ? 500000 : 0 },
-        { headers: authHeader() }
+      await api.patch(
+        `/wholesale/admin/buyers/${buyer.id}/verify`,
+        { isVerified: approve, creditLimit: approve ? 500000 : 0 }
       );
       toast.success(approve ? `${buyer.businessName} approved! Credit line: ₹5,00,000` : `${buyer.businessName} rejected`);
       fetchAll();

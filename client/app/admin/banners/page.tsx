@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import {
@@ -9,8 +8,7 @@ import {
   X, Check, Loader2, ToggleLeft, ToggleRight, Eye
 } from 'lucide-react';
 import S3ImageUploader from '@/components/ui/S3ImageUploader';
-
-import { API_URL as API } from '@/lib/api';
+import api from '@/lib/api';
 
 const BANNER_TYPES = ['HERO', 'OFFER', 'CATEGORY', 'PRODUCT'] as const;
 
@@ -43,13 +41,13 @@ export default function AdminBannersPage() {
     setLoading(true);
     try {
       // Fetch all banners including inactive for admin view
-      const { data } = await axios.get(`${API}/banners/admin/all`, { headers: authHeader() });
-      setBanners(data.data || []);
+      const res = await api.get('/banners/admin/all');
+      setBanners(res.data?.data || []);
     } catch {
       // Fallback to public endpoint
       try {
-        const { data } = await axios.get(`${API}/banners`);
-        setBanners(data.data || []);
+        const res = await api.get('/banners');
+        setBanners(res.data?.data || []);
       } catch { toast.error('Failed to load banners'); }
     } finally { setLoading(false); }
   };
@@ -79,10 +77,10 @@ export default function AdminBannersPage() {
     try {
       const payload = { ...form, sortOrder: Number(form.sortOrder) };
       if (editId) {
-        await axios.put(`${API}/banners/${editId}`, payload, { headers: authHeader() });
+        await api.put(`/banners/${editId}`, payload);
         toast.success('Banner updated — live on storefront!');
       } else {
-        await axios.post(`${API}/banners`, payload, { headers: authHeader() });
+        await api.post('/banners', payload);
         toast.success('Banner created and live!');
       }
       setShowModal(false);
@@ -96,7 +94,7 @@ export default function AdminBannersPage() {
     if (!confirm('Delete this banner?')) return;
     setDeletingId(id);
     try {
-      await axios.delete(`${API}/banners/${id}`, { headers: authHeader() });
+      await api.delete(`/banners/${id}`);
       toast.success('Banner deleted');
       fetchBanners();
     } catch { toast.error('Delete failed'); } finally { setDeletingId(null); }
@@ -104,7 +102,7 @@ export default function AdminBannersPage() {
 
   const handleToggleActive = async (b: any) => {
     try {
-      await axios.put(`${API}/banners/${b.id}`, { isActive: !b.isActive }, { headers: authHeader() });
+      await api.put(`/banners/${b.id}`, { isActive: !b.isActive });
       toast.success(`Banner ${b.isActive ? 'hidden' : 'activated'}`);
       fetchBanners();
     } catch { toast.error('Update failed'); }
