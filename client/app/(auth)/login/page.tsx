@@ -51,10 +51,7 @@ export default function LoginPage() {
   };
 
   const demoAccounts = [
-    { label: 'Admin', icon: Shield, email: 'admin@devvegis.com', password: 'Password@123' },
-    { label: 'Customer', icon: User, email: 'priya@example.com', password: 'Password@123' },
-    { label: 'Wholesale', icon: Building2, email: 'wholesale@agarwal.com', password: 'Password@123' },
-    { label: 'Rider', icon: Bike, email: 'vijay.rider@devvegis.com', password: 'Password@123' },
+    { label: 'Store Admin', icon: Shield, email: 'admin@devvegis.com', password: 'Password@123' },
   ];
 
   return (

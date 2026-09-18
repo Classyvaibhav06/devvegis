@@ -1,13 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Truck, CheckCircle2, XCircle, Phone, Star, DollarSign, Package, ExternalLink, RefreshCw } from 'lucide-react';
+import {
+  Truck, CheckCircle2, XCircle, Phone, Star, DollarSign, Package,
+  ExternalLink, RefreshCw, Plus, X, Loader2, Bike
+} from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
 export default function AdminRidersPage() {
   const queryClient = useQueryClient();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newRider, setNewRider] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    vehicleType: 'BIKE',
+    vehicleNumber: '',
+  });
 
   const { data: riders = [], isLoading, isFetching } = useQuery({
     queryKey: ['admin-riders'],
@@ -32,6 +45,29 @@ export default function AdminRidersPage() {
     },
   });
 
+  const createRiderMutation = useMutation({
+    mutationFn: async (data: typeof newRider) => {
+      const res = await api.post('/riders/admin/create', data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-riders'] });
+      toast.success('Rider created successfully and ready for dispatches!');
+      setShowAddModal(false);
+      setNewRider({
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        vehicleType: 'BIKE',
+        vehicleNumber: '',
+      });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to create rider');
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -46,9 +82,16 @@ export default function AdminRidersPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Rider</span>
+          </button>
           <Link
             href="/admin/orders"
-            className="btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5"
+            className="btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5"
           >
             <span>View Orders Queue</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -88,8 +131,10 @@ export default function AdminRidersPage() {
                 </tr>
               ) : riders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-gray-500">
-                    No riders found in database.
+                  <td colSpan={9} className="p-12 text-center text-gray-500">
+                    <Bike className="w-8 h-8 text-gray-400 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">No riders registered yet.</p>
+                    <p className="text-[11px] text-gray-400 mt-1">Click &quot;Add New Rider&quot; to onboard delivery partners.</p>
                   </td>
                 </tr>
               ) : (
@@ -127,7 +172,7 @@ export default function AdminRidersPage() {
 
                       <td className="p-4 font-semibold text-amber-500 flex items-center gap-1">
                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span>{r.rating || 4.9}</span>
+                        <span>{r.rating || 5.0}</span>
                       </td>
 
                       <td className="p-4 font-semibold text-gray-800 dark:text-gray-200">
@@ -182,6 +227,124 @@ export default function AdminRidersPage() {
           </table>
         </div>
       </div>
+
+      {/* Add Rider Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="card p-6 w-full max-w-md space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
+              <h3 className="text-lg font-heading font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <Bike className="w-5 h-5 text-emerald-600" />
+                <span>Add Delivery Rider</span>
+              </h3>
+              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                createRiderMutation.mutate(newRider);
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="text-xs font-semibold block mb-1">Rider Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={newRider.name}
+                  onChange={(e) => setNewRider({ ...newRider, name: e.target.value })}
+                  placeholder="e.g. Ramesh Kumar"
+                  className="input text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold block mb-1">Email Address (Login ID) *</label>
+                <input
+                  type="email"
+                  required
+                  value={newRider.email}
+                  onChange={(e) => setNewRider({ ...newRider, email: e.target.value })}
+                  placeholder="e.g. ramesh.rider@devvegis.com"
+                  className="input text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold block mb-1">Phone Number *</label>
+                <input
+                  type="tel"
+                  required
+                  value={newRider.phone}
+                  onChange={(e) => setNewRider({ ...newRider, phone: e.target.value })}
+                  placeholder="e.g. 9876543210"
+                  className="input text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold block mb-1">Login Password *</label>
+                <input
+                  type="password"
+                  required
+                  value={newRider.password}
+                  onChange={(e) => setNewRider({ ...newRider, password: e.target.value })}
+                  placeholder="Password for rider app login"
+                  className="input text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Vehicle Type</label>
+                  <select
+                    value={newRider.vehicleType}
+                    onChange={(e) => setNewRider({ ...newRider, vehicleType: e.target.value })}
+                    className="input text-xs"
+                  >
+                    <option value="BIKE">Motorbike</option>
+                    <option value="SCOOTER">Scooter / EV</option>
+                    <option value="CYCLE">Bicycle</option>
+                    <option value="VAN">Delivery Van</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Vehicle Number</label>
+                  <input
+                    type="text"
+                    value={newRider.vehicleNumber}
+                    onChange={(e) => setNewRider({ ...newRider, vehicleNumber: e.target.value.toUpperCase() })}
+                    placeholder="e.g. KA01AB1234"
+                    className="input text-xs uppercase"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="btn-secondary text-xs py-2 px-4"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createRiderMutation.isPending}
+                  className="btn-primary text-xs py-2 px-4 flex items-center gap-1.5"
+                >
+                  {createRiderMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Save & Register Rider</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

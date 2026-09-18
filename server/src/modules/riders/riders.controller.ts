@@ -176,3 +176,62 @@ export const approveRider = async (req: AuthRequest, res: Response): Promise<voi
   const rider = await prisma.rider.update({ where: { id: req.params.id }, data: { isApproved: true } });
   res.json({ success: true, data: rider });
 };
+
+export const adminCreateRider = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { name, email, phone, password, vehicleType = 'BIKE', vehicleNumber } = req.body;
+
+  if (!name || !email || !phone || !password) {
+    throw new AppError('Name, email, phone, and password are required to create a rider', 400);
+  }
+
+  // Check if email or phone already exists
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      OR: [{ email }, { phone }],
+    },
+  });
+
+  if (existingUser) {
+    throw new AppError('A user with this email or phone number already exists', 400);
+  }
+
+  const bcrypt = await import('bcryptjs');
+  const hashedPassword = await bcrypt.default.hash(password, 12);
+
+  const newUser = await prisma.user.create({
+    data: {
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      role: 'RIDER',
+      isEmailVerified: true,
+      isPhoneVerified: true,
+      isActive: true,
+    },
+  });
+
+  const rider = await prisma.rider.create({
+    data: {
+      userId: newUser.id,
+      name,
+      email,
+      phone,
+      vehicleType: vehicleType.toUpperCase(),
+      vehicleNumber: vehicleNumber || null,
+      isApproved: true,
+      isOnline: true,
+      isAvailable: true,
+      rating: 5.0,
+      totalDeliveries: 0,
+      totalEarnings: 0,
+      todayEarnings: 0,
+    },
+  });
+
+  res.status(201).json({
+    success: true,
+    message: 'Rider created successfully',
+    data: rider,
+  });
+};

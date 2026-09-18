@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
-import { getRiderProfile, updateRiderLocation, toggleAvailability, getAvailableOrders, acceptOrder, updateDeliveryStatus, getRiderEarnings, getAllRiders, approveRider } from './riders.controller';
+import { getRiderProfile, updateRiderLocation, toggleAvailability, getAvailableOrders, acceptOrder, updateDeliveryStatus, getRiderEarnings, getAllRiders, approveRider, adminCreateRider } from './riders.controller';
 const router = Router();
 router.use(authenticate);
 router.get('/profile', getRiderProfile);
@@ -11,5 +11,6 @@ router.post('/accept-order', acceptOrder);
 router.patch('/delivery-status', updateDeliveryStatus);
 router.get('/earnings', getRiderEarnings);
 router.get('/admin/all', authorize('ADMIN'), getAllRiders);
+router.post('/admin/create', authorize('ADMIN'), adminCreateRider);
 router.patch('/admin/:id/approve', authorize('ADMIN'), approveRider);
 export default router;

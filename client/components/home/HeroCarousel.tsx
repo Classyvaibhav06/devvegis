@@ -160,6 +160,8 @@ export function FeaturedCategories() {
     );
   }
 
+  if (categories.length === 0) return null;
+
   return (
     <section className="space-y-3 sm:space-y-5">
       <div className="flex items-center justify-between">
@@ -264,16 +266,16 @@ export function PromoBanners() {
       .then(r => r.json())
       .then(d => {
         if (d.data && d.data.length > 0) setBanners(d.data);
-        else setBanners(FALLBACK_BANNERS as any);
+        else setBanners([]);
       })
-      .catch(() => setBanners(FALLBACK_BANNERS as any));
+      .catch(() => setBanners([]));
   }, []);
 
-  const displayBanners = banners.length > 0 ? banners : FALLBACK_BANNERS;
+  if (banners.length === 0) return null;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-      {displayBanners.slice(0, 3).map((b: any, i) => {
+      {banners.slice(0, 3).map((b: any, i) => {
         const palette = BANNER_BG_PALETTE[i % BANNER_BG_PALETTE.length];
         const bg = b.bg || palette.bg;
         const textColor = b.textColor || palette.textColor;

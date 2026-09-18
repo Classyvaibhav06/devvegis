@@ -41,7 +41,7 @@ export default function PopularProducts() {
       .catch(() => {});
   }, []);
 
-  const { data, isLoading } = useQuery({
+  const { data = [], isLoading } = useQuery({
     queryKey: ['popular-products', activeTab],
     queryFn: async () => {
       try {
@@ -52,13 +52,13 @@ export default function PopularProducts() {
           ...(activeTab && { categorySlug: activeTab }),
         });
         const res = await api.get(`/products?${params}`);
-        if (res.data?.data && res.data.data.length > 0) {
+        if (res.data?.data) {
           return res.data.data;
         }
       } catch {
-        // fallback
+        // network or auth error
       }
-      return getFallbackProducts(activeTab || undefined);
+      return [];
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -88,25 +88,35 @@ export default function PopularProducts() {
       </div>
 
       {/* Product Grid: 2 columns on mobile, 3 on tablet, 4 on md, 5 on lg */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
-        {isLoading
-          ? Array(10).fill(0).map((_, i) => <ProductSkeleton key={i} />)
-          : data?.slice(0, 10).map((product: any) => (
-              <ProductCard key={product.id} product={product} />
-            ))
-        }
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
+          {Array(10).fill(0).map((_, i) => <ProductSkeleton key={i} />)}
+        </div>
+      ) : data.length === 0 ? (
+        <div className="card p-12 text-center text-gray-500 max-w-lg mx-auto">
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Catalog is being prepared</p>
+          <p className="text-xs text-gray-400 mt-1">Fresh produce and harvests added by the store administrator will appear here live.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
+          {data.slice(0, 10).map((product: any) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
 
       {/* View All Link */}
-      <div className="flex justify-center pt-2">
-        <Link
-          href={activeTab ? `/categories/${activeTab}` : '/categories'}
-          className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/15 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all w-full sm:w-auto text-center"
-        >
-          <span>View All Products</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
+      {data.length > 0 && (
+        <div className="flex justify-center pt-2">
+          <Link
+            href={activeTab ? `/categories/${activeTab}` : '/categories'}
+            className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/15 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all w-full sm:w-auto text-center"
+          >
+            <span>View All Products</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
     </section>
   );
 }
