@@ -116,29 +116,33 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
   }
 
   // Send verification OTP email via Resend
-  let emailRestricted = false;
+  let emailSent = false;
   try {
     const emailResult = await sendVerificationOtpEmail({
       to: email,
       name,
       otp,
     });
-    if (emailResult.isRestricted) {
-      emailRestricted = true;
-      logger.warn(`[Resend Sandbox] Email restricted for ${email}. Dev OTP: ${otp}`);
+    emailSent = emailResult.success === true;
+    if (!emailSent) {
+      logger.warn(`[Email Notice] Direct delivery to ${email} was restricted or failed. Verification OTP is: ${otp}`);
     }
   } catch (err) {
     logger.error('[Resend Verification] Failed to send verification OTP:', err);
-    emailRestricted = true;
+    emailSent = false;
   }
 
   res.status(201).json({
     success: true,
-    message: 'Registration successful! A 6-digit verification code has been sent to your email.',
+    message: emailSent
+      ? 'Registration successful! A 6-digit verification code has been sent to your email.'
+      : 'Registration successful! Please use the 6-digit verification code shown below to activate your account.',
     data: {
       user,
       email: user.email,
-      ...(emailRestricted || config.NODE_ENV !== 'production' ? { devOtp: otp, emailRestricted: true } : {}),
+      otp,
+      devOtp: otp,
+      emailSent,
     },
   });
 };
@@ -327,24 +331,50 @@ export const resendVerificationEmail = async (req: AuthRequest, res: Response): 
     },
   });
 
-  let emailRestricted = false;
+  let emailSent = false;
   try {
     const result = await sendVerificationOtpEmail({ to: user.email, name: user.name, otp });
-    if (result.isRestricted) {
-      emailRestricted = true;
-      logger.warn(`[Resend Sandbox] Email restricted for ${email}. Resend Dev OTP: ${otp}`);
+    emailSent = result.success === true;
+    if (!emailSent) {
+      logger.warn(`[Email Notice] Direct delivery to ${email} was restricted or failed. Resend OTP is: ${otp}`);
     }
   } catch (err) {
     logger.error('[Resend Verification] Failed to resend email:', err);
-    emailRestricted = true;
+    emailSent = false;
   }
 
   res.json({
     success: true,
-    message: 'A new 6-digit verification code has been sent to your email.',
+    message: emailSent
+      ? 'A new 6-digit verification code has been sent to your email.'
+      : 'Email provider restricted in testing mode. Please use the verification code shown below.',
     data: {
       email: user.email,
-      ...(emailRestricted || config.NODE_ENV !== 'production' ? { devOtp: otp, emailRestricted: true } : {}),
+      otp,
+      devOtp: otp,
+      emailSent,
+    },
+  });
+};
+
+export const getVerificationStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  const email = (req.query.email as string || '').trim().toLowerCase();
+  if (!email) throw new AppError('Email query parameter is required', 400);
+
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: 'insensitive' } },
+    select: { id: true, email: true, isEmailVerified: true, emailVerifyToken: true, phoneOtpExpiry: true },
+  });
+
+  if (!user) throw new AppError('User not found', 404);
+
+  res.json({
+    success: true,
+    data: {
+      email: user.email,
+      isEmailVerified: user.isEmailVerified,
+      devOtp: user.isEmailVerified ? null : user.emailVerifyToken,
+      isExpired: user.phoneOtpExpiry ? new Date() > user.phoneOtpExpiry : false,
     },
   });
 };

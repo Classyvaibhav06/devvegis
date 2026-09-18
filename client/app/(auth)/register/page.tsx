@@ -102,7 +102,7 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input {...register('name')} type="text" className="input pl-10" autoComplete="name" />
+              <input {...register('name')} type="text" placeholder="Vaibhav Ghoshi" className="input pl-10" autoComplete="name" />
             </div>
             {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
           </div>
@@ -112,7 +112,7 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input {...register('email')} type="email" className="input pl-10" autoComplete="email" />
+              <input {...register('email')} type="email" placeholder="vaibhav@devvegis.com" className="input pl-10" autoComplete="email" />
             </div>
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
           </div>
@@ -122,7 +122,7 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone Number</label>
             <div className="relative">
               <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input {...register('phone')} type="tel" className="input pl-10" autoComplete="tel" />
+              <input {...register('phone')} type="tel" placeholder="9876543210" className="input pl-10" autoComplete="tel" />
             </div>
             {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
           </div>
@@ -132,7 +132,7 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input {...register('password')} type={showPass ? 'text' : 'password'} className="input pl-10 pr-10" autoComplete="new-password" />
+              <input {...register('password')} type={showPass ? 'text' : 'password'} placeholder="••••••••" className="input pl-10 pr-10" autoComplete="new-password" />
               <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -145,7 +145,7 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Confirm Password</label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input {...register('confirmPassword')} type="password" className="input pl-10" autoComplete="new-password" />
+              <input {...register('confirmPassword')} type="password" placeholder="••••••••" className="input pl-10" autoComplete="new-password" />
             </div>
             {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
           </div>

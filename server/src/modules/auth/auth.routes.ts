@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../../middleware/auth';
 import {
   register, login, refreshToken, logout, verifyEmail, resendVerificationEmail,
+  getVerificationStatus,
   forgotPassword, resetPassword, sendPhoneOtp, verifyPhoneOtp, getMe,
   googleAuth, googleAuthRedirect, googleAuthCallback, syncNeonAuth
 } from './auth.controller';
@@ -15,6 +16,7 @@ router.post('/logout', authenticate, logout);
 router.get('/verify-email', verifyEmail);
 router.post('/verify-email', verifyEmail);
 router.post('/verify-email-otp', verifyEmail);
+router.get('/verification-status', getVerificationStatus);
 router.post('/resend-verification', resendVerificationEmail);
 router.post('/resend-otp', resendVerificationEmail);
 router.post('/forgot-password', forgotPassword);

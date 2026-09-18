@@ -91,6 +91,7 @@ export default function LoginPage() {
               <input
                 {...register('email')}
                 type="email"
+                placeholder="vaibhav@devvegis.com"
                 className="input pl-10"
                 autoComplete="email"
               />
@@ -109,6 +110,7 @@ export default function LoginPage() {
               <input
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
                 className="input pl-10 pr-10"
                 autoComplete="current-password"
               />

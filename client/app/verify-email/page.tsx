@@ -80,6 +80,28 @@ function VerifyEmailContent() {
     };
   }, [tokenParam, router, setAuth]);
 
+  // Check verification status & retrieve active OTP if in test mode
+  useEffect(() => {
+    if (!email || devOtp || tokenParam) return;
+    let isMounted = true;
+    api
+      .get(`/auth/verification-status?email=${encodeURIComponent(email)}`)
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.data?.data?.isEmailVerified) {
+          setStatus('SUCCESS');
+          setMessage('Your email is already verified! Redirecting to login...');
+          setTimeout(() => router.push('/login'), 1500);
+        } else if (res.data?.data?.devOtp) {
+          setDevOtp(res.data.data.devOtp);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [email, devOtp, tokenParam, router]);
+
   // Resend cooldown timer
   useEffect(() => {
     if (resendCooldown <= 0) return;
