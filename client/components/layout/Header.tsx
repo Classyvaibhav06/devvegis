@@ -131,18 +131,20 @@ export default function Header() {
               <Zap className="w-3 h-3 fill-current" />
               <span>Retail (10-15 Min)</span>
             </Link>
-            <Link
-              href="/wholesale"
-              className={cn(
-                "px-3.5 py-1 rounded-full text-[11px] font-bold transition-all flex items-center gap-1.5",
-                isWholesale
-                  ? "bg-[#F59E0B] text-[#080C14] font-extrabold shadow-sm"
-                  : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
-              )}
-            >
-              <Store className="w-3 h-3" />
-              <span>Wholesale (Bulk Mandi)</span>
-            </Link>
+            {(user?.role === 'ADMIN' || user?.role === 'WHOLESALE_BUYER') && (
+              <Link
+                href="/wholesale"
+                className={cn(
+                  "px-3.5 py-1 rounded-full text-[11px] font-bold transition-all flex items-center gap-1.5",
+                  isWholesale
+                    ? "bg-[#F59E0B] text-[#080C14] font-extrabold shadow-sm"
+                    : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
+                )}
+              >
+                <Store className="w-3 h-3" />
+                <span>Wholesale (Bulk Mandi)</span>
+              </Link>
+            )}
           </div>
 
           {/* Quick links & guarantees */}
@@ -520,18 +522,20 @@ export default function Header() {
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               <span>Gourmet & Exotic</span>
             </Link>
-            <Link
-              href="/wholesale"
-              className={cn(
-                "pb-1 transition-colors flex items-center gap-1.5",
-                isWholesale
-                  ? "text-[#F59E0B] border-b-2 border-[#F59E0B] font-bold"
-                  : "text-[#F59E0B] hover:text-amber-600 font-semibold"
-              )}
-            >
-              <Store className="w-3.5 h-3.5" />
-              <span>Mandi Wholesale</span>
-            </Link>
+            {(user?.role === 'ADMIN' || user?.role === 'WHOLESALE_BUYER') && (
+              <Link
+                href="/wholesale"
+                className={cn(
+                  "pb-1 transition-colors flex items-center gap-1.5",
+                  isWholesale
+                    ? "text-[#F59E0B] border-b-2 border-[#F59E0B] font-bold"
+                    : "text-[#F59E0B] hover:text-amber-600 font-semibold"
+                )}
+              >
+                <Store className="w-3.5 h-3.5" />
+                <span>Mandi Wholesale</span>
+              </Link>
+            )}
 
           </div>
 
@@ -608,13 +612,15 @@ export default function Header() {
               >
                 🌿 100% Organic
               </Link>
-              <Link
-                href="/wholesale"
-                onClick={() => setIsMenuOpen(false)}
-                className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20"
-              >
-                🏪 Wholesale Mandi
-              </Link>
+              {(user?.role === 'ADMIN' || user?.role === 'WHOLESALE_BUYER') && (
+                <Link
+                  href="/wholesale"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20"
+                >
+                  🏪 Wholesale Mandi
+                </Link>
+              )}
             </div>
           </motion.div>
         )}
