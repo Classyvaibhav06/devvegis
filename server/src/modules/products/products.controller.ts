@@ -37,32 +37,39 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
   const sortField = validSorts.includes(sort) ? sort : 'sortOrder';
   const sortOrder = order === 'desc' ? 'desc' : 'asc';
 
-  // In-memory cache for common listing requests (segmented by role to prevent data leakage)
-  const isSearch = Boolean(search);
-  const roleKey = req.user?.role || 'public';
-  const cacheKey = !isSearch
-    ? `products_list_${roleKey}_${pageNum}_${take}_${categoryId || ''}_${categorySlug || ''}_${isFeatured || ''}_${isFreshToday || ''}_${isOrganic || ''}_${isSeasonalItem || ''}_${minPrice || ''}_${maxPrice || ''}_${tags || ''}_${sortField}_${sortOrder}`
-    : null;
-
-  if (cacheKey) {
-    const cached = memoryCache.get<any>(cacheKey);
-    if (cached) {
-      res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=120, stale-while-revalidate=300');
-      res.setHeader('X-Cache', 'HIT');
-      res.json(cached);
-      return;
+  // ── Search Sanitization & Capping (DoS Prevention) ────────────────────────
+  let cleanSearch: string | undefined;
+  if (typeof search === 'string') {
+    // 1. Cap to max 50 characters to prevent query complexity DoS
+    const trimmed = search.trim().slice(0, 50);
+    // 2. Strip SQL wildcards (%, _, \\) that force expensive full-table scans
+    const sanitized = trimmed.replace(/[%_\\]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (sanitized.length > 0) {
+      cleanSearch = sanitized;
     }
+  }
+
+  // In-memory cache for common listing and search requests
+  const roleKey = req.user?.role || 'public';
+  const cacheKey = `products_list_${roleKey}_${pageNum}_${take}_${categoryId || ''}_${categorySlug || ''}_${encodeURIComponent(cleanSearch || '')}_${isFeatured || ''}_${isFreshToday || ''}_${isOrganic || ''}_${isSeasonalItem || ''}_${minPrice || ''}_${maxPrice || ''}_${tags || ''}_${sortField}_${sortOrder}`;
+
+  const cached = memoryCache.get<any>(cacheKey);
+  if (cached) {
+    res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=120, stale-while-revalidate=300');
+    res.setHeader('X-Cache', 'HIT');
+    res.json(cached);
+    return;
   }
 
   const where: any = { isPublished: true };
 
   if (categoryId) where.categoryId = categoryId;
   if (categorySlug) where.category = { slug: categorySlug };
-  if (search) {
+  if (cleanSearch) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { tags: { hasSome: [search.toLowerCase()] } },
-      { description: { contains: search, mode: 'insensitive' } },
+      { name: { contains: cleanSearch, mode: 'insensitive' } },
+      { tags: { hasSome: [cleanSearch.toLowerCase()] } },
+      { description: { contains: cleanSearch, mode: 'insensitive' } },
     ];
   }
   if (isOrganic === 'true') where.isOrganic = true;
@@ -142,7 +149,7 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
   };
 
   if (cacheKey) {
-    memoryCache.set(cacheKey, responsePayload, 60); // 60 seconds
+    memoryCache.set(cacheKey, responsePayload, cleanSearch ? 30 : 60); // 30s for searches, 60s for listings
   }
 
   res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=120, stale-while-revalidate=300');
@@ -209,18 +216,20 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
   const isWholesaleUser = req.user?.role === 'WHOLESALE_BUYER' || isAdmin;
   const rawStock = product.inventory?.availableStock ?? 0;
   const inStock = rawStock > 0;
-  const { inventory, ...restProduct } = product;
+  const { inventory, costPrice, ...restProduct } = product;
 
   const productPayload = {
     ...restProduct,
     wholesalePrice: isWholesaleUser ? product.wholesalePrice : undefined,
+    costPrice: isAdmin ? costPrice : undefined,
     inStock,
     ...(isAdmin && inventory ? { inventory } : {}),
     similar: similar.map((s: any) => {
-      const { inventory: simInventory, ...simRest } = s;
+      const { inventory: simInventory, costPrice: simCostPrice, ...simRest } = s;
       return {
         ...simRest,
         wholesalePrice: isWholesaleUser ? s.wholesalePrice : undefined,
+        costPrice: isAdmin ? simCostPrice : undefined,
         inStock: (simInventory?.availableStock ?? 0) > 0,
         ...(isAdmin && simInventory ? { inventory: simInventory } : {}),
       };

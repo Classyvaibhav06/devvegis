@@ -376,9 +376,30 @@ export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void
     return;
   }
 
+  const cleanEmail = String(email).trim().toLowerCase();
+  const lockoutKey = `email_otp_lockout:${cleanEmail}`;
+  if (cleanEmail && memoryCache.get<boolean>(lockoutKey)) {
+    throw new AppError('Too many failed verification attempts. Please wait 15 minutes before trying again.', 429, 'OTP_VERIFY_LOCKOUT');
+  }
+
   const isMatch = user.emailVerifyToken === otp || user.phoneOtp === otp;
   if (!isMatch) {
+    if (cleanEmail) {
+      const failKey = `email_otp_fails:${cleanEmail}`;
+      const fails = (memoryCache.get<number>(failKey) ?? 0) + 1;
+      if (fails >= 5) {
+        memoryCache.set(lockoutKey, true, 900);
+        memoryCache.del(failKey);
+        throw new AppError('Too many invalid attempts. This account is temporarily locked for 15 minutes.', 429, 'OTP_VERIFY_LOCKOUT');
+      }
+      memoryCache.set(failKey, fails, 900);
+    }
     throw new AppError('Invalid 6-digit verification code. Please check and try again.', 400, 'INVALID_OTP');
+  }
+
+  if (cleanEmail) {
+    memoryCache.del(lockoutKey);
+    memoryCache.del(`email_otp_fails:${cleanEmail}`);
   }
 
   if (user.phoneOtpExpiry && new Date() > user.phoneOtpExpiry) {
@@ -414,10 +435,32 @@ export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void
 };
 
 export const resendVerificationEmail = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { email } = req.body;
+  const { email, turnstileToken } = req.body;
   if (!email) throw new AppError('Email address is required', 400);
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  if (turnstileToken) {
+    const turnstileResult = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!turnstileResult.success) {
+      throw new AppError(turnstileResult.error || 'Turnstile verification failed', 400, 'BOT_VERIFICATION_FAILED');
+    }
+  }
+
+  const cleanEmail = String(email).trim().toLowerCase();
+  const cooldownKey = `email_otp_cooldown:${cleanEmail}`;
+  if (memoryCache.get<boolean>(cooldownKey)) {
+    throw new AppError('Please wait 60 seconds before requesting another code.', 429, 'OTP_COOLDOWN');
+  }
+
+  const countKey = `email_otp_count:${cleanEmail}`;
+  const count = memoryCache.get<number>(countKey) ?? 0;
+  if (count >= 5) {
+    throw new AppError('Too many verification requests for this email. Please try again after 1 hour.', 429, 'OTP_TARGET_RATE_LIMITED');
+  }
+
+  memoryCache.set(cooldownKey, true, 60);
+  memoryCache.set(countKey, count + 1, 3600);
+
+  const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
   if (!user) {
     res.json({ success: true, message: 'If this email is registered, a new verification code has been sent.' });
     return;
@@ -562,14 +605,48 @@ export const resetPassword = async (req: AuthRequest, res: Response): Promise<vo
 };
 
 export const sendPhoneOtp = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { phone } = req.body;
+  const { phone, turnstileToken } = req.body;
+
+  if (!phone || typeof phone !== 'string') {
+    throw new AppError('Valid phone number is required', 400, 'VALIDATION_ERROR');
+  }
+
+  // 1. CAPTCHA verification
+  const turnstileResult = await verifyTurnstileToken(turnstileToken, req.ip);
+  if (!turnstileResult.success) {
+    throw new AppError(turnstileResult.error || 'Turnstile verification failed', 400, 'BOT_VERIFICATION_FAILED');
+  }
+
+  // 2. Strict phone format validation (Indian 10-digit mobile or +91 standard)
+  const cleanPhone = phone.trim().replace(/[\s\-\(\)]/g, '');
+  const phoneRegex = /^(\+91)?[6-9]\d{9}$/;
+  if (!phoneRegex.test(cleanPhone)) {
+    throw new AppError('Invalid mobile number format. Please provide a valid 10-digit mobile number.', 400, 'INVALID_PHONE_FORMAT');
+  }
+
+  // 3. Per-target cooldown (60 seconds)
+  const cooldownKey = `phone_otp_cooldown:${cleanPhone}`;
+  if (memoryCache.get<boolean>(cooldownKey)) {
+    throw new AppError('Please wait 60 seconds before requesting another OTP.', 429, 'OTP_COOLDOWN');
+  }
+
+  // 4. Per-target hourly rate limit (max 5 per hour)
+  const hourlyCountKey = `phone_otp_count:${cleanPhone}`;
+  const hourlyCount = memoryCache.get<number>(hourlyCountKey) ?? 0;
+  if (hourlyCount >= 5) {
+    throw new AppError('Too many OTP requests for this phone number. Please try again after 1 hour.', 429, 'OTP_TARGET_RATE_LIMITED');
+  }
+
   const otp = generateOtp();
   const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-  // In production, integrate with SMS provider (Twilio/AWS SNS/MSG91)
-  logger.info(`[DEV] Phone OTP for ${phone}: ${otp}`);
+  memoryCache.set(cooldownKey, true, 60);
+  memoryCache.set(hourlyCountKey, hourlyCount + 1, 3600);
 
-  let user = await prisma.user.findUnique({ where: { phone } });
+  // In production, integrate with SMS provider (Twilio/AWS SNS/MSG91)
+  logger.info(`[Phone OTP] Sent to ${cleanPhone}: ${otp}`);
+
+  let user = await prisma.user.findUnique({ where: { phone: cleanPhone } });
 
   if (user) {
     await prisma.user.update({
@@ -584,12 +661,38 @@ export const sendPhoneOtp = async (req: AuthRequest, res: Response): Promise<voi
 export const verifyPhoneOtp = async (req: AuthRequest, res: Response): Promise<void> => {
   const { phone, otp } = req.body;
 
-  const user = await prisma.user.findUnique({ where: { phone } });
+  if (!phone || !otp) {
+    throw new AppError('Phone and OTP are required', 400, 'VALIDATION_ERROR');
+  }
 
-  if (!user || user.phoneOtp !== otp) throw new AppError('Invalid OTP', 400, 'INVALID_OTP');
+  const cleanPhone = String(phone).trim().replace(/[\s\-\(\)]/g, '');
+  const lockoutKey = `phone_otp_lockout:${cleanPhone}`;
+  if (memoryCache.get<boolean>(lockoutKey)) {
+    throw new AppError('Too many invalid attempts. This phone number is temporarily locked for 15 minutes.', 429, 'PHONE_OTP_LOCKED');
+  }
+
+  const user = await prisma.user.findUnique({ where: { phone: cleanPhone } });
+
+  const failKey = `phone_otp_fails:${cleanPhone}`;
+  const failCount = memoryCache.get<number>(failKey) ?? 0;
+
+  if (!user || user.phoneOtp !== otp) {
+    const newCount = failCount + 1;
+    if (newCount >= 5) {
+      memoryCache.set(lockoutKey, true, 900); // 15 minutes lockout
+      memoryCache.del(failKey);
+      throw new AppError('Too many invalid attempts. This phone number is temporarily locked for 15 minutes.', 429, 'PHONE_OTP_LOCKED');
+    }
+    memoryCache.set(failKey, newCount, 900);
+    throw new AppError('Invalid OTP', 400, 'INVALID_OTP');
+  }
+
   if (user.phoneOtpExpiry && new Date() > user.phoneOtpExpiry) {
     throw new AppError('OTP has expired', 400, 'OTP_EXPIRED');
   }
+
+  memoryCache.del(failKey);
+  memoryCache.del(lockoutKey);
 
   await prisma.user.update({
     where: { id: user.id },

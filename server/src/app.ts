@@ -106,24 +106,19 @@ const checkoutLimiter = createRateLimiter(30, 15, 'Too many order or payment req
 
 /**
  * Anti-Abuse Rate Limiters for OTP Endpoints:
- * 1. otpSendLimiter: Max 5 OTP requests per 10 minutes per IP/email to prevent email inbox flooding and SMS bombing.
- * 2. otpVerifyLimiter: Max 5 failed attempts per 10 minutes per IP to completely stop brute-forcing 6-digit OTPs.
+ * 1. otpSendLimiter: Max 5 OTP requests per 10 minutes per IP to prevent network-level flooding.
+ * 2. otpVerifyLimiter: Max 5 failed attempts per 10 minutes per IP to stop brute-forcing 6-digit OTPs.
  */
 const otpSendLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    const email = String(req.body?.email || req.query?.email || '').trim().toLowerCase();
-    const phone = String(req.body?.phone || req.query?.phone || '').trim();
-    const ip = req.ip || req.socket.remoteAddress || 'unknown';
-    return `${ip}:${email || phone || 'anonymous'}`;
-  },
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
   handler: (_req, res) => {
     res.status(429).json({
       success: false,
-      error: 'Too many OTP requests for this account or network. Please wait 10 minutes before requesting again.',
+      error: 'Too many OTP requests from this network. Please wait 10 minutes before requesting again.',
       code: 'OTP_SEND_RATE_LIMITED',
     });
   },
@@ -134,17 +129,46 @@ const otpVerifyLimiter = rateLimit({
   max: 5, // 5 attempts per 10 min prevents brute forcing
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    const email = String(req.body?.email || req.query?.email || '').trim().toLowerCase();
-    const phone = String(req.body?.phone || req.query?.phone || '').trim();
-    const ip = req.ip || req.socket.remoteAddress || 'unknown';
-    return `verify:${ip}:${email || phone || 'anonymous'}`;
-  },
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
   handler: (_req, res) => {
     res.status(429).json({
       success: false,
-      error: 'Too many invalid verification attempts. For your security, this account is temporarily locked for 10 minutes.',
+      error: 'Too many invalid verification attempts. For your security, please wait 10 minutes before trying again.',
       code: 'OTP_VERIFY_RATE_LIMITED',
+    });
+  },
+});
+
+/**
+ * Public Catalog & Search Read Amplification Protection:
+ * 1. catalogLimiter: Max 120 reads/min per IP on /products and /categories.
+ * 2. searchLimiter: Max 30 search queries/min per IP to prevent DB CPU exhaustion.
+ */
+const catalogLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 120, // 120 requests per minute (2 req/sec)
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many catalog requests. Please wait a moment before trying again.',
+      code: 'CATALOG_RATE_LIMITED',
+    });
+  },
+});
+
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // 30 search queries per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => !req.query?.search,
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many search queries. Please wait a minute before searching again.',
+      code: 'SEARCH_RATE_LIMITED',
     });
   },
 });
@@ -153,6 +177,11 @@ const otpVerifyLimiter = rateLimit({
 app.use('/api', globalLimiter);
 app.use('/api/v1/auth', authLimiter);
 app.use('/api/auth', authLimiter);
+
+// Catalog read & Search DoS protection
+app.use('/api/v1/products', searchLimiter);
+app.use('/api/v1/products', catalogLimiter);
+app.use('/api/v1/categories', catalogLimiter);
 
 // OTP generation protection
 app.use('/api/v1/auth/send-otp', otpSendLimiter);

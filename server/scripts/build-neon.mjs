@@ -22,6 +22,7 @@ const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || '';
 const awsEndpointUrlS3 = process.env.AWS_ENDPOINT_URL_S3 || '';
 const awsRegion = process.env.AWS_REGION || 'us-east-2';
 const awsBucketName = process.env.AWS_BUCKET_NAME || 'uploads';
+const turnstileSecretKey = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAE8RCUNEXvz4suaK2mFj6g4TYW0';
 
 if (!fs.existsSync(dist)) {
   fs.mkdirSync(dist, { recursive: true });
@@ -33,6 +34,8 @@ const bannerStr = `import{createRequire as ___cr}from'module';const require=___c
 execSync(
   `npx esbuild src/function.ts --bundle --platform=node --target=node24 --format=esm ` +
   `--banner:js="${bannerStr}" ` +
+  `--define:process.env.NODE_ENV='"production"' ` +
+  `--define:process.env.TURNSTILE_SECRET_KEY='${JSON.stringify(turnstileSecretKey)}' ` +
   `--define:process.env.RESEND_API_KEY='${JSON.stringify(resendApiKey)}' ` +
   `--define:process.env.EMAIL_FROM='${JSON.stringify(emailFrom)}' ` +
   `--define:process.env.EMAIL_HOST='${JSON.stringify(emailHost)}' ` +
