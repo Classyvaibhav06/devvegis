@@ -7,7 +7,6 @@ import { motion } from 'framer-motion';
 import { SlidersHorizontal, Leaf, Zap } from 'lucide-react';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
-import { getFallbackProducts } from '@/lib/fallbackData';
 
 const SORT_OPTIONS = [
   { label: 'Most Popular', sort: 'rating', order: 'desc' },
@@ -48,28 +47,17 @@ export default function CategoryPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['products', slug, sort, filters, page],
     queryFn: async () => {
-      try {
-        const params = new URLSearchParams({
-          categorySlug: slug,
-          sort: sort.sort,
-          order: sort.order,
-          page: String(page),
-          limit: '24',
-          ...(filters.isOrganic && { isOrganic: 'true' }),
-          ...(filters.isFreshToday && { isFreshToday: 'true' }),
-        });
-        const res = await api.get(`/products?${params}`);
-        if (res.data?.data && res.data.data.length > 0) {
-          return res.data;
-        }
-      } catch {
-        // Fallback to rich offline produce items
-      }
-      const fallback = getFallbackProducts(slug, filters);
-      return {
-        data: fallback,
-        pagination: { total: fallback.length, totalPages: 1, page: 1, limit: 24 },
-      };
+      const params = new URLSearchParams({
+        categorySlug: slug,
+        sort: sort.sort,
+        order: sort.order,
+        page: String(page),
+        limit: '24',
+        ...(filters.isOrganic && { isOrganic: 'true' }),
+        ...(filters.isFreshToday && { isFreshToday: 'true' }),
+      });
+      const res = await api.get(`/products?${params}`);
+      return res.data ?? { data: [], pagination: { total: 0, totalPages: 1, page: 1, limit: 24 } };
     },
   });
 
@@ -181,11 +169,19 @@ export default function CategoryPage() {
         </div>
 
         {/* Empty state */}
-        {!isLoading && data?.data?.length === 0 && (
-          <div className="text-center py-16 bg-white dark:bg-[#0F1520] rounded-2xl border border-slate-200/80 dark:border-white/[0.07]">
+        {!isLoading && (!data?.data || data.data.length === 0) && (
+          <div className="text-center py-20 bg-white dark:bg-[#0F1520] rounded-2xl border border-slate-200/80 dark:border-white/[0.07]">
             <p className="text-4xl mb-3">🧺</p>
-            <h3 className="font-heading font-bold text-base text-slate-900 dark:text-[#E8EEF8]">No items found in this category</h3>
-            <p className="text-xs text-slate-500 dark:text-[#8B96A8] mt-1">Try toggling off some filters to see more dawn harvest produce</p>
+            <h3 className="font-heading font-bold text-base text-slate-900 dark:text-[#E8EEF8]">
+              {filters.isOrganic || filters.isFreshToday
+                ? 'No items match your filters'
+                : 'No products in this category yet'}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-[#8B96A8] mt-1 max-w-xs mx-auto">
+              {filters.isOrganic || filters.isFreshToday
+                ? 'Try removing some filters to see more produce.'
+                : 'Products will appear here once the admin adds them to this category.'}
+            </p>
           </div>
         )}
 
