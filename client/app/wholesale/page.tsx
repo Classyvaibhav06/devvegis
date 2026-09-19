@@ -11,9 +11,12 @@ import {
   PhoneCall, RefreshCw, X, AlertCircle, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSearchParams } from 'next/navigation';
 
 import api, { API_URL as API } from '@/lib/api';
 import TurnstileWidget, { TurnstileWidgetRef } from '@/components/common/TurnstileWidget';
+import WholesaleCircularCategories from '@/components/wholesale/WholesaleCircularCategories';
+import WholesaleHeroCarousel from '@/components/wholesale/WholesaleHeroCarousel';
 
 // ─── Animation variants ────────────────────────────────────────────────────
 const fadeUp: Variants = {
@@ -68,8 +71,16 @@ export default function WholesalePage() {
       .finally(() => setCatalogLoading(false));
   }, []);
 
+  const searchParams = useSearchParams();
+  const urlCategory = searchParams?.get('category') || 'all';
+  const urlSearch = searchParams?.get('q')?.toLowerCase() || '';
+
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [activeCategory, setActiveCategory] = useState<'all' | 'roots' | 'vine' | 'greens'>('all');
+  const [activeCategory, setActiveCategory] = useState<string>(urlCategory);
+
+  useEffect(() => {
+    setActiveCategory(searchParams?.get('category') || 'all');
+  }, [searchParams]);
   const [paymentTerms, setPaymentTerms] = useState<'rtgs' | 'net15' | 'cod'>('net15');
 
   // Business & GSTIN registration state
@@ -195,120 +206,44 @@ export default function WholesalePage() {
   };
 
   const filteredCatalog = useMemo(() => {
-    if (activeCategory === 'all') return catalog;
-    return catalog.filter(item => item.category === activeCategory);
-  }, [activeCategory, catalog]);
+    let result = catalog;
+    if (activeCategory && activeCategory !== 'all') {
+      result = result.filter(item => {
+        if (item.category === activeCategory) return true;
+        if (item.name.toLowerCase().includes(activeCategory.toLowerCase())) return true;
+        return false;
+      });
+    }
+    if (urlSearch) {
+      result = result.filter(item =>
+        item.name.toLowerCase().includes(urlSearch) ||
+        item.botanicalOrigin.toLowerCase().includes(urlSearch) ||
+        item.packaging.toLowerCase().includes(urlSearch)
+      );
+    }
+    return result;
+  }, [activeCategory, urlSearch, catalog]);
 
   // ─── Typography shorthand ──────────────────────────────────────────
   const sg = 'font-[family-name:var(--font-space-grotesk)]';
 
   return (
-    <div className="pt-28 sm:pt-32 pb-28 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="pt-2 sm:pt-4 pb-28 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
 
       {/* ══════════════════════════════════════════════════════════════════════
-          SECTION 1 — SPLIT HERO
-          Left: headline + CTAs  |  Right: editorial produce photo
+          SECTION 1 — CIRCULAR CATEGORY BADGES RAIL
+          Story-style 10 rounded medallions matching reference image
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[min(75vh,640px)] mb-20">
+      <section className="mb-4 sm:mb-6">
+        <WholesaleCircularCategories />
+      </section>
 
-        {/* Left copy column */}
-        <div className="space-y-8">
-
-          <motion.h1
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-
-            className={`${sg} font-bold text-[2.6rem] sm:text-5xl lg:text-[3.25rem] tracking-tight leading-[1.05] text-gray-950 dark:text-white`}
-          >
-            Farm-Gate Bulk Produce.{' '}
-            <span className="text-[#1A7A4A] dark:text-emerald-400">
-              Mandi Direct to Kitchen.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-
-            className="text-[15px] text-gray-500 dark:text-gray-400 leading-relaxed max-w-[52ch]"
-          >
-            Direct primary harvest allocations for Michelin-rated kitchens, 5-star hotel chains, cloud kitchens, and institutional caterers. 04:30 AM dock dispatches, transparent APMC settlement, and Net-15/30 credit.
-          </motion.p>
-
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-
-            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
-          >
-            <button
-              onClick={() => setShowRFQModal(true)}
-              className={`group ${sg} rounded-full pl-6 pr-2 py-3 text-[13px] font-semibold text-white bg-[#1A7A4A] hover:bg-[#166B3F] shadow-[0_4px_20px_rgba(26,122,74,0.28)] flex items-center justify-between gap-4 transition-all duration-300 active:scale-[0.98]`}
-            >
-              <span>Request 30-Day Contract</span>
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300">
-                <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
-              </div>
-            </button>
-
-            <button
-              onClick={() => handleExportRateSheet('pdf')}
-              className={`group ${sg} rounded-full pl-5 pr-2 py-3 text-[13px] font-semibold text-gray-800 dark:text-gray-200 bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.07] dark:hover:bg-white/[0.09] border border-black/[0.08] dark:border-white/10 flex items-center justify-between gap-4 transition-all duration-300 active:scale-[0.98]`}
-            >
-              <span>Export Rate Sheet</span>
-              <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300">
-                <Download className="w-4 h-4" strokeWidth={1.5} />
-              </div>
-            </button>
-          </motion.div>
-
-          {/* Trust row */}
-          <motion.div
-            variants={fadeIn}
-            initial="hidden"
-            animate="show"
-
-            className="flex flex-wrap items-center gap-4 pt-2"
-          >
-            {[
-              { Icon: ShieldCheck, text: 'Zero Spoilage SLA' },
-              { Icon: Truck, text: '4°C Cold Chain' },
-              { Icon: FileText, text: 'GSTR-2B Ready' },
-            ].map(({ Icon, text }) => (
-              <div key={text} className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400">
-                <Icon className="w-3.5 h-3.5 text-[#1A7A4A] dark:text-emerald-400" strokeWidth={1.5} />
-                <span>{text}</span>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* Right — editorial photo */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          className="relative rounded-3xl overflow-hidden aspect-[4/3] bg-gray-100 dark:bg-gray-900 shadow-[0_20px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
-        >
-          <Image
-            src="/wholesale-hero.jpg"
-            alt="Bulk farm produce crates — tomatoes, greens, root vegetables"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-          />
-          {/* Subtle overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-          {/* Caption chip */}
-          <div className={`absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-sm px-3 py-1.5 text-white text-[10px] font-semibold ${sg}`}>
-            <span className="inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
-            APMC Azadpur · Vashi Central
-          </div>
-        </motion.div>
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 2 — PROMOTIONAL IMAGE CAROUSEL (Hero Banner)
+          Middle carousel matching reference image with "MOST LOVED PRODUCTS"
+      ══════════════════════════════════════════════════════════════════════ */}
+      <section className="mb-8 sm:mb-12">
+        <WholesaleHeroCarousel />
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════════
@@ -357,7 +292,7 @@ export default function WholesalePage() {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 3 — MAIN TRADING DESK (8-col + 4-col sticky sidebar)
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <section id="wholesale-catalog" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start scroll-mt-24">
 
         {/* ── LEFT 8 COLUMNS: Catalog desk ─────────────────────────────── */}
         <div className="lg:col-span-8 space-y-6">
