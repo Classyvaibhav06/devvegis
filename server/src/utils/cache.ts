@@ -40,7 +40,6 @@ class MemoryCache {
   del(keyOrPrefix: string): void {
     if (this.cache.has(keyOrPrefix)) {
       this.cache.delete(keyOrPrefix);
-      return;
     }
 
     for (const key of this.cache.keys()) {

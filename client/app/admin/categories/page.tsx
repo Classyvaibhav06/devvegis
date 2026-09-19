@@ -7,6 +7,7 @@ import {
   Tag, Star, ToggleLeft, ToggleRight, GripVertical, Search
 } from 'lucide-react';
 import S3ImageUploader from '@/components/ui/S3ImageUploader';
+import { useQueryClient } from '@tanstack/react-query';
 
 import api from '@/lib/api';
 
@@ -49,6 +50,13 @@ export default function AdminCategoriesPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const invalidateCustomerCategoryCaches = () => {
+    queryClient.invalidateQueries({ queryKey: ['categories'] });
+    queryClient.invalidateQueries({ queryKey: ['popular-products'] });
+    queryClient.invalidateQueries({ queryKey: ['products'] });
+  };
 
   const fetchCategories = async () => {
     try {
@@ -110,6 +118,7 @@ export default function AdminCategoriesPage() {
       }
       setShowModal(false);
       fetchCategories();
+      invalidateCustomerCategoryCaches();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || err?.response?.data?.error || 'Save failed');
     } finally {
@@ -124,6 +133,7 @@ export default function AdminCategoriesPage() {
       await api.delete(`/categories/${id}`);
       toast.success('Category deactivated');
       fetchCategories();
+      invalidateCustomerCategoryCaches();
     } catch {
       toast.error('Delete failed');
     } finally {
@@ -136,6 +146,7 @@ export default function AdminCategoriesPage() {
       await api.put(`/categories/${cat.id}`, { [field]: !cat[field] });
       toast.success(`${field === 'isFeatured' ? 'Featured' : 'Active'} status updated`);
       fetchCategories();
+      invalidateCustomerCategoryCaches();
     } catch {
       toast.error('Update failed');
     }

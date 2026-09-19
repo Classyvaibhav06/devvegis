@@ -22,24 +22,32 @@ function ProductSkeleton() {
 
 export default function PopularProducts() {
   const [activeTab, setActiveTab] = useState('');
-  const [dynamicTabs, setDynamicTabs] = useState<{ label: string; slug: string }[]>([
+
+  const { data: dbCategories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/categories');
+        return res.data?.data || [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const dynamicTabs = [
     { label: 'All', slug: '' },
-  ]);
+    ...dbCategories.map((c: any) => ({
+      label: c.name,
+      slug: c.slug,
+    })),
+  ];
 
   useEffect(() => {
-    api
-      .get('/categories')
-      .then((res) => {
-        if (res.data?.data && Array.isArray(res.data.data)) {
-          const catTabs = res.data.data.map((c: any) => ({
-            label: c.name,
-            slug: c.slug,
-          }));
-          setDynamicTabs([{ label: 'All', slug: '' }, ...catTabs]);
-        }
-      })
-      .catch(() => {});
-  }, []);
+    if (activeTab && !dbCategories.some((c: any) => c.slug === activeTab)) {
+      setActiveTab('');
+    }
+  }, [dbCategories, activeTab]);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ['popular-products', activeTab],

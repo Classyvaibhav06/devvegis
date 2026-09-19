@@ -61,10 +61,10 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
     return;
   }
 
-  const where: any = { isPublished: true };
+  const where: any = { isPublished: true, category: { isActive: true } };
 
   if (categoryId) where.categoryId = categoryId;
-  if (categorySlug) where.category = { slug: categorySlug };
+  if (categorySlug) where.category = { slug: categorySlug, isActive: true };
   if (cleanSearch) {
     where.OR = [
       { name: { contains: cleanSearch, mode: 'insensitive' } },
@@ -174,7 +174,7 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
     where: { slug },
     include: {
       images: { orderBy: { sortOrder: 'asc' } },
-      category: { select: { id: true, name: true, slug: true } },
+      category: { select: { id: true, name: true, slug: true, isActive: true } },
       inventory: true,
       reviews: {
         where: { status: 'APPROVED' },
@@ -185,7 +185,7 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
     },
   });
 
-  if (!product || !product.isPublished) throw new AppError('Product not found', 404);
+  if (!product || !product.isPublished || (product.category && !product.category.isActive)) throw new AppError('Product not found', 404);
 
   // Get similar products
   const similar = await prisma.product.findMany({

@@ -34,12 +34,6 @@ const categories = [
     icon: '',
   },
   {
-    name: 'Gourmet & Exotic',
-    sub: 'Avocados & More',
-    slug: 'exotic-vegetables',
-    icon: '',
-  },
-  {
     name: 'Dry Fruits & Nuts',
     sub: 'Premium Grade',
     slug: 'dry-fruits-nuts',

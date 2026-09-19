@@ -51,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch {
     // Fallback static categories
-    const fallbackCategories = ['vegetables', 'fruits', 'organic', 'leafy-greens', 'exotic-vegetables', 'herbs-spices', 'dry-fruits-nuts'];
+    const fallbackCategories = ['vegetables', 'fruits', 'organic', 'leafy-greens', 'herbs-spices', 'dry-fruits-nuts'];
     categoryRoutes = fallbackCategories.map(slug => ({
       url: `${BASE_URL}/categories/${slug}`,
       lastModified: now,

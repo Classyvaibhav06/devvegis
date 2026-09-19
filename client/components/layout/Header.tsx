@@ -58,6 +58,20 @@ export default function Header() {
     enabled: isAuthenticated,
   });
 
+  // Dynamically fetch active categories for top navigation
+  const { data: navCategories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/categories');
+        return res.data?.data || [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 1000 * 30,
+  });
+
   useEffect(() => {
     if (isAuthenticated && userAddresses.length > 0) {
       const def = userAddresses.find((a: any) => a.isDefault) || userAddresses[0];
@@ -516,66 +530,46 @@ export default function Header() {
       {/* ─── Fast-Nav Secondary Category Rail ─────────────────────── */}
       <div className="border-t border-slate-200/60 dark:border-white/[0.05] bg-slate-50 dark:bg-[#0B1019] px-4 transition-colors">
         <div className="container-main flex items-center justify-between overflow-x-auto scrollbar-hide py-2 text-xs font-semibold">
-          <div className="flex items-center gap-6 shrink-0">
+          <div className="flex items-center gap-5 sm:gap-6 shrink-0">
+            {navCategories.slice(0, 6).map((cat: any) => {
+              const catHref = `/categories/${cat.slug}`;
+              const isActive = pathname === catHref;
+              return (
+                <Link
+                  key={cat.id || cat.slug}
+                  href={catHref}
+                  className={cn(
+                    "pb-1 transition-colors flex items-center gap-1.5 whitespace-nowrap",
+                    isActive
+                      ? "text-emerald-600 dark:text-[#34D399] border-b-2 border-[#10B981] font-bold"
+                      : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
+                  )}
+                >
+                  <Leaf className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>{cat.name}</span>
+                </Link>
+              );
+            })}
             <Link
-              href="/categories/vegetables"
+              href="/categories"
               className={cn(
-                "pb-1 transition-colors flex items-center gap-1.5",
-                pathname === '/categories/vegetables'
-                  ? "text-emerald-600 dark:text-[#34D399] border-b-2 border-[#10B981] font-bold"
-                  : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
+                "pb-1 transition-colors flex items-center gap-1 text-slate-500 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 font-medium whitespace-nowrap",
+                pathname === '/categories' && "text-emerald-600 dark:text-[#34D399] border-b-2 border-[#10B981] font-bold"
               )}
             >
-              <Leaf className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Daily Produce</span>
-            </Link>
-            <Link
-              href="/categories/fruits"
-              className={cn(
-                "pb-1 transition-colors flex items-center gap-1.5",
-                pathname === '/categories/fruits'
-                  ? "text-emerald-600 dark:text-[#34D399] border-b-2 border-[#10B981] font-bold"
-                  : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
-              )}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-              <span>Sweet Fruits</span>
-            </Link>
-            <Link
-              href="/categories/organic"
-              className={cn(
-                "pb-1 transition-colors flex items-center gap-1.5",
-                pathname === '/categories/organic'
-                  ? "text-emerald-600 dark:text-[#34D399] border-b-2 border-[#10B981] font-bold"
-                  : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
-              )}
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>100% Organic</span>
-            </Link>
-            <Link
-              href="/categories/exotic-vegetables"
-              className={cn(
-                "pb-1 transition-colors flex items-center gap-1.5",
-                pathname === '/categories/exotic-vegetables'
-                  ? "text-emerald-600 dark:text-[#34D399] border-b-2 border-[#10B981] font-bold"
-                  : "text-slate-600 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]"
-              )}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Gourmet & Exotic</span>
+              <span>All Categories</span>
             </Link>
             {(user?.role === 'ADMIN' || user?.role === 'WHOLESALE_BUYER') && (
               <Link
                 href="/wholesale"
                 className={cn(
-                  "pb-1 transition-colors flex items-center gap-1.5",
+                  "pb-1 transition-colors flex items-center gap-1.5 whitespace-nowrap",
                   isWholesale
                     ? "text-[#F59E0B] border-b-2 border-[#F59E0B] font-bold"
                     : "text-[#F59E0B] hover:text-amber-600 font-semibold"
                 )}
               >
-                <Store className="w-3.5 h-3.5" />
+                <Store className="w-3.5 h-3.5 shrink-0" />
                 <span>Mandi Wholesale</span>
               </Link>
             )}
@@ -636,29 +630,24 @@ export default function Header() {
 
             {/* Navigation links */}
             <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+              {navCategories.slice(0, 6).map((cat: any) => (
+                <Link
+                  key={cat.id || cat.slug}
+                  href={`/categories/${cat.slug}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-[#161E2E] rounded-[2px] text-slate-800 dark:text-[#E8EEF8] border border-slate-200 dark:border-white/[0.05] hover:border-emerald-500/30 transition-colors"
+                >
+                  <Leaf className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span className="truncate">{cat.name}</span>
+                </Link>
+              ))}
               <Link
-                href="/categories/vegetables"
+                href="/categories"
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-[#161E2E] rounded-[2px] text-slate-800 dark:text-[#E8EEF8] border border-slate-200 dark:border-white/[0.05]"
+                className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-[#161E2E] rounded-[2px] text-slate-800 dark:text-[#E8EEF8] border border-slate-200 dark:border-white/[0.05] hover:border-emerald-500/30 transition-colors"
               >
-                <Leaf className="w-4 h-4 text-emerald-500" />
-                <span>Vegetables</span>
-              </Link>
-              <Link
-                href="/categories/fruits"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-[#161E2E] rounded-[2px] text-slate-800 dark:text-[#E8EEF8] border border-slate-200 dark:border-white/[0.05]"
-              >
-                <Apple className="w-4 h-4 text-rose-500" />
-                <span>Fruits</span>
-              </Link>
-              <Link
-                href="/categories/organic"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-[#161E2E] rounded-[2px] text-slate-800 dark:text-[#E8EEF8] border border-slate-200 dark:border-white/[0.05]"
-              >
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>100% Organic</span>
+                <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>All Categories</span>
               </Link>
               {(user?.role === 'ADMIN' || user?.role === 'WHOLESALE_BUYER') && (
                 <Link
@@ -666,7 +655,7 @@ export default function Header() {
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center gap-2 p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-[2px] border border-amber-500/20"
                 >
-                  <Store className="w-4 h-4 text-amber-500" />
+                  <Store className="w-4 h-4 text-amber-500 shrink-0" />
                   <span>Wholesale Mandi</span>
                 </Link>
               )}

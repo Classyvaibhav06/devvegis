@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Mail, Clock, Leaf, ShieldCheck, Truck, Loader2, Send } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-
-import { API_URL as API } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import api, { API_URL as API } from '@/lib/api';
 
 export default function HeroBanner() {
   const [email, setEmail] = useState('');
@@ -93,7 +93,7 @@ export default function HeroBanner() {
           /* When logged in: hide input box and subscribe button, show quick explore CTA */
           <div className="mt-5 sm:mt-8 flex justify-center">
             <Link
-              href="/categories/vegetables"
+              href="/categories"
               className="inline-flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white dark:text-[#080C14] px-7 py-3.5 rounded-[2px] text-sm font-bold transition-all shadow-xs hover:gap-3 active:translate-y-0.5"
             >
               <span>Explore Fresh Harvest</span>
@@ -150,16 +150,17 @@ export default function HeroBanner() {
 
 // ─── Featured Categories — dynamic from /api/v1/categories ───
 export function FeaturedCategories() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`${API}/categories`)
-      .then(r => r.json())
-      .then(d => setCategories(d.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: categories = [], isLoading: loading } = useQuery<any[]>({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/categories');
+        return res.data?.data || [];
+      } catch {
+        return [];
+      }
+    },
+  });
 
   // Fallback palette for categories without a set color
   const palette = [
@@ -217,7 +218,7 @@ export function FeaturedCategories() {
 
       {/* Horizontal smooth snap-scroll on mobile, structured grid on md/lg */}
       <div className="flex sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 py-1">
-        {categories.map((cat, i) => {
+        {categories.map((cat: any, i: number) => {
           const p = palette[i % palette.length];
           return (
             <Link key={cat.id} href={`/categories/${cat.slug}`} className="group shrink-0 sm:shrink">

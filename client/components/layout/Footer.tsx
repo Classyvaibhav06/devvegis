@@ -13,7 +13,7 @@ const footerLinks = {
     { label: 'Daily Vegetables', href: '/categories/vegetables' },
     { label: 'Orchard Fruits', href: '/categories/fruits' },
     { label: '100% Certified Organic', href: '/categories/organic' },
-    { label: 'Gourmet & Exotics', href: '/categories/exotic-vegetables' },
+    { label: 'All Fresh Categories', href: '/categories' },
     { label: 'Bulk Mandi B2B', href: '/wholesale' },
   ],
   support: [

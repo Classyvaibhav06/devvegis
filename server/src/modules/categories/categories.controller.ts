@@ -8,7 +8,7 @@ import { memoryCache } from '../../utils/cache';
 const CATEGORIES_CACHE_KEY = 'public_categories';
 
 export const getCategories = async (_req: AuthRequest, res: Response): Promise<void> => {
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
   const cached = memoryCache.get<any>(CATEGORIES_CACHE_KEY);
   if (cached) {
@@ -25,7 +25,7 @@ export const getCategories = async (_req: AuthRequest, res: Response): Promise<v
     },
   });
 
-  memoryCache.set(CATEGORIES_CACHE_KEY, categories, 120); // 2 minutes
+  memoryCache.set(CATEGORIES_CACHE_KEY, categories, 30); // 30s cache
   res.json({ success: true, data: categories });
 };
 
@@ -33,7 +33,7 @@ export const getCategory = async (req: AuthRequest, res: Response): Promise<void
   const { slug } = req.params;
   const cacheKey = `category_${slug}`;
   
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
   const cached = memoryCache.get<any>(cacheKey);
   if (cached) {
@@ -48,9 +48,9 @@ export const getCategory = async (req: AuthRequest, res: Response): Promise<void
       _count: { select: { products: { where: { isPublished: true } } } },
     },
   });
-  if (!category) throw new AppError('Category not found', 404);
+  if (!category || !category.isActive) throw new AppError('Category not found', 404);
 
-  memoryCache.set(cacheKey, category, 120);
+  memoryCache.set(cacheKey, category, 30);
   res.json({ success: true, data: category });
 };
 
@@ -58,6 +58,7 @@ export const createCategory = async (req: AuthRequest, res: Response): Promise<v
   const category = await prisma.category.create({ data: req.body });
   memoryCache.del(CATEGORIES_CACHE_KEY);
   memoryCache.del('category_');
+  memoryCache.del('products_list_');
   res.status(201).json({ success: true, data: category });
 };
 
@@ -66,6 +67,7 @@ export const updateCategory = async (req: AuthRequest, res: Response): Promise<v
   const category = await prisma.category.update({ where: { id }, data: req.body });
   memoryCache.del(CATEGORIES_CACHE_KEY);
   memoryCache.del('category_');
+  memoryCache.del('products_list_');
   res.json({ success: true, data: category });
 };
 
@@ -75,11 +77,14 @@ export const deleteCategory = async (req: AuthRequest, res: Response): Promise<v
     await prisma.category.delete({ where: { id } });
     memoryCache.del(CATEGORIES_CACHE_KEY);
     memoryCache.del('category_');
+    memoryCache.del('products_list_');
     res.json({ success: true, message: 'Category deleted permanently' });
   } catch {
     await prisma.category.update({ where: { id }, data: { isActive: false } });
+    await prisma.category.updateMany({ where: { parentId: id }, data: { isActive: false } });
     memoryCache.del(CATEGORIES_CACHE_KEY);
     memoryCache.del('category_');
+    memoryCache.del('products_list_');
     res.json({ success: true, message: 'Category deactivated' });
   }
 };
