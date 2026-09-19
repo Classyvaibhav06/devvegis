@@ -99,14 +99,21 @@ export default function Footer() {
             </p>
 
             <div className="flex items-center gap-2 pt-1">
-              {[Globe, MessageCircle, Send].map((Icon, i) => (
-                <button
-                  key={i}
+              {[
+                { Icon: Globe, label: 'Visit DevVegis Website', href: 'https://devvegis.com' },
+                { Icon: MessageCircle, label: 'Contact WhatsApp Support', href: 'https://wa.me/9180033883447' },
+                { Icon: Send, label: 'Join DevVegis Telegram Channel', href: 'https://t.me/devvegis' },
+              ].map(({ Icon, label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-8 h-8 bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] rounded-[4px] flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/30 transition-all"
-                  aria-label="Social link"
+                  aria-label={label}
                 >
                   <Icon className="w-3.5 h-3.5" />
-                </button>
+                </a>
               ))}
             </div>
           </div>

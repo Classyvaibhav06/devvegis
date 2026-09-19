@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { MapPin, Phone, Mail, Clock, Send, MessageSquare } from 'lucide-react';
+import { MapPin, Phone, Mail } from 'lucide-react';
+import ContactForm from '@/components/contact/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact DevVegis — Customer Support & Central Dark Store Location',
@@ -68,30 +69,7 @@ export default function ContactPage() {
           <h2 className="font-heading font-bold text-lg text-slate-900 dark:text-[#E8EEF8]">
             Send Us a Message
           </h2>
-          <form className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">Your Name</label>
-                <input type="text" placeholder="John Doe" className="input text-xs w-full" />
-              </div>
-              <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
-                <input type="email" placeholder="john@example.com" className="input text-xs w-full" />
-              </div>
-            </div>
-            <div>
-              <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>
-              <input type="text" placeholder="Order inquiry or partnership" className="input text-xs w-full" />
-            </div>
-            <div>
-              <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">Message</label>
-              <textarea rows={4} placeholder="How can our team assist you today?" className="input text-xs w-full resize-none" />
-            </div>
-            <button type="button" className="btn-primary py-2.5 px-6 inline-flex items-center gap-2">
-              <Send className="w-3.5 h-3.5" />
-              <span>Send Message</span>
-            </button>
-          </form>
+          <ContactForm />
         </div>
       </div>
     </div>

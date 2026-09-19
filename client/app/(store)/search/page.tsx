@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Search, Mic, X, TrendingUp, Clock, SlidersHorizontal, Leaf, PackageSearch } from 'lucide-react';
+import { toast } from 'sonner';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
 
@@ -83,6 +84,46 @@ function SearchContent() {
     localStorage.removeItem('devvegis-recent-searches');
   };
 
+  const [isListening, setIsListening] = useState(false);
+
+  const handleVoiceSearch = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.info('Voice search is not supported in this browser. Please type your search.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-IN';
+      recognition.interimResults = false;
+      recognition.onstart = () => {
+        setIsListening(true);
+        toast.info('Listening... speak now');
+      };
+      recognition.onresult = (event: any) => {
+        setIsListening(false);
+        const speechText = event.results[0]?.[0]?.transcript;
+        if (speechText) {
+          handleSearch(speechText);
+          toast.success(`Searching for "${speechText}"`);
+        }
+      };
+      recognition.onerror = () => {
+        setIsListening(false);
+        toast.error('Could not detect speech. Please try again or type.');
+      };
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      toast.error('Voice search failed to initialize.');
+    }
+  };
+
   return (
     <div className="container-main py-6">
       {/* Search Bar */}
@@ -98,11 +139,24 @@ function SearchContent() {
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {query && (
-            <button onClick={() => { setQuery(''); setDebouncedQuery(''); }} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <button
+              onClick={() => { setQuery(''); setDebouncedQuery(''); }}
+              className="text-gray-400 hover:text-gray-600 cursor-pointer"
+              aria-label="Clear search input"
+            >
               <X className="w-5 h-5" />
             </button>
           )}
-          <button className="text-gray-400 hover:text-green-600 transition-colors cursor-pointer" aria-label="Voice search">
+          <button
+            type="button"
+            onClick={handleVoiceSearch}
+            className={`transition-colors cursor-pointer p-1 rounded-[2px] ${
+              isListening
+                ? 'text-emerald-500 animate-pulse bg-emerald-500/10'
+                : 'text-gray-400 hover:text-green-600'
+            }`}
+            aria-label="Voice search by speaking"
+          >
             <Mic className="w-5 h-5" />
           </button>
         </div>

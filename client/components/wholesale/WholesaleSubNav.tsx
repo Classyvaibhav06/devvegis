@@ -66,7 +66,13 @@ export default function WholesaleSubNav() {
             onMouseEnter={() => setActiveDropdown('collection')}
             onMouseLeave={() => setActiveDropdown(null)}
           >
-            <button className="flex items-center gap-1 hover:text-[#10B981] transition-colors whitespace-nowrap cursor-pointer py-1">
+            <button
+              onClick={() => setActiveDropdown(prev => prev === 'collection' ? null : 'collection')}
+              aria-expanded={activeDropdown === 'collection'}
+              aria-haspopup="true"
+              aria-label="Toggle collection filter dropdown"
+              className="flex items-center gap-1 hover:text-[#10B981] transition-colors whitespace-nowrap cursor-pointer py-1"
+            >
               <span>Shop by Collection</span>
               <ChevronDown className="w-3 h-3 opacity-60" />
             </button>
@@ -119,7 +125,13 @@ export default function WholesaleSubNav() {
             onMouseEnter={() => setActiveDropdown('price')}
             onMouseLeave={() => setActiveDropdown(null)}
           >
-            <button className="flex items-center gap-1 hover:text-[#10B981] transition-colors whitespace-nowrap cursor-pointer py-1">
+            <button
+              onClick={() => setActiveDropdown(prev => prev === 'price' ? null : 'price')}
+              aria-expanded={activeDropdown === 'price'}
+              aria-haspopup="true"
+              aria-label="Toggle price filter dropdown"
+              className="flex items-center gap-1 hover:text-[#10B981] transition-colors whitespace-nowrap cursor-pointer py-1"
+            >
               <span>Shop by Price</span>
               <ChevronDown className="w-3 h-3 opacity-60" />
             </button>
@@ -154,7 +166,13 @@ export default function WholesaleSubNav() {
             onMouseEnter={() => setActiveDropdown('industry')}
             onMouseLeave={() => setActiveDropdown(null)}
           >
-            <button className="flex items-center gap-1 hover:text-[#10B981] transition-colors whitespace-nowrap cursor-pointer py-1">
+            <button
+              onClick={() => setActiveDropdown(prev => prev === 'industry' ? null : 'industry')}
+              aria-expanded={activeDropdown === 'industry'}
+              aria-haspopup="true"
+              aria-label="Toggle industry filter dropdown"
+              className="flex items-center gap-1 hover:text-[#10B981] transition-colors whitespace-nowrap cursor-pointer py-1"
+            >
               <span>Shop by Industry</span>
               <ChevronDown className="w-3 h-3 opacity-60" />
             </button>
