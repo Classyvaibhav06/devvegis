@@ -97,7 +97,7 @@ export default function WholesaleLayout({ children }: { children: React.ReactNod
           {/* Center status */}
           <div className="hidden md:flex items-center gap-2 text-[11px] font-medium text-gray-400 dark:text-gray-500">
             <span className="inline-flex rounded-full h-1.5 w-1.5 bg-[#1A7A4A]" />
-            <span>Mandi Floor: <strong className="text-gray-700 dark:text-gray-300 font-semibold">Live</strong></span>
+            <span>Mandi Direct: <strong className="text-gray-700 dark:text-gray-300 font-semibold">Live</strong></span>
             <span className="opacity-30">·</span>
             <span className="text-[#1A7A4A] dark:text-emerald-400">04:30 AM Dispatches</span>
           </div>

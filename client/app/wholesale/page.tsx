@@ -213,16 +213,6 @@ export default function WholesalePage() {
 
         {/* Left copy column */}
         <div className="space-y-8">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-
-            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 border border-[#1A7A4A]/20 bg-[#1A7A4A]/6 text-[#1A7A4A] dark:text-emerald-400 text-[10px] uppercase tracking-[0.2em] font-semibold ${sg}`}
-          >
-            <Sparkles className="w-3 h-3" strokeWidth={1.5} />
-            Institutional Agri-Commodity Floor
-          </motion.div>
 
           <motion.h1
             variants={fadeUp}
