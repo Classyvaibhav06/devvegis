@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Mail, Clock, Leaf, ShieldCheck, Truck, Loader2, Send } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
 
 import { API_URL as API } from '@/lib/api';
 
@@ -11,6 +13,8 @@ export default function HeroBanner() {
   const [email, setEmail] = useState('');
   const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     fetch(`${API}/banners?type=HERO&isActive=true`)
@@ -22,6 +26,16 @@ export default function HeroBanner() {
       })
       .catch(() => {});
   }, []);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (trimmed) {
+      router.push(`/login?email=${encodeURIComponent(trimmed)}`);
+    } else {
+      router.push('/login');
+    }
+  };
 
   const activeBanner = heroBanners[currentSlide];
 
@@ -69,16 +83,30 @@ export default function HeroBanner() {
           <div className="mt-5 sm:mt-8 flex justify-center">
             <Link
               href={activeBanner.linkValue}
-              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-7 py-3.5 rounded-[4px] text-sm font-bold transition-all shadow-md hover:gap-3"
+              className="inline-flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white dark:text-[#080C14] px-7 py-3.5 rounded-[2px] text-sm font-bold transition-all shadow-xs hover:gap-3 active:translate-y-0.5"
             >
               <span>Explore Collection</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+        ) : isAuthenticated ? (
+          /* When logged in: hide input box and subscribe button, show quick explore CTA */
+          <div className="mt-5 sm:mt-8 flex justify-center">
+            <Link
+              href="/categories/vegetables"
+              className="inline-flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white dark:text-[#080C14] px-7 py-3.5 rounded-[2px] text-sm font-bold transition-all shadow-xs hover:gap-3 active:translate-y-0.5"
+            >
+              <span>Explore Fresh Harvest</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         ) : (
-          /* Centered Newsletter Input */
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center mt-5 sm:mt-8 w-full max-w-md shadow-lg rounded-[4px] overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white sm:dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.08]">
-            <div className="flex items-center bg-white dark:bg-[#161E2E] px-4 py-3 gap-2.5 rounded-[4px] sm:rounded-none flex-1">
+          /* Centered Newsletter Input (Guest Only) */
+          <form
+            onSubmit={handleSubscribe}
+            className="flex flex-col sm:flex-row items-stretch sm:items-center mt-5 sm:mt-8 w-full max-w-md shadow-xs rounded-[2px] overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white sm:dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.08]"
+          >
+            <div className="flex items-center bg-white dark:bg-[#161E2E] px-4 py-3 gap-2.5 rounded-[2px] sm:rounded-none flex-1">
               <Mail className="w-4 h-4 text-slate-400 dark:text-[#4E5A6B] shrink-0" />
               <input
                 type="email"
@@ -88,11 +116,14 @@ export default function HeroBanner() {
                 className="bg-transparent text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] outline-none w-full"
               />
             </div>
-            <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors flex items-center justify-center gap-2 rounded-[4px] sm:rounded-none shrink-0">
+            <button
+              type="submit"
+              className="bg-[#10B981] hover:bg-[#059669] text-white dark:text-[#080C14] px-6 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors flex items-center justify-center gap-2 rounded-[2px] sm:rounded-none shrink-0 cursor-pointer active:translate-y-0.5"
+            >
               <span>Subscribe</span>
               <Send className="w-3.5 h-3.5" />
             </button>
-          </div>
+          </form>
         )}
 
         {/* Carousel indicators */}

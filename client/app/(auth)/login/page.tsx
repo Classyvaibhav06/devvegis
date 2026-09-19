@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -28,9 +28,18 @@ export default function LoginPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const emailParam = new URLSearchParams(window.location.search).get('email');
+      if (emailParam) {
+        setValue('email', emailParam);
+      }
+    }
+  }, [setValue]);
 
   const onSubmit = async (data: LoginForm) => {
     try {
