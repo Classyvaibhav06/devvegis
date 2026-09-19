@@ -212,21 +212,7 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
       || await prisma.address.findFirst({ where: { userId } });
   }
   if (!address) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    address = await prisma.address.create({
-      data: {
-        id: uuidv4(),
-        userId,
-        label: 'Home',
-        name: user?.name || 'Customer',
-        phone: user?.phone || '9876543210',
-        addressLine1: '12th Main Road, Indiranagar',
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        pincode: '560038',
-        isDefault: true,
-      },
-    });
+    throw new AppError('Delivery address is required. Please select or add an address to complete your order.', 400, 'ADDRESS_REQUIRED');
   }
 
   // Calculate totals

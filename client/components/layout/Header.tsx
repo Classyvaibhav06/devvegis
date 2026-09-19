@@ -15,13 +15,16 @@ import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/providers/themeProvider';
 import { cn, getInitials, formatCurrency } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import LocationModal from './LocationModal';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
-  const [location, setLocation] = useState('Indiranagar, Bengaluru');
+  const [location, setLocation] = useState('Select Location');
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
@@ -39,6 +42,40 @@ export default function Header() {
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Dynamically resolve delivery location from saved addresses or localStorage
+  const { data: userAddresses = [] } = useQuery({
+    queryKey: ['addresses'],
+    queryFn: async () => {
+      if (!isAuthenticated) return [];
+      try {
+        const res = await api.get('/addresses');
+        return res.data.data || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: isAuthenticated,
+  });
+
+  useEffect(() => {
+    if (isAuthenticated && userAddresses.length > 0) {
+      const def = userAddresses.find((a: any) => a.isDefault) || userAddresses[0];
+      const resolved = def.landmark ? `${def.landmark}, ${def.city}` : `${def.city || def.pincode}`;
+      setLocation(resolved);
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('devvegis_user_location');
+      if (saved) {
+        setLocation(saved);
+        return;
+      }
+    }
+
+    setLocation('Select Location');
+  }, [isAuthenticated, userAddresses]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -193,13 +230,18 @@ export default function Header() {
                 <Zap className="w-2.5 h-2.5 fill-current" />
                 <span>12 MINS</span>
               </div>
-              <div className="cursor-pointer group">
+              <button
+                type="button"
+                onClick={() => setIsLocationModalOpen(true)}
+                className="cursor-pointer group text-left bg-transparent border-0 p-0 focus:outline-none"
+                title="Change delivery location"
+              >
                 <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-[#4E5A6B] tracking-wider">Delivery To</div>
                 <div className="text-xs font-bold text-slate-800 dark:text-[#E8EEF8] flex items-center gap-1 group-hover:text-[#10B981] transition-colors">
                   <span className="max-w-[130px] truncate">{location}</span>
                   <ChevronDown className="w-3 h-3 text-slate-400 dark:text-[#4E5A6B] group-hover:text-[#10B981]" />
                 </div>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -558,7 +600,10 @@ export default function Header() {
             className="md:hidden border-t border-slate-200 dark:border-white/[0.07] bg-white dark:bg-[#0F1520] px-4 py-4 space-y-4"
           >
             {/* Delivery to badge on mobile */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07]">
+            <div
+              onClick={() => setIsLocationModalOpen(true)}
+              className="flex items-center justify-between p-3 rounded-xl bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] cursor-pointer hover:border-emerald-500/30 transition-colors"
+            >
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-[#10B981]" />
                 <span className="text-xs font-bold text-slate-800 dark:text-[#E8EEF8] truncate max-w-[200px]">{location}</span>
@@ -625,6 +670,14 @@ export default function Header() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Dynamic Location Selection Modal */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        currentLocation={location}
+        onSelectLocation={(newLoc) => setLocation(newLoc)}
+      />
     </header>
   );
 }
