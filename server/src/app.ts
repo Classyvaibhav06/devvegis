@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
+import jwt from 'jsonwebtoken';
 import { config } from './config/env';
 import { logger } from './utils/logger';
 import { errorHandler } from './middleware/errorHandler';
@@ -84,36 +85,111 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // ─── RATE LIMITING TIERS ──────────────────────────────
-const createRateLimiter = (maxRequests: number, windowMinutes: number, message: string) => {
+const createRateLimiter = (maxRequests: number, windowMinutes: number, message: string, code = 'RATE_LIMIT_EXCEEDED') => {
   return rateLimit({
     windowMs: windowMinutes * 60 * 1000,
     max: maxRequests,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     handler: (_req, res) => {
       res.status(429).json({
         success: false,
         error: message,
-        code: 'RATE_LIMIT_EXCEEDED',
+        code,
       });
     },
   });
 };
 
-const globalLimiter = createRateLimiter(500, 15, 'Too many requests. Please try again shortly.');
-const authLimiter = createRateLimiter(30, 15, 'Too many authentication attempts. Please try again after 15 minutes.');
-const checkoutLimiter = createRateLimiter(30, 15, 'Too many order or payment requests. Please try again shortly.');
-
 /**
- * Anti-Abuse Rate Limiters for OTP Endpoints:
- * 1. otpSendLimiter: Max 5 OTP requests per 10 minutes per IP to prevent network-level flooding.
- * 2. otpVerifyLimiter: Max 5 failed attempts per 10 minutes per IP to stop brute-forcing 6-digit OTPs.
+ * Extracts userId from authenticated session or decoded JWT token; falls back to client IP.
+ * This guarantees user-scoped throttling that cannot be bypassed via proxy rotation.
  */
+const getUserOrIpKey = (req: express.Request): string => {
+  if ((req as any).user?.id) return `usr:${(req as any).user.id}`;
+
+  const authHeader = req.headers?.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    try {
+      const decoded: any = jwt.decode(token);
+      if (decoded?.id || decoded?.sub) return `usr:${decoded.id || decoded.sub}`;
+    } catch {}
+  }
+
+  const cookieToken = req.cookies?.accessToken;
+  if (cookieToken) {
+    try {
+      const decoded: any = jwt.decode(cookieToken);
+      if (decoded?.id || decoded?.sub) return `usr:${decoded.id || decoded.sub}`;
+    } catch {}
+  }
+
+  return `ip:${req.ip || req.socket?.remoteAddress || 'unknown'}`;
+};
+
+const createUserRateLimiter = (maxRequests: number, windowMinutes: number, message: string, code: string) => {
+  return rateLimit({
+    windowMs: windowMinutes * 60 * 1000,
+    max: maxRequests,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: false,
+    keyGenerator: getUserOrIpKey,
+    handler: (_req, res) => {
+      res.status(429).json({
+        success: false,
+        error: message,
+        code,
+      });
+    },
+  });
+};
+
+// ── Tier 1: Public Limiters (IP-Scoped) ───────────────
+const globalLimiter = createRateLimiter(500, 15, 'Too many requests. Please try again shortly.', 'GLOBAL_RATE_LIMITED');
+const authLimiter = createRateLimiter(30, 15, 'Too many authentication attempts. Please try again after 15 minutes.', 'AUTH_RATE_LIMITED');
+const rfqLimiter = createRateLimiter(10, 15, 'Too many quotation requests from this network. Please wait 15 minutes.', 'RFQ_RATE_LIMITED');
+const analyticsLimiter = createRateLimiter(120, 1, 'Too many telemetry requests. Please slow down.', 'ANALYTICS_RATE_LIMITED');
+
+const catalogLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 120, // 120 requests per minute (2 req/sec)
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: false,
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many catalog requests. Please wait a moment before trying again.',
+      code: 'CATALOG_RATE_LIMITED',
+    });
+  },
+});
+
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // 30 search queries per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: false,
+  skip: (req) => !req.query?.search,
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many search queries. Please wait a minute before searching again.',
+      code: 'SEARCH_RATE_LIMITED',
+    });
+  },
+});
+
 const otpSendLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
   handler: (_req, res) => {
     res.status(429).json({
@@ -129,6 +205,7 @@ const otpVerifyLimiter = rateLimit({
   max: 5, // 5 attempts per 10 min prevents brute forcing
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
   handler: (_req, res) => {
     res.status(429).json({
@@ -139,64 +216,85 @@ const otpVerifyLimiter = rateLimit({
   },
 });
 
-/**
- * Public Catalog & Search Read Amplification Protection:
- * 1. catalogLimiter: Max 120 reads/min per IP on /products and /categories.
- * 2. searchLimiter: Max 30 search queries/min per IP to prevent DB CPU exhaustion.
- */
-const catalogLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 120, // 120 requests per minute (2 req/sec)
+// ── Tier 2: Private / User-Aware Limiters (usr:id || ip) ───
+const couponValidateLimiter = createUserRateLimiter(15, 10, 'Too many coupon validations. Please wait 10 minutes.', 'COUPON_RATE_LIMITED');
+const cartLimiter = createUserRateLimiter(60, 1, 'Too many cart modifications. Please wait a moment.', 'CART_RATE_LIMITED');
+const wishlistLimiter = createUserRateLimiter(60, 1, 'Too many wishlist operations. Please wait a moment.', 'WISHLIST_RATE_LIMITED');
+const checkoutLimiter = createUserRateLimiter(30, 15, 'Too many checkout or payment requests. Please try again shortly.', 'CHECKOUT_RATE_LIMITED');
+const uploadLimiter = createUserRateLimiter(20, 10, 'Too many file uploads. Please wait 10 minutes.', 'UPLOAD_RATE_LIMITED');
+const aiLimiter = createUserRateLimiter(10, 5, 'Too many AI requests. Please wait 5 minutes before generating again.', 'AI_RATE_LIMITED');
+const addressLimiter = createUserRateLimiter(30, 10, 'Too many address changes. Please wait 10 minutes.', 'ADDRESS_RATE_LIMITED');
+const walletLimiter = createUserRateLimiter(30, 1, 'Too many wallet requests. Please slow down.', 'WALLET_RATE_LIMITED');
+const notificationLimiter = createUserRateLimiter(60, 1, 'Too many notification requests. Please slow down.', 'NOTIFICATION_RATE_LIMITED');
+const userProfileLimiter = createUserRateLimiter(30, 15, 'Too many profile or account updates. Please wait 15 minutes.', 'PROFILE_RATE_LIMITED');
+const riderLimiter = createUserRateLimiter(120, 1, 'Too many rider updates. Please wait a moment.', 'RIDER_RATE_LIMITED');
+const adminLimiter = createUserRateLimiter(120, 1, 'Too many administrative requests. Please slow down.', 'ADMIN_RATE_LIMITED');
+
+const reviewSubmissionLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
+  keyGenerator: getUserOrIpKey,
+  skip: (req) => req.method === 'GET', // Public GET reviews is covered by catalogLimiter
   handler: (_req, res) => {
     res.status(429).json({
       success: false,
-      error: 'Too many catalog requests. Please wait a moment before trying again.',
-      code: 'CATALOG_RATE_LIMITED',
+      error: 'Too many review submissions. Please wait 10 minutes.',
+      code: 'REVIEW_RATE_LIMITED',
     });
   },
 });
 
-const searchLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 30, // 30 search queries per minute
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => !req.query?.search,
-  handler: (_req, res) => {
-    res.status(429).json({
-      success: false,
-      error: 'Too many search queries. Please wait a minute before searching again.',
-      code: 'SEARCH_RATE_LIMITED',
-    });
-  },
-});
-
-// Apply rate limiters
+// ── Apply Limiters ────────────────────────────────────
+// 1. Global network-level fallback
 app.use('/api', globalLimiter);
-app.use('/api/v1/auth', authLimiter);
-app.use('/api/auth', authLimiter);
 
-// Catalog read & Search DoS protection
-app.use('/api/v1/products', searchLimiter);
-app.use('/api/v1/products', catalogLimiter);
-app.use('/api/v1/categories', catalogLimiter);
-
-// OTP generation protection
+// 2. Sensitive OTP & Verification (Anti-Abuse - mounted before general auth)
 app.use('/api/v1/auth/send-otp', otpSendLimiter);
 app.use('/api/v1/auth/resend-verification', otpSendLimiter);
 app.use('/api/v1/auth/resend-otp', otpSendLimiter);
 app.use('/api/v1/auth/forgot-password', otpSendLimiter);
 app.use('/api/v1/orders/:id/resend-otp', otpSendLimiter);
 
-// OTP verification protection (anti brute-force)
 app.use('/api/v1/auth/verify-email', otpVerifyLimiter);
 app.use('/api/v1/auth/verify-email-otp', otpVerifyLimiter);
 app.use('/api/v1/auth/verify-otp', otpVerifyLimiter);
 
+// 3. General Public Auth & Identity
+app.use('/api/v1/auth', authLimiter);
+app.use('/api/auth', authLimiter);
+
+// 4. Public Catalog & Storefront Reads
+app.use('/api/v1/products', searchLimiter);
+app.use('/api/v1/products', catalogLimiter);
+app.use('/api/v1/categories', catalogLimiter);
+app.use('/api/v1/banners', catalogLimiter);
+app.use('/api/v1/reviews', catalogLimiter);
+app.use('/api/v1/wholesale/products', catalogLimiter);
+app.use('/api/v1/wholesale/mandi-tickers', catalogLimiter);
+
+// 5. Public Inquiries & Telemetry
+app.use('/api/v1/wholesale/rfq', rfqLimiter);
+app.use('/api/v1/analytics/track', analyticsLimiter);
+
+// 6. Private / User-Scoped Business Endpoints
+app.use('/api/v1/coupons/validate', couponValidateLimiter);
+app.use('/api/v1/cart', cartLimiter);
+app.use('/api/v1/wishlist', wishlistLimiter);
 app.use('/api/v1/orders', checkoutLimiter);
 app.use('/api/v1/payments', checkoutLimiter);
+app.use('/api/v1/upload', uploadLimiter);
+app.use('/api/v1/ai', aiLimiter);
+app.use('/api/v1/reviews', reviewSubmissionLimiter);
+app.use('/api/v1/addresses', addressLimiter);
+app.use('/api/v1/wallet', walletLimiter);
+app.use('/api/v1/notifications', notificationLimiter);
+app.use('/api/v1/users', userProfileLimiter);
+app.use('/api/v1/riders', riderLimiter);
+app.use('/api/v1/inventory', adminLimiter);
+app.use('/api/v1/admin', adminLimiter);
 
 // ─── LOGGING ─────────────────────────────────────────
 app.use(morgan('combined', {

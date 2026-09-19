@@ -71,11 +71,105 @@ const PROTECTED_PREFIXES = [
   '/oauth-callback',
 ];
 
+/** Sensitive auth routes with stricter rate limits */
+const SENSITIVE_AUTH_PREFIXES = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/verify-email',
+];
+
+// ── Edge In-Memory Rate Limiter ────────────────────────────────────────────────
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const edgeRateLimitMap = new Map<string, RateLimitEntry>();
+const MAX_RATE_LIMIT_MAP_SIZE = 5000;
+
+function checkEdgeRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): { limited: boolean; retryAfter: number } {
+  const now = Date.now();
+
+  // Periodically purge expired keys to prevent memory leak
+  if (edgeRateLimitMap.size > MAX_RATE_LIMIT_MAP_SIZE) {
+    for (const [k, v] of edgeRateLimitMap.entries()) {
+      if (now > v.resetAt) edgeRateLimitMap.delete(k);
+    }
+  }
+
+  const existing = edgeRateLimitMap.get(key);
+  if (!existing || now > existing.resetAt) {
+    edgeRateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
+    return { limited: false, retryAfter: 0 };
+  }
+
+  if (existing.count >= limit) {
+    const retryAfter = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
+    return { limited: true, retryAfter };
+  }
+
+  existing.count++;
+  return { limited: false, retryAfter: 0 };
+}
+
 // ── Middleware ────────────────────────────────────────────────────────────────
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
+  // 1. Skip prefetch and RSC background requests from client rate limiting
+  const isPrefetch =
+    request.headers.get('purpose') === 'prefetch' ||
+    request.headers.get('next-router-prefetch') === '1' ||
+    request.headers.get('x-nextjs-prefetch') === '1';
+
+  if (!isPrefetch) {
+    const forwarded = request.headers.get('x-forwarded-for');
+    const ip = forwarded ? forwarded.split(',')[0].trim() : (request.headers.get('x-real-ip') || '127.0.0.1');
+
+    const isSensitiveAuth = SENSITIVE_AUTH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+    const limit = isSensitiveAuth ? 40 : 120; // 40 req/min on auth pages; 120 req/min on storefront
+    const windowMs = 60 * 1000; // 1 minute
+    const rateLimitKey = `${isSensitiveAuth ? 'auth' : 'page'}:${ip}`;
+
+    const { limited, retryAfter } = checkEdgeRateLimit(rateLimitKey, limit, windowMs);
+    if (limited) {
+      const accept = request.headers.get('accept') || '';
+      if (accept.includes('text/html')) {
+        return new NextResponse(
+          `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>429 Too Many Requests - DevVegis</title><style>body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#090d0b;color:#e2e8f0;padding:24px;text-align:center}.card{background:#111915;border:1px solid #1e2e26;border-radius:16px;padding:40px 32px;max-width:440px;box-shadow:0 20px 40px rgba(0,0,0,0.5)}h1{color:#10b981;font-size:24px;margin:0 0 12px;font-weight:700}p{color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 24px}.btn{display:inline-block;padding:10px 24px;background:#10b981;color:#052e16;font-weight:600;border-radius:9999px;text-decoration:none;transition:opacity .2s}.btn:hover{opacity:.9}</style></head><body><div class="card"><h1>Rate Limit Exceeded</h1><p>Too many requests detected from your connection. Please wait a moment before continuing.</p><a href="/" class="btn">Return to Storefront</a></div></body></html>`,
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Retry-After': String(retryAfter),
+            },
+          }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many requests. Please slow down and try again.',
+          code: 'RATE_LIMIT_EXCEEDED',
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(retryAfter),
+          },
+        }
+      );
+    }
+  }
+
+  // 2. Authentication and Role checks for protected routes
   const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   if (!isProtected) return NextResponse.next();
 
@@ -123,18 +217,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   return NextResponse.next();
 }
 
-// ── Matcher — only run on page routes, never on static files or API routes ───
+// ── Matcher — run on all page routes, excluding static assets and system files ──
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/rider/:path*',
-    '/profile/:path*',
-    '/orders/:path*',
-    '/checkout/:path*',
-    '/cart/:path*',
-    '/wishlist/:path*',
-    '/wallet/:path*',
-    '/notifications/:path*',
-    '/oauth-callback/:path*',
+    '/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|css|js|map|woff|woff2)$).*)',
   ],
 };
