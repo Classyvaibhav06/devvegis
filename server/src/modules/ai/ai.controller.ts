@@ -54,17 +54,6 @@ export const getRecommendations = async (req: AuthRequest, res: Response): Promi
   res.json({ success: true, data: recommended });
 };
 
-export const semanticSearch = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { q } = req.query as Record<string, string>;
-  if (!q) { res.json({ success: true, data: [] }); return; }
-  const products = await prisma.product.findMany({
-    where: { isPublished: true, OR: [{ name: { contains: q, mode: 'insensitive' } }, { tags: { hasSome: [q.toLowerCase()] } }] },
-    take: 20,
-    include: { images: { where: { isPrimary: true }, take: 1 } },
-  });
-  res.json({ success: true, data: products });
-};
-
 export const analyzeFreshness = async (_req: AuthRequest, res: Response): Promise<void> => {
   res.json({
     success: true,
