@@ -63,7 +63,7 @@ export default function GoogleOAuthButton({
       type="button"
       disabled={loading}
       onClick={handleGoogleAuth}
-      className={`w-full relative group flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700/80 text-gray-800 dark:text-gray-200 text-sm font-medium transition-all duration-300 shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 disabled:pointer-events-none ${className}`}
+      className={`w-full relative group flex items-center justify-center gap-3 py-2.5 px-4 rounded-[2px] border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700/80 text-gray-800 dark:text-gray-200 text-sm font-medium transition-all duration-200 shadow-xs active:translate-y-0.5 disabled:opacity-60 disabled:pointer-events-none cursor-pointer ${className}`}
     >
       {loading ? (
         <Loader2 className="w-4 h-4 animate-spin text-gray-600 dark:text-gray-300" />

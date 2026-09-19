@@ -131,7 +131,7 @@ export default function CheckoutPage() {
     },
     onSuccess: (order) => {
       clearCart();
-      toast.success('Order placed successfully! 🚀');
+      toast.success('Order placed successfully');
       router.push(`/orders/${order.id}`);
     },
     onError: (err: any) => {
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center text-green-600">
+                <div className="w-9 h-9 bg-green-50 dark:bg-green-950/40 rounded-[2px] flex items-center justify-center text-green-600">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function CheckoutPage() {
               </div>
               <button
                 onClick={() => setShowNewAddress(!showNewAddress)}
-                className="text-xs font-semibold text-green-600 hover:text-green-700 flex items-center gap-1"
+                className="text-xs font-semibold text-green-600 hover:text-green-700 flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{showNewAddress ? 'Cancel' : 'Add New'}</span>
@@ -203,9 +203,9 @@ export default function CheckoutPage() {
             {!showNewAddress && (
               <div className="space-y-3">
                 {isLoadingAddresses ? (
-                  <div className="skeleton h-16 w-full rounded-xl" />
+                  <div className="skeleton h-16 w-full rounded-[2px]" />
                 ) : addresses.length === 0 ? (
-                  <div className="text-center py-6 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                  <div className="text-center py-6 border border-dashed border-gray-200 dark:border-gray-700 rounded-[2px]">
                     <p className="text-sm text-gray-500 mb-3">No addresses found</p>
                     <button
                       onClick={() => setShowNewAddress(true)}
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
                   addresses.map((addr: any) => (
                     <label
                       key={addr.id}
-                      className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                      className={`flex items-start gap-3 p-4 rounded-[2px] border cursor-pointer transition-all ${
                         selectedAddressId === addr.id
                           ? 'border-green-500 bg-green-50/40 dark:bg-green-950/20 shadow-sm'
                           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
@@ -291,7 +291,7 @@ export default function CheckoutPage() {
                           type="button"
                           key={l}
                           onClick={() => setNewAddressForm({ ...newAddressForm, label: l })}
-                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                          className={`px-3 py-1 rounded-[2px] text-xs font-semibold transition-all ${
                             newAddressForm.label.toUpperCase() === l.toUpperCase()
                               ? 'bg-green-600 text-white'
                               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
@@ -369,7 +369,7 @@ export default function CheckoutPage() {
           {/* 2. Delivery Slot */}
           <div className="card p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 bg-amber-50 dark:bg-amber-950/40 rounded-xl flex items-center justify-center text-amber-600">
+              <div className="w-9 h-9 bg-amber-50 dark:bg-amber-950/40 rounded-[2px] flex items-center justify-center text-amber-600">
                 <Clock className="w-5 h-5" />
               </div>
               <div>
@@ -405,7 +405,7 @@ export default function CheckoutPage() {
                   key={slot.id}
                   type="button"
                   onClick={() => setDeliverySlot(slot.id)}
-                  className={`p-4 rounded-xl border text-left transition-all ${
+                  className={`p-4 rounded-[2px] border text-left transition-all cursor-pointer ${
                     deliverySlot === slot.id
                       ? 'border-green-500 bg-green-50/40 dark:bg-green-950/20 ring-1 ring-green-500'
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
@@ -427,7 +427,7 @@ export default function CheckoutPage() {
           {/* 3. Payment Method */}
           <div className="card p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-600">
+              <div className="w-9 h-9 bg-blue-50 dark:bg-blue-950/40 rounded-[2px] flex items-center justify-center text-blue-600">
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
@@ -463,7 +463,7 @@ export default function CheckoutPage() {
                 return (
                   <label
                     key={opt.id}
-                    className={`flex items-start gap-3.5 p-4 rounded-xl border cursor-pointer transition-all ${
+                    className={`flex items-start gap-3.5 p-4 rounded-[2px] border cursor-pointer transition-all ${
                       paymentMethod === opt.id
                         ? 'border-green-500 bg-green-50/40 dark:bg-green-950/20 ring-1 ring-green-500'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
@@ -519,7 +519,7 @@ export default function CheckoutPage() {
               </button>
             </div>
             {appliedCoupon && (
-              <div className="mt-2.5 flex items-center justify-between text-xs bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 p-2 rounded-lg">
+              <div className="mt-2.5 flex items-center justify-between text-xs bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 p-2 rounded-[2px]">
                 <span>Coupon {appliedCoupon.code} applied!</span>
                 <span className="font-bold">-₹{appliedCoupon.discount}</span>
               </div>
@@ -538,7 +538,7 @@ export default function CheckoutPage() {
                   key={amt}
                   type="button"
                   onClick={() => setTip(amt)}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                  className={`flex-1 py-1.5 rounded-[2px] text-xs font-semibold border transition-all cursor-pointer ${
                     tip === amt
                       ? 'border-green-600 bg-green-600 text-white'
                       : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300'

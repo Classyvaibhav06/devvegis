@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, ArrowLeft, Mail, Clock, Leaf, ShieldCheck, Truck, ChevronLeft, ChevronRight, Loader2, Send } from 'lucide-react';
+import { ArrowRight, Mail, Clock, Leaf, ShieldCheck, Truck, Loader2, Send } from 'lucide-react';
 
 import { API_URL as API } from '@/lib/api';
 
@@ -26,7 +26,7 @@ export default function HeroBanner() {
   const activeBanner = heroBanners[currentSlide];
 
   return (
-    <section className="relative rounded-2xl sm:rounded-3xl overflow-hidden min-h-[340px] sm:min-h-[400px] lg:min-h-[460px] shadow-sm flex items-center justify-center">
+    <section className="relative overflow-hidden min-h-[340px] sm:min-h-[400px] lg:min-h-[460px] shadow-sm flex items-center justify-center">
       {/* Background Image */}
       <Image
         src={
@@ -39,7 +39,7 @@ export default function HeroBanner() {
         sizes="100vw"
         priority
       />
-      {/* Overlay: Balanced centered gradient for premium aesthetic */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-white/90 sm:bg-white/80 dark:bg-[#080C14]/90 sm:dark:bg-[#080C14]/80 backdrop-blur-[2px]" />
 
       {/* Centered Content */}
@@ -69,7 +69,7 @@ export default function HeroBanner() {
           <div className="mt-5 sm:mt-8 flex justify-center">
             <Link
               href={activeBanner.linkValue}
-              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-7 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md hover:gap-3"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-7 py-3.5 rounded-[4px] text-sm font-bold transition-all shadow-md hover:gap-3"
             >
               <span>Explore Collection</span>
               <ArrowRight className="w-4 h-4" />
@@ -77,8 +77,8 @@ export default function HeroBanner() {
           </div>
         ) : (
           /* Centered Newsletter Input */
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center mt-5 sm:mt-8 w-full max-w-md shadow-lg rounded-xl overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white sm:dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.08]">
-            <div className="flex items-center bg-white dark:bg-[#161E2E] px-4 py-3 gap-2.5 rounded-xl sm:rounded-none flex-1">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center mt-5 sm:mt-8 w-full max-w-md shadow-lg rounded-[4px] overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white sm:dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.08]">
+            <div className="flex items-center bg-white dark:bg-[#161E2E] px-4 py-3 gap-2.5 rounded-[4px] sm:rounded-none flex-1">
               <Mail className="w-4 h-4 text-slate-400 dark:text-[#4E5A6B] shrink-0" />
               <input
                 type="email"
@@ -88,21 +88,21 @@ export default function HeroBanner() {
                 className="bg-transparent text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] outline-none w-full"
               />
             </div>
-            <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors flex items-center justify-center gap-2 rounded-xl sm:rounded-none shrink-0">
+            <button className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-[#080C14] px-6 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors flex items-center justify-center gap-2 rounded-[4px] sm:rounded-none shrink-0">
               <span>Subscribe</span>
               <Send className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        {/* Carousel indicators if multiple hero banners exist */}
+        {/* Carousel indicators */}
         {heroBanners.length > 1 && (
           <div className="flex items-center justify-center gap-2 mt-5 sm:mt-8">
             {heroBanners.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
-                className={`h-1.5 sm:h-2 rounded-full transition-all ${
+                className={`h-1 sm:h-1.5 rounded-[2px] transition-all ${
                   currentSlide === idx
                     ? 'w-6 bg-emerald-600 dark:bg-emerald-400'
                     : 'w-2 bg-slate-300 dark:bg-slate-700'
@@ -151,8 +151,8 @@ export function FeaturedCategories() {
         <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 sm:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
-              <div className="w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
-              <div className="h-3 w-16 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+              <div className="w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] rounded-[4px] bg-gray-100 dark:bg-gray-800 animate-pulse" />
+              <div className="h-3 w-16 bg-gray-100 dark:bg-gray-800 rounded-[2px] animate-pulse" />
             </div>
           ))}
         </div>
@@ -192,12 +192,12 @@ export function FeaturedCategories() {
             <Link key={cat.id} href={`/categories/${cat.slug}`} className="group shrink-0 sm:shrink">
               <div className="flex flex-col items-center text-center w-[76px] sm:w-auto">
                 {cat.image ? (
-                  <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-full overflow-hidden border-2 ${p.border} group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-all duration-200 group-hover:scale-105 sm:group-hover:scale-110 shadow-xs relative`}>
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-[4px] overflow-hidden border-2 ${p.border} group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-all duration-200 group-hover:scale-105 sm:group-hover:scale-110 shadow-xs relative`}>
                     <Image src={cat.image} alt={cat.name} fill className="object-cover" sizes="96px" />
                   </div>
                 ) : (
-                  <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-full ${p.bg} border-2 ${p.border} group-hover:border-emerald-500 dark:group-hover:border-emerald-400 flex items-center justify-center text-2xl sm:text-3xl lg:text-[36px] transition-all duration-200 group-hover:scale-105 sm:group-hover:scale-110 shadow-xs`}>
-                    {cat.icon || '📦'}
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-[4px] ${p.bg} border-2 ${p.border} group-hover:border-emerald-500 dark:group-hover:border-emerald-400 flex items-center justify-center text-2xl sm:text-3xl lg:text-[36px] transition-all duration-200 group-hover:scale-105 sm:group-hover:scale-110 shadow-xs`}>
+                    {cat.icon || ''}
                   </div>
                 )}
                 <h4 className="font-bold text-[11px] sm:text-xs text-slate-800 dark:text-[#E8EEF8] mt-1.5 sm:mt-2 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1 sm:line-clamp-2 max-w-[76px] sm:max-w-none">
@@ -218,39 +218,6 @@ export function FeaturedCategories() {
 }
 
 // ─── Three Promotional Banners — dynamic from /api/v1/banners ───
-
-const FALLBACK_BANNERS = [
-  {
-    title: "Onions You'll Love at First Slice",
-    subtitle: 'Everyday Essentials',
-    ctaText: 'Shop Now',
-    imageUrl: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=600&q=80',
-    linkUrl: '/categories/vegetables',
-    bg: 'bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30',
-    textColor: 'text-amber-900 dark:text-amber-100',
-    subtitleColor: 'text-amber-700 dark:text-amber-400',
-  },
-  {
-    title: 'Quick, Fresh, and Good for You',
-    subtitle: 'Farm Fresh in 12 Mins',
-    ctaText: 'Shop Now',
-    imageUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=600&q=80',
-    linkUrl: '/categories/fruits',
-    bg: 'bg-gradient-to-br from-green-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/30',
-    textColor: 'text-emerald-900 dark:text-emerald-100',
-    subtitleColor: 'text-emerald-700 dark:text-emerald-400',
-  },
-  {
-    title: 'The Best Organic Products Online',
-    subtitle: '100% Certified Organic',
-    ctaText: 'Shop Now',
-    imageUrl: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&q=80',
-    linkUrl: '/categories/organic',
-    bg: 'bg-gradient-to-br from-teal-50 to-green-100 dark:from-teal-950/50 dark:to-green-900/30',
-    textColor: 'text-teal-900 dark:text-teal-100',
-    subtitleColor: 'text-teal-700 dark:text-teal-400',
-  },
-];
 
 const BANNER_BG_PALETTE = [
   { bg: 'bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30', textColor: 'text-amber-900 dark:text-amber-100', subtitleColor: 'text-amber-700 dark:text-amber-400' },
@@ -282,14 +249,14 @@ export function PromoBanners() {
         const subtitleColor = b.subtitleColor || palette.subtitleColor;
         return (
           <Link key={b.id || i} href={b.linkUrl || b.href || '/'} className="group">
-            <div className={`relative rounded-2xl overflow-hidden ${bg} border border-slate-200/60 dark:border-white/[0.07] p-4 sm:p-5 lg:p-6 min-h-[160px] sm:min-h-[180px] lg:min-h-[200px] flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-300`}>
+            <div className={`relative rounded-[4px] overflow-hidden ${bg} border border-slate-200/60 dark:border-white/[0.07] p-4 sm:p-5 lg:p-6 min-h-[160px] sm:min-h-[180px] lg:min-h-[200px] flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-300`}>
               {/* Background image (subtle) */}
               <div className="absolute right-0 bottom-0 w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
                 <Image
                   src={b.imageUrl || b.image}
                   alt={b.title}
                   fill
-                  className="object-cover rounded-tl-[32px] sm:rounded-tl-[40px]"
+                  className="object-cover"
                   sizes="200px"
                 />
               </div>
@@ -330,9 +297,9 @@ export function TrustStrip() {
       {items.map((item, i) => (
         <div
           key={i}
-          className="flex items-center gap-2.5 sm:gap-3 bg-white dark:bg-[#0F1520] rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-white/[0.07] p-2.5 sm:p-3.5 shadow-xs hover:shadow-sm transition-shadow"
+          className="flex items-center gap-2.5 sm:gap-3 bg-white dark:bg-[#0F1520] rounded-[4px] border border-slate-200/80 dark:border-white/[0.07] p-2.5 sm:p-3.5 shadow-xs hover:shadow-sm transition-shadow"
         >
-          <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-full ${item.bg} flex items-center justify-center shrink-0`}>
+          <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-[4px] ${item.bg} flex items-center justify-center shrink-0`}>
             <item.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${item.color}`} />
           </div>
           <div className="min-w-0">

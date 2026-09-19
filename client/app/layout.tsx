@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Geist, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers/providers";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist",
   display: "swap",
 });
 
@@ -175,7 +175,7 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-[#080C14] text-[#0F172A] dark:text-[#E8EEF8] transition-colors duration-200`}
+        className={`${geist.variable} ${spaceGrotesk.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-[#080C14] text-[#0F172A] dark:text-[#E8EEF8] transition-colors duration-200`}
       >
         <Providers>
           {children}

@@ -29,7 +29,7 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl transition-all relative',
+                'flex flex-col items-center gap-0.5 px-4 py-1 rounded-[4px] transition-all relative',
                 isActive ? 'text-emerald-600 dark:text-[#34D399]' : 'text-slate-500 dark:text-[#8B96A8]'
               )}
             >
@@ -40,7 +40,7 @@ export default function BottomNav() {
                     key={itemCount}
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1.5 -right-2 w-4 h-4 bg-emerald-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                    className="absolute -top-1.5 -right-2 w-4 h-4 bg-emerald-600 text-white text-[10px] font-bold rounded-[2px] flex items-center justify-center"
                   >
                     {itemCount > 9 ? '9+' : itemCount}
                   </motion.span>
@@ -50,7 +50,7 @@ export default function BottomNav() {
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-600 dark:bg-[#10B981] rounded-full"
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-emerald-600 dark:bg-[#10B981] rounded-[1px]"
                 />
               )}
             </Link>

@@ -94,7 +94,7 @@ export default function RegisterPage() {
               ].map(opt => (
                 <label key={opt.value} className="cursor-pointer">
                   <input type="radio" {...register('role')} value={opt.value} className="sr-only" />
-                  <div className={`p-3 rounded-xl border-2 text-center transition-all flex flex-col items-center justify-center gap-1 ${watch('role') === opt.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-200' : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300'}`}>
+                  <div className={`p-3 rounded-[2px] border-2 text-center transition-all flex flex-col items-center justify-center gap-1 ${watch('role') === opt.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-200' : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300'}`}>
                     <div className="flex items-center gap-1.5">
                       <opt.Icon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                       <p className="font-semibold text-sm">{opt.label}</p>

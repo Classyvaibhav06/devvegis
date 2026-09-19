@@ -145,16 +145,16 @@ export default function LocationModal({
 
           {/* Modal Dialog */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ duration: 0.2 }}
-            className="relative w-full max-w-lg bg-white dark:bg-[#111915] border border-slate-200 dark:border-[#1e2e26] rounded-2xl shadow-2xl overflow-hidden z-10"
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ duration: 0.15 }}
+            className="relative w-full max-w-lg bg-white dark:bg-[#111915] border border-slate-200 dark:border-[#1e2e26] rounded-[4px] shadow-2xl overflow-hidden z-10"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/[0.07]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-[#10B981]">
+                <div className="w-8 h-8 rounded-[2px] bg-emerald-500/15 flex items-center justify-center text-[#10B981]">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
@@ -164,7 +164,7 @@ export default function LocationModal({
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                className="w-8 h-8 rounded-[2px] flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
                 aria-label="Close dialog"
               >
                 <X className="w-4 h-4" />
@@ -177,7 +177,7 @@ export default function LocationModal({
                 type="button"
                 onClick={handleUseCurrentLocation}
                 disabled={isDetecting}
-                className="w-full flex items-center justify-between p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-[#34D399] transition-all group cursor-pointer disabled:opacity-50"
+                className="w-full flex items-center justify-between p-3.5 rounded-[2px] border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-[#34D399] active:translate-y-0.5 transition-all group cursor-pointer disabled:opacity-50"
               >
                 <div className="flex items-center gap-3">
                   {isDetecting ? (
@@ -192,7 +192,7 @@ export default function LocationModal({
                     <span className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80">Using browser GPS</span>
                   </div>
                 </div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 px-2 py-0.5 rounded-[2px]">
                   FAST
                 </span>
               </button>
@@ -210,12 +210,12 @@ export default function LocationModal({
                       value={manualInput}
                       onChange={(e) => setManualInput(e.target.value)}
                       placeholder="e.g. 560038, Koramangala, Sector 62..."
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]/30 transition-all"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.08] rounded-[2px] text-xs text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]/30 transition-all"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="px-4 py-2.5 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs rounded-xl transition-colors cursor-pointer shrink-0 shadow-sm"
+                    className="px-4 py-2.5 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs rounded-[2px] active:translate-y-0.5 transition-all cursor-pointer shrink-0 shadow-xs"
                   >
                     Apply
                   </button>
@@ -240,7 +240,7 @@ export default function LocationModal({
                   {isLoadingAddresses ? (
                     <div className="py-4 text-center text-xs text-slate-400">Loading saved addresses...</div>
                   ) : addresses.length === 0 ? (
-                    <div className="p-4 rounded-xl border border-dashed border-slate-200 dark:border-white/10 text-center space-y-1">
+                    <div className="p-4 rounded-[2px] border border-dashed border-slate-200 dark:border-white/10 text-center space-y-1">
                       <p className="text-xs font-medium text-slate-600 dark:text-[#8B96A8]">No saved addresses yet</p>
                       <a href="/profile" className="text-xs font-bold text-[#10B981] inline-block hover:underline">
                         + Add an address in your Profile
@@ -257,14 +257,14 @@ export default function LocationModal({
                           <div
                             key={addr.id}
                             onClick={() => handleSelectAddress(addr)}
-                            className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                            className={`p-3 rounded-[2px] border transition-all cursor-pointer flex items-start justify-between gap-3 ${
                               isMatch
                                 ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-500/40'
                                 : 'bg-slate-50 dark:bg-[#161E2E] border-slate-200 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/20'
                             }`}
                           >
                             <div className="flex items-start gap-2.5">
-                              <div className="mt-0.5 p-1.5 rounded-lg bg-white dark:bg-[#111915] border border-slate-200 dark:border-white/10">
+                              <div className="mt-0.5 p-1.5 rounded-[2px] bg-white dark:bg-[#111915] border border-slate-200 dark:border-white/10">
                                 {getLabelIcon(addr.label)}
                               </div>
                               <div className="text-left">
@@ -273,7 +273,7 @@ export default function LocationModal({
                                     {addr.label}
                                   </span>
                                   {addr.isDefault && (
-                                    <span className="text-[9px] font-extrabold bg-emerald-500/15 text-[#10B981] px-1.5 py-0.2 rounded-sm uppercase tracking-wide">
+                                    <span className="text-[9px] font-extrabold bg-emerald-500/15 text-[#10B981] px-1.5 py-0.2 rounded-[2px] uppercase tracking-wide">
                                       DEFAULT
                                     </span>
                                   )}
@@ -284,7 +284,7 @@ export default function LocationModal({
                               </div>
                             </div>
                             {isMatch && (
-                              <div className="w-5 h-5 rounded-full bg-[#10B981] text-white flex items-center justify-center shrink-0">
+                              <div className="w-5 h-5 rounded-[2px] bg-[#10B981] text-white flex items-center justify-center shrink-0">
                                 <Check className="w-3 h-3 stroke-[3]" />
                               </div>
                             )}
@@ -295,7 +295,7 @@ export default function LocationModal({
                   )}
                 </div>
               ) : (
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] flex items-center justify-between text-xs">
+                <div className="p-3.5 rounded-[2px] bg-slate-50 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] flex items-center justify-between text-xs">
                   <span className="text-slate-600 dark:text-[#8B96A8]">Sign in to access your saved addresses</span>
                   <a href="/login" className="font-bold text-[#10B981] hover:underline">
                     Sign In →

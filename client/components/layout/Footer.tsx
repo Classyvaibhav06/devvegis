@@ -37,7 +37,7 @@ export default function Footer() {
         <div className="container-main py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center sm:text-left">
             <div className="flex items-center gap-3 justify-center sm:justify-start">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-[4px] bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                 <Zap className="w-5 h-5 fill-current" />
               </div>
               <div>
@@ -47,7 +47,7 @@ export default function Footer() {
             </div>
 
             <div className="flex items-center gap-3 justify-center sm:justify-start">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-[4px] bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
                 <Leaf className="w-5 h-5" />
               </div>
               <div>
@@ -57,7 +57,7 @@ export default function Footer() {
             </div>
 
             <div className="flex items-center gap-3 justify-center sm:justify-start">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-[4px] bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
@@ -67,7 +67,7 @@ export default function Footer() {
             </div>
 
             <div className="flex items-center gap-3 justify-center sm:justify-start">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-[4px] bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                 <Store className="w-5 h-5" />
               </div>
               <div>
@@ -85,7 +85,7 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="col-span-2 md:col-span-1 lg:col-span-1 space-y-4">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-tr from-[#10B981] to-[#059669] rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/20">
+              <div className="w-9 h-9 bg-gradient-to-tr from-[#10B981] to-[#059669] rounded-[4px] flex items-center justify-center shadow-md shadow-emerald-500/20">
                 <Leaf className="w-5 h-5 text-white dark:text-[#080C14]" />
               </div>
               <div className="flex items-baseline leading-none">
@@ -102,7 +102,7 @@ export default function Footer() {
               {[Globe, MessageCircle, Send].map((Icon, i) => (
                 <button
                   key={i}
-                  className="w-8 h-8 bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] rounded-xl flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/30 transition-all"
+                  className="w-8 h-8 bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.07] rounded-[4px] flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/30 transition-all"
                   aria-label="Social link"
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -183,7 +183,7 @@ export default function Footer() {
       {/* ─── Bottom Copyright Bar ───────────────────────────────── */}
       <div className="border-t border-slate-200 dark:border-white/[0.07] py-4 bg-slate-100 dark:bg-[#080C14]">
         <div className="container-main flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500 dark:text-[#8B96A8]">
-          <p>© {new Date().getFullYear()} DevVegis Technologies Pvt. Ltd. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} DevVegis Technologies Pvt. Ltd. All rights reserved.</p>
           <div className="flex items-center gap-4">
             {footerLinks.legal.map(link => (
               <Link key={link.href} href={link.href} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">

@@ -28,11 +28,11 @@ export default function HomePage() {
       <PopularProducts />
 
       {/* ─── 6. B2B Wholesale Mandi Banner (Direct access to bulk rates & wholesale portal) ─── */}
-      <div className="rounded-2xl overflow-hidden bg-emerald-700 dark:bg-[#0F1520] p-5 sm:p-7 md:p-9 text-white flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-5 sm:gap-6 shadow-md border border-emerald-600 dark:border-white/[0.07] relative">
+      <div className="rounded-[4px] overflow-hidden bg-emerald-700 dark:bg-[#0F1520] p-5 sm:p-7 md:p-9 text-white flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-5 sm:gap-6 shadow-md border border-emerald-600 dark:border-white/[0.07] relative">
         <div className="absolute -right-20 -bottom-20 w-60 sm:w-80 h-60 sm:h-80 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="space-y-2 sm:space-y-2.5 z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white/15 border border-white/20 text-white/95 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-[4px] bg-white/15 border border-white/20 text-white/95 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider">
             <Building2 className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
             <span>DevVegis B2B Wholesale</span>
           </div>
@@ -51,7 +51,7 @@ export default function HomePage() {
 
         <Link
           href="/wholesale"
-          className="shrink-0 bg-white text-emerald-700 font-extrabold text-xs sm:text-sm px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl shadow-md hover:bg-emerald-50 hover:scale-105 transition-all flex items-center justify-center gap-2 z-10 w-full sm:w-auto text-center"
+          className="shrink-0 bg-white text-emerald-700 font-extrabold text-xs sm:text-sm px-5 sm:px-7 py-3 sm:py-3.5 rounded-[4px] shadow-md hover:bg-emerald-50 hover:scale-105 transition-all flex items-center justify-center gap-2 z-10 w-full sm:w-auto text-center"
         >
           <span>Explore Wholesale Portal</span>
           <ArrowRight className="w-4 h-4" />

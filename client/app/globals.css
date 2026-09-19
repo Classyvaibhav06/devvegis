@@ -40,9 +40,10 @@
   --text-secondary: #475569;
   --text-muted:     #94A3B8;
 
-  --radius:         16px;
-  --radius-sm:      12px;
-  --radius-xs:      6px;
+  /* Stitch-Design: Sharp rectangular radii */
+  --radius:         4px;
+  --radius-sm:      2px;
+  --radius-xs:      0px;
   --shadow-sm:      0 1px 3px rgba(0,0,0,0.06);
   --shadow:         0 4px 20px rgba(0,0,0,0.05);
   --shadow-brand:   0 0 24px rgba(16,185,129,0.18);
@@ -103,7 +104,7 @@ html {
 }
 
 body {
-  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-family: var(--font-geist), 'Geist', system-ui, sans-serif;
   min-height: 100vh;
   background-color: var(--bg-base);
   color: var(--text-primary);
@@ -122,7 +123,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ─── Custom Scrollbar ─────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.3); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand); }
 
 /* ─── Selection ────────────────────────────── */
@@ -133,9 +134,10 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Component Classes ─────────────────────── */
 @layer components {
-  /* Buttons */
+  /* Buttons — Sharp rectangular, tactile push */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 font-bold px-5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 font-bold px-5 py-2.5 transition-all duration-150 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed;
+    border-radius: var(--radius);
     background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
     color: #ffffff;
     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
@@ -144,9 +146,13 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.38);
     transform: translateY(-1px);
   }
+  .btn-primary:active {
+    transform: translateY(0px) scale(0.98);
+  }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-2.5 rounded-xl transition-all duration-150 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-2.5 transition-all duration-150 active:scale-95;
+    border-radius: var(--radius);
     background: var(--bg-elevated);
     border: 1.5px solid var(--border);
     color: var(--text-primary);
@@ -157,7 +163,8 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 font-bold px-5 py-2.5 rounded-xl transition-all duration-150 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 font-bold px-5 py-2.5 transition-all duration-150 active:scale-95;
+    border-radius: var(--radius);
     background: var(--brand-subtle);
     border: 1.5px solid var(--border-brand);
     color: var(--brand);
@@ -167,7 +174,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #ffffff;
   }
 
-  /* Cards */
+  /* Cards — Sharp rectangular */
   .card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
@@ -210,7 +217,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(-1px);
   }
 
-  /* Search Box */
+  /* Search Box — Sharp */
   .search-box {
     display: flex;
     align-items: center;
@@ -226,7 +233,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
   }
 
-  /* Category Tab Pills */
+  /* Category Tab — Sharp rectangular */
   .cat-tab {
     display: inline-flex;
     align-items: center;
@@ -235,7 +242,7 @@ h1, h2, h3, h4, h5, h6 {
     border: 1.5px solid var(--border);
     color: var(--text-secondary);
     padding: 7px 16px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
@@ -253,15 +260,16 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
   }
 
-  /* Badges */
-  .badge-brand  { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold; background: var(--brand-subtle); color: var(--brand); border: 1px solid var(--border-brand); }
-  .badge-amber  { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold; background: var(--amber-subtle); color: var(--amber); }
-  .badge-red    { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold; background: var(--red-subtle); color: var(--red); }
-  .badge-blue   { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold; background: var(--blue-subtle); color: var(--blue); }
+  /* Badges — Sharp rectangular */
+  .badge-brand  { @apply inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold; border-radius: var(--radius-sm); background: var(--brand-subtle); color: var(--brand); border: 1px solid var(--border-brand); }
+  .badge-amber  { @apply inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold; border-radius: var(--radius-sm); background: var(--amber-subtle); color: var(--amber); }
+  .badge-red    { @apply inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold; border-radius: var(--radius-sm); background: var(--red-subtle); color: var(--red); }
+  .badge-blue   { @apply inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold; border-radius: var(--radius-sm); background: var(--blue-subtle); color: var(--blue); }
 
-  /* Input */
+  /* Input — Sharp rectangular */
   .input {
-    @apply w-full px-4 py-2.5 rounded-xl text-sm transition-all duration-150;
+    @apply w-full px-4 py-2.5 text-sm transition-all duration-150;
+    border-radius: var(--radius);
     background: var(--bg-elevated);
     border: 1.5px solid var(--border);
     color: var(--text-primary);
@@ -275,7 +283,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-muted);
   }
 
-  /* Skeleton */
+  /* Skeleton — Sharp rectangular */
   .skeleton {
     background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-overlay) 50%, var(--bg-elevated) 75%);
     background-size: 800px 100%;

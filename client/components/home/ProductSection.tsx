@@ -7,7 +7,6 @@ import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
 
-
 interface ProductSectionProps {
   title: string;
   subtitle?: string;
@@ -19,11 +18,11 @@ interface ProductSectionProps {
 
 function ProductSkeleton() {
   return (
-    <div className="flex flex-col gap-2.5 w-44 sm:w-52 shrink-0 bg-white dark:bg-[#0F1520] p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/[0.07]">
-      <div className="aspect-square rounded-xl bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
-      <div className="h-3 w-1/3 rounded bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
-      <div className="h-4 w-3/4 rounded bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
-      <div className="h-7 rounded-xl bg-slate-100 dark:bg-[#161E2E] animate-pulse mt-2" />
+    <div className="flex flex-col gap-2.5 w-44 sm:w-52 shrink-0 bg-white dark:bg-[#0F1520] p-3.5 rounded-[2px] border border-slate-200/80 dark:border-white/[0.07]">
+      <div className="aspect-square rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
+      <div className="h-3 w-1/3 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
+      <div className="h-4 w-3/4 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
+      <div className="h-7 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse mt-2" />
     </div>
   );
 }
@@ -82,14 +81,14 @@ export default function ProductSection({
             <div className="hidden md:flex gap-1.5">
               <button
                 onClick={() => scroll('left')}
-                className="w-8 h-8 bg-white dark:bg-[#0F1520] border border-slate-200 dark:border-white/[0.08] hover:border-emerald-500/40 rounded-xl flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shadow-xs"
+                className="w-8 h-8 bg-white dark:bg-[#0F1520] border border-slate-200 dark:border-white/[0.08] hover:border-emerald-500/40 rounded-[2px] flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 transition-all active:translate-y-0.5 shadow-xs"
                 aria-label="Scroll left"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={() => scroll('right')}
-                className="w-8 h-8 bg-white dark:bg-[#0F1520] border border-slate-200 dark:border-white/[0.08] hover:border-emerald-500/40 rounded-xl flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shadow-xs"
+                className="w-8 h-8 bg-white dark:bg-[#0F1520] border border-slate-200 dark:border-white/[0.08] hover:border-emerald-500/40 rounded-[2px] flex items-center justify-center text-slate-600 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400 transition-all active:translate-y-0.5 shadow-xs"
                 aria-label="Scroll right"
               >
                 <ChevronRight className="w-4 h-4" />

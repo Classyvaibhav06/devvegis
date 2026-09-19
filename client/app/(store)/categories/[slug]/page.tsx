@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { SlidersHorizontal, Leaf, Zap } from 'lucide-react';
+import { SlidersHorizontal, Leaf, Zap, Apple, Sparkles, ShieldCheck, ShoppingBag, Package } from 'lucide-react';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
 
@@ -17,11 +17,11 @@ const SORT_OPTIONS = [
 
 function ProductSkeleton() {
   return (
-    <div className="flex flex-col gap-2.5 bg-white dark:bg-[#0F1520] p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/[0.07]">
-      <div className="aspect-square rounded-xl bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
-      <div className="h-3 w-3/4 rounded bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
-      <div className="h-3 w-1/2 rounded bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
-      <div className="h-8 rounded-xl bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
+    <div className="flex flex-col gap-2.5 bg-white dark:bg-[#0F1520] p-3.5 rounded-[2px] border border-slate-200/80 dark:border-white/[0.07]">
+      <div className="aspect-square rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
+      <div className="h-3 w-3/4 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
+      <div className="h-3 w-1/2 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
+      <div className="h-8 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
     </div>
   );
 }
@@ -61,32 +61,34 @@ export default function CategoryPage() {
     },
   });
 
-  const categoryNames: Record<string, { title: string; icon: string; desc: string; topGlow: string }> = {
-    vegetables: { title: 'Fresh Vegetables', icon: '🥦', desc: 'Crisp, farm-fresh vegetables delivered daily in 12 minutes', topGlow: 'from-emerald-500' },
-    fruits: { title: 'Fresh Fruits', icon: '🍎', desc: 'Sweet and juicy fruits naturally ripened and orchard-fresh', topGlow: 'from-rose-500' },
-    'leafy-greens': { title: 'Leafy Greens', icon: '🌿', desc: 'Washed, crisp and nutrient-rich hydroponic greens', topGlow: 'from-teal-500' },
-    organic: { title: 'Organic Produce', icon: '🌾', desc: '100% certified organic, zero pesticide residue', topGlow: 'from-emerald-500' },
-    'exotic-vegetables': { title: 'Exotic & Gourmet', icon: '✨', desc: 'Rare avocados, Romanesco, and artisanal hydroponics', topGlow: 'from-purple-500' },
-    'herbs-spices': { title: 'Herbs & Spices', icon: '🌱', desc: 'Aromatic farm herbs and culinary staples', topGlow: 'from-amber-500' },
-    'dry-fruits-nuts': { title: 'Dry Fruits & Nuts', icon: '🥜', desc: 'Premium grade almonds, walnuts, seeds, and raisins', topGlow: 'from-amber-500' },
+  const categoryMeta: Record<string, { title: string; icon: any; desc: string; topGlow: string }> = {
+    vegetables: { title: 'Fresh Vegetables', icon: Leaf, desc: 'Crisp, farm-fresh vegetables delivered daily in 12 minutes', topGlow: 'from-emerald-500' },
+    fruits: { title: 'Fresh Fruits', icon: Apple, desc: 'Sweet and juicy fruits naturally ripened and orchard-fresh', topGlow: 'from-rose-500' },
+    'leafy-greens': { title: 'Leafy Greens', icon: Leaf, desc: 'Washed, crisp and nutrient-rich hydroponic greens', topGlow: 'from-teal-500' },
+    organic: { title: 'Organic Produce', icon: ShieldCheck, desc: '100% certified organic, zero pesticide residue', topGlow: 'from-emerald-500' },
+    'exotic-vegetables': { title: 'Exotic & Gourmet', icon: Sparkles, desc: 'Rare avocados, Romanesco, and artisanal hydroponics', topGlow: 'from-purple-500' },
+    'herbs-spices': { title: 'Herbs & Spices', icon: Leaf, desc: 'Aromatic farm herbs and culinary staples', topGlow: 'from-amber-500' },
+    'dry-fruits-nuts': { title: 'Dry Fruits & Nuts', icon: Package, desc: 'Premium grade almonds, walnuts, seeds, and raisins', topGlow: 'from-amber-500' },
   };
 
-  const info = categoryNames[slug] || {
+  const info = categoryMeta[slug] || {
     title: category?.name || 'Produce Catalog',
-    icon: '🛒',
+    icon: ShoppingBag,
     desc: 'Fresh produce dispatched straight from cold-chain hubs',
     topGlow: 'from-emerald-500',
   };
 
+  const IconComponent = info.icon;
+
   return (
     <div className="space-y-6">
       {/* Category Editorial Banner */}
-      <div className="bg-white dark:bg-[#0F1520] border-b border-slate-200/80 dark:border-white/[0.07] py-8 px-4 relative overflow-hidden shadow-sm dark:shadow-2xl">
+      <div className="bg-white dark:bg-[#0F1520] border-b border-slate-200/80 dark:border-white/[0.07] py-8 px-4 relative overflow-hidden shadow-xs">
         <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${info.topGlow} to-transparent`} />
         <div className="container-main">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 flex items-center justify-center text-3xl shrink-0 shadow-xs dark:shadow-lg">
-              {info.icon}
+            <div className="w-14 h-14 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 flex items-center justify-center text-emerald-600 dark:text-[#34D399] shrink-0 shadow-xs">
+              <IconComponent className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2.5">
@@ -94,7 +96,7 @@ export default function CategoryPage() {
                   {info.title}
                 </h1>
                 {data?.pagination?.total !== undefined && (
-                  <span className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs px-2.5 py-0.5 rounded-full font-mono">
+                  <span className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs px-2.5 py-0.5 rounded-[2px] font-mono">
                     {data.pagination.total} items
                   </span>
                 )}
@@ -107,7 +109,7 @@ export default function CategoryPage() {
 
       <div className="container-main space-y-6">
         {/* Filters & Sort Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#0F1520] border border-slate-200/80 dark:border-white/[0.07] p-3 rounded-2xl shadow-xs dark:shadow-md">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#0F1520] border border-slate-200/80 dark:border-white/[0.07] p-3 rounded-[2px] shadow-xs">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-[#8B96A8] mr-1">
               <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -115,9 +117,9 @@ export default function CategoryPage() {
             </div>
             <button
               onClick={() => setFilters(f => ({ ...f, isOrganic: !f.isOrganic }))}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[2px] text-xs font-bold active:translate-y-0.5 transition-all cursor-pointer ${
                 filters.isOrganic
-                  ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-700 dark:text-emerald-400 shadow-xs dark:shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                  ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-700 dark:text-emerald-400 shadow-xs'
                   : 'bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]'
               }`}
             >
@@ -126,9 +128,9 @@ export default function CategoryPage() {
             </button>
             <button
               onClick={() => setFilters(f => ({ ...f, isFreshToday: !f.isFreshToday }))}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[2px] text-xs font-bold active:translate-y-0.5 transition-all cursor-pointer ${
                 filters.isFreshToday
-                  ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-700 dark:text-emerald-400 shadow-xs dark:shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                  ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-700 dark:text-emerald-400 shadow-xs'
                   : 'bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8]'
               }`}
             >
@@ -145,7 +147,7 @@ export default function CategoryPage() {
                 const opt = SORT_OPTIONS.find(o => `${o.sort}_${o.order}` === e.target.value);
                 if (opt) setSort(opt);
               }}
-              className="text-xs font-bold border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 bg-slate-100 dark:bg-[#161E2E] text-slate-900 dark:text-[#E8EEF8] focus:outline-hidden focus:border-emerald-500/50"
+              className="text-xs font-bold border border-slate-200 dark:border-white/10 rounded-[2px] px-3 py-1.5 bg-slate-100 dark:bg-[#161E2E] text-slate-900 dark:text-[#E8EEF8] focus:outline-hidden focus:border-emerald-500/50"
             >
               {SORT_OPTIONS.map(o => (
                 <option key={`${o.sort}_${o.order}`} value={`${o.sort}_${o.order}`} className="bg-white dark:bg-[#0F1520] text-slate-900 dark:text-[#E8EEF8]">
@@ -161,7 +163,7 @@ export default function CategoryPage() {
           {isLoading
             ? Array(12).fill(0).map((_, i) => <ProductSkeleton key={i} />)
             : data?.data?.map((product: any, i: number) => (
-              <motion.div key={product.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
+              <motion.div key={product.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
                 <ProductCard product={product} />
               </motion.div>
             ))
@@ -170,8 +172,10 @@ export default function CategoryPage() {
 
         {/* Empty state */}
         {!isLoading && (!data?.data || data.data.length === 0) && (
-          <div className="text-center py-20 bg-white dark:bg-[#0F1520] rounded-2xl border border-slate-200/80 dark:border-white/[0.07]">
-            <p className="text-4xl mb-3">🧺</p>
+          <div className="text-center py-20 bg-white dark:bg-[#0F1520] rounded-[2px] border border-slate-200/80 dark:border-white/[0.07]">
+            <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center text-slate-400">
+              <ShoppingBag className="w-8 h-8" />
+            </div>
             <h3 className="font-heading font-bold text-base text-slate-900 dark:text-[#E8EEF8]">
               {filters.isOrganic || filters.isFreshToday
                 ? 'No items match your filters'
@@ -192,9 +196,9 @@ export default function CategoryPage() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`w-9 h-9 rounded-xl text-xs font-heading font-extrabold transition-all ${
+                className={`w-9 h-9 rounded-[2px] text-xs font-heading font-extrabold transition-all active:translate-y-0.5 cursor-pointer ${
                   p === page
-                    ? 'bg-gradient-to-r from-[#10B981] to-[#059669] text-white dark:text-[#080C14] shadow-md shadow-emerald-500/25'
+                    ? 'bg-[#10B981] text-white dark:text-[#080C14] shadow-xs'
                     : 'bg-white dark:bg-[#0F1520] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-[#8B96A8] hover:text-slate-900 dark:hover:text-[#E8EEF8] hover:border-emerald-500/30'
                 }`}
               >

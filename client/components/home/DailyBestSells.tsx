@@ -34,21 +34,21 @@ function DealCard({ product }: { product: any }) {
       image: imageUrl,
       unit: product.unit,
     });
-    toast.success(`${product.name} added!`, { icon: '🛒', duration: 1500 });
+    toast.success(`${product.name} added!`, { duration: 1500 });
   };
 
   return (
-    <div className="bg-white dark:bg-[#0F1520] rounded-2xl border border-slate-100 dark:border-white/[0.07] p-3.5 hover:border-emerald-300 dark:hover:border-emerald-500/30 transition-all shadow-xs dark:shadow-md hover:shadow-md dark:hover:shadow-lg group relative">
+    <div className="bg-white dark:bg-[#0F1520] rounded-[4px] border border-slate-100 dark:border-white/[0.07] p-3.5 hover:border-emerald-300 dark:hover:border-emerald-500/30 transition-all shadow-xs dark:shadow-md hover:shadow-md dark:hover:shadow-lg group relative">
       {/* Discount Badge */}
       {product.discountPercentage && product.discountPercentage > 0 && (
-        <div className="absolute top-2 left-2 z-10 bg-orange-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md">
+        <div className="absolute top-2 left-2 z-10 bg-orange-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-[2px]">
           Save {Math.round(product.discountPercentage)}%
         </div>
       )}
 
       {/* Image */}
       <Link href={`/products/${product.slug}`}>
-        <div className="relative aspect-square rounded-xl overflow-hidden bg-slate-50 dark:bg-[#161E2E] mb-3">
+        <div className="relative aspect-square rounded-[4px] overflow-hidden bg-slate-50 dark:bg-[#161E2E] mb-3">
           <Image
             src={imageUrl}
             alt={product.name}
@@ -57,7 +57,7 @@ function DealCard({ product }: { product: any }) {
             sizes="(max-width: 640px) 50vw, 25vw"
           />
           {product.unit && (
-            <div className="absolute bottom-1.5 left-1.5 bg-white/90 dark:bg-[#080C14]/85 backdrop-blur-sm text-slate-800 dark:text-[#E8EEF8] text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200/80 dark:border-white/10 font-mono">
+            <div className="absolute bottom-1.5 left-1.5 bg-white/90 dark:bg-[#080C14]/85 backdrop-blur-sm text-slate-800 dark:text-[#E8EEF8] text-[10px] font-bold px-2 py-0.5 rounded-[2px] border border-slate-200/80 dark:border-white/10 font-mono">
               {product.unit}
             </div>
           )}
@@ -109,23 +109,23 @@ function DealCard({ product }: { product: any }) {
         {quantity === 0 ? (
           <button
             onClick={handleAdd}
-            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-500 dark:hover:text-[#080C14] rounded-lg text-xs font-bold border border-emerald-200 dark:border-emerald-500/30 transition-all active:scale-95"
+            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-500 dark:hover:text-[#080C14] rounded-[4px] text-xs font-bold border border-emerald-200 dark:border-emerald-500/30 transition-all active:scale-95 active:translate-y-[1px]"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             Add
           </button>
         ) : (
-          <div className="flex items-center gap-1.5 bg-emerald-600 dark:bg-emerald-500 text-white dark:text-[#080C14] rounded-lg px-2 py-1 text-xs font-extrabold">
+          <div className="flex items-center gap-1.5 bg-emerald-600 dark:bg-emerald-500 text-white dark:text-[#080C14] rounded-[4px] px-2 py-1 text-xs font-extrabold">
             <button
               onClick={() => updateQuantity(product.id, quantity - 1)}
-              className="w-5 h-5 flex items-center justify-center hover:bg-black/20 rounded transition-colors"
+              className="w-5 h-5 flex items-center justify-center hover:bg-black/20 rounded-[2px] transition-colors"
             >
               <Minus className="w-3 h-3" />
             </button>
             <span className="min-w-[14px] text-center">{quantity}</span>
             <button
               onClick={handleAdd}
-              className="w-5 h-5 flex items-center justify-center hover:bg-black/20 rounded transition-colors"
+              className="w-5 h-5 flex items-center justify-center hover:bg-black/20 rounded-[2px] transition-colors"
             >
               <Plus className="w-3 h-3" />
             </button>
@@ -173,7 +173,7 @@ export default function DailyBestSells() {
             <button
               key={tab.filter}
               onClick={() => setActiveFilter(tab.filter)}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+              className={`px-3 py-1 rounded-[4px] text-xs font-bold transition-all ${
                 activeFilter === tab.filter
                   ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30'
                   : 'text-slate-500 dark:text-[#8B96A8] hover:text-emerald-600 dark:hover:text-emerald-400'
@@ -188,7 +188,7 @@ export default function DailyBestSells() {
       {/* Content: Left Banner + Right Products */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Left Promotional Banner */}
-        <div className="lg:col-span-1 relative rounded-2xl overflow-hidden bg-gradient-to-b from-emerald-600 to-green-800 dark:from-emerald-700 dark:to-green-900 min-h-[280px] lg:min-h-0 shadow-lg">
+        <div className="lg:col-span-1 relative rounded-[4px] overflow-hidden bg-gradient-to-b from-emerald-600 to-green-800 dark:from-emerald-700 dark:to-green-900 min-h-[280px] lg:min-h-0 shadow-lg">
           <Image
             src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&q=80"
             alt="Bring nature into your home"
@@ -204,7 +204,7 @@ export default function DailyBestSells() {
             </div>
             <Link
               href="/categories/organic"
-              className="inline-flex items-center gap-2 bg-white text-emerald-700 font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-emerald-50 transition-colors w-fit shadow-md"
+              className="inline-flex items-center gap-2 bg-white text-emerald-700 font-bold text-xs px-4 py-2.5 rounded-[4px] hover:bg-emerald-50 transition-colors w-fit shadow-md"
             >
               Shop Now
               <ArrowRight className="w-3.5 h-3.5" />
@@ -216,11 +216,11 @@ export default function DailyBestSells() {
         <div className="lg:col-span-4 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {isLoading
             ? Array(4).fill(0).map((_, i) => (
-                <div key={i} className="bg-white dark:bg-[#0F1520] rounded-2xl border border-slate-100 dark:border-white/[0.07] p-3.5">
-                  <div className="aspect-square rounded-xl bg-slate-100 dark:bg-[#161E2E] animate-pulse mb-3" />
-                  <div className="h-3 w-2/3 rounded bg-slate-100 dark:bg-[#161E2E] animate-pulse mb-2" />
-                  <div className="h-4 w-full rounded bg-slate-100 dark:bg-[#161E2E] animate-pulse mb-2" />
-                  <div className="h-8 rounded-lg bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
+                <div key={i} className="bg-white dark:bg-[#0F1520] rounded-[4px] border border-slate-100 dark:border-white/[0.07] p-3.5">
+                  <div className="aspect-square rounded-[4px] bg-slate-100 dark:bg-[#161E2E] animate-pulse mb-3" />
+                  <div className="h-3 w-2/3 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse mb-2" />
+                  <div className="h-4 w-full rounded-[2px] bg-slate-100 dark:bg-[#161E2E] animate-pulse mb-2" />
+                  <div className="h-8 rounded-[4px] bg-slate-100 dark:bg-[#161E2E] animate-pulse" />
                 </div>
               ))
             : data?.map((product: any) => (

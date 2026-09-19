@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Search, Mic, X, TrendingUp, Clock, SlidersHorizontal, Leaf, Star } from 'lucide-react';
+import { Search, Mic, X, TrendingUp, Clock, SlidersHorizontal, Leaf, PackageSearch } from 'lucide-react';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
 
@@ -21,11 +21,11 @@ const FILTERS_CONFIG = {
 
 function ProductSkeleton() {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="skeleton aspect-square rounded-2xl" />
-      <div className="skeleton h-3 w-3/4 rounded" />
-      <div className="skeleton h-3 w-1/2 rounded" />
-      <div className="skeleton h-8 rounded-xl" />
+    <div className="flex flex-col gap-2 p-3.5 bg-white dark:bg-[#0F1520] border border-slate-200/80 dark:border-white/[0.07] rounded-[2px]">
+      <div className="skeleton aspect-square rounded-[2px]" />
+      <div className="skeleton h-3 w-3/4 rounded-[2px]" />
+      <div className="skeleton h-3 w-1/2 rounded-[2px]" />
+      <div className="skeleton h-8 rounded-[2px]" />
     </div>
   );
 }
@@ -94,15 +94,15 @@ function SearchContent() {
           value={query}
           onChange={e => handleSearch(e.target.value)}
           placeholder="Search for vegetables, fruits, herbs..."
-          className="w-full pl-12 pr-20 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-base focus:outline-none focus:border-green-500 shadow-sm"
+          className="w-full pl-12 pr-20 py-3.5 bg-white dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 rounded-[2px] text-base focus:outline-none focus:border-green-500 shadow-xs"
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {query && (
-            <button onClick={() => { setQuery(''); setDebouncedQuery(''); }} className="text-gray-400 hover:text-gray-600">
+            <button onClick={() => { setQuery(''); setDebouncedQuery(''); }} className="text-gray-400 hover:text-gray-600 cursor-pointer">
               <X className="w-5 h-5" />
             </button>
           )}
-          <button className="text-gray-400 hover:text-green-600 transition-colors" aria-label="Voice search">
+          <button className="text-gray-400 hover:text-green-600 transition-colors cursor-pointer" aria-label="Voice search">
             <Mic className="w-5 h-5" />
           </button>
         </div>
@@ -110,26 +110,26 @@ function SearchContent() {
 
       {/* Filters Bar */}
       {debouncedQuery && (
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <div className="flex items-center gap-2.5 mb-6 flex-wrap">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium hover:border-green-500 hover:text-green-600 transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 border border-slate-200 dark:border-white/10 rounded-[2px] text-xs font-bold hover:border-green-500 hover:text-green-600 transition-all cursor-pointer active:translate-y-0.5"
           >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Filters</span>
           </button>
           <button
             onClick={() => setFilters(f => ({ ...f, isOrganic: !f.isOrganic }))}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${filters.isOrganic ? 'bg-green-600 text-white' : 'border border-gray-200 dark:border-gray-700 hover:border-green-500'}`}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[2px] text-xs font-bold transition-all cursor-pointer active:translate-y-0.5 ${filters.isOrganic ? 'bg-green-600 text-white' : 'border border-slate-200 dark:border-white/10 hover:border-green-500'}`}
           >
-            <Leaf className="w-4 h-4" />
-            Organic Only
+            <Leaf className="w-3.5 h-3.5" />
+            <span>Organic Only</span>
           </button>
           {FILTERS_CONFIG.sort.filter(s => s.value).map(s => (
             <button
               key={s.value}
               onClick={() => setFilters(f => ({ ...f, sort: f.sort === s.value ? '' : s.value }))}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filters.sort === s.value ? 'bg-green-600 text-white' : 'border border-gray-200 dark:border-gray-700 hover:border-green-500'}`}
+              className={`px-3.5 py-1.5 rounded-[2px] text-xs font-bold transition-all cursor-pointer active:translate-y-0.5 ${filters.sort === s.value ? 'bg-green-600 text-white' : 'border border-slate-200 dark:border-white/10 hover:border-green-500'}`}
             >
               {s.label}
             </button>
@@ -143,30 +143,40 @@ function SearchContent() {
           {recentSearches.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 text-sm">
                   <Clock className="w-4 h-4 text-gray-400" />
-                  Recent Searches
+                  <span>Recent Searches</span>
                 </h3>
-                <button onClick={clearRecent} className="text-xs text-red-500 hover:text-red-700">Clear</button>
+                <button onClick={clearRecent} className="text-xs text-red-500 hover:text-red-700 cursor-pointer">Clear</button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {recentSearches.map(s => (
-                  <button key={s} onClick={() => handleSearch(s)} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 hover:text-green-700 transition-all">
+                  <button
+                    key={s}
+                    onClick={() => handleSearch(s)}
+                    className="px-3.5 py-1.5 bg-slate-100 dark:bg-[#161E2E] rounded-[2px] text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-green-50 hover:text-green-700 border border-slate-200/60 dark:border-white/[0.05] transition-all cursor-pointer"
+                  >
                     {s}
                   </button>
                 ))}
               </div>
             </div>
           )}
+
           <div>
-            <h3 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 mb-3">
+            <h3 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 mb-3 text-sm">
               <TrendingUp className="w-4 h-4 text-green-500" />
-              Trending Searches
+              <span>Trending Searches</span>
             </h3>
             <div className="flex flex-wrap gap-2">
               {TRENDING.map(term => (
-                <button key={term} onClick={() => handleSearch(term)} className="px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm font-medium hover:bg-green-100 transition-all">
-                  🔥 {term}
+                <button
+                  key={term}
+                  onClick={() => handleSearch(term)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-[2px] text-xs font-semibold hover:bg-green-100 transition-all cursor-pointer"
+                >
+                  <TrendingUp className="w-3 h-3 text-emerald-500" />
+                  <span>{term}</span>
                 </button>
               ))}
             </div>
@@ -178,26 +188,28 @@ function SearchContent() {
       {debouncedQuery && (
         <div>
           {!isLoading && data && (
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 mb-4 font-mono">
               {data.pagination?.total || 0} results for <strong>"{debouncedQuery}"</strong>
             </p>
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {isLoading
               ? Array(12).fill(0).map((_, i) => <ProductSkeleton key={i} />)
               : data?.data?.map((product: any) => (
-                <motion.div key={product.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <motion.div key={product.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                   <ProductCard product={product} />
                 </motion.div>
               ))
             }
           </div>
           {!isLoading && (!data?.data || data.data.length === 0) && (
-            <div className="text-center py-16">
-              <p className="text-5xl mb-4">🔍</p>
-              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">No results found</h3>
-              <p className="text-gray-500 mb-6">Try a different search term or browse categories</p>
-              <a href="/categories" className="btn-primary inline-block">Browse Categories</a>
+            <div className="text-center py-16 bg-white dark:bg-[#0F1520] border border-slate-200/80 dark:border-white/[0.07] rounded-[2px]">
+              <div className="w-14 h-14 mx-auto mb-3 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] flex items-center justify-center text-slate-400">
+                <PackageSearch className="w-7 h-7" />
+              </div>
+              <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-1">No results found</h3>
+              <p className="text-xs text-gray-500 mb-5">Try a different search term or browse categories</p>
+              <a href="/categories/vegetables" className="btn-primary inline-block text-xs py-2 px-4 rounded-[2px]">Browse Categories</a>
             </div>
           )}
         </div>
