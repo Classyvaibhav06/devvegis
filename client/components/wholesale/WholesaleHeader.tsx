@@ -46,7 +46,7 @@ export default function WholesaleHeader({
   const displayCartCount = crateCount > 0 ? crateCount : itemCount;
 
   return (
-    <header className="bg-white dark:bg-[#0B0F17] border-b border-slate-200 dark:border-white/[0.08] sticky top-0 z-40 transition-colors shadow-xs">
+    <div className="bg-white dark:bg-[#0B0F17] border-b border-slate-200 dark:border-white/[0.08] transition-colors shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 flex items-center justify-between gap-4 lg:gap-8">
         {/* ─── 1. Brand Logo ─── */}
         <div className="flex items-center gap-3 shrink-0">
@@ -210,6 +210,6 @@ export default function WholesaleHeader({
           </button>
         </form>
       </div>
-    </header>
+    </div>
   );
 }

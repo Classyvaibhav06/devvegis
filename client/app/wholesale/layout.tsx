@@ -9,19 +9,22 @@ import WholesaleSubNav from '@/components/wholesale/WholesaleSubNav';
 
 export default function WholesaleLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-[#F8FAFC] dark:bg-[#070B12] text-slate-900 dark:text-[#E8EEF8] selection:bg-emerald-500/20 selection:text-emerald-700 dark:selection:text-emerald-300 relative overflow-x-hidden transition-colors">
-      {/* ─── 1. Top Black Sliding Announcement Bar ─── */}
-      <WholesaleTopTicker />
+    <div className="min-h-[100dvh] flex flex-col bg-[#F8FAFC] dark:bg-[#070B12] text-slate-900 dark:text-[#E8EEF8] selection:bg-emerald-500/20 selection:text-emerald-700 dark:selection:text-emerald-300 relative overflow-x-clip transition-colors">
+      {/* ─── Sticky Header & Sliding Bar Suite ─── */}
+      <header className="sticky top-0 z-50 shadow-sm bg-white dark:bg-[#0B0F17] transition-all">
+        {/* 1. Top Black Sliding Announcement Bar (Ticker Slider) */}
+        <WholesaleTopTicker />
 
-      {/* ─── 2. Dedicated Wholesale Header (Logo, Search, Login, Wishlist, Cart) ─── */}
-      <Suspense fallback={<div className="h-16 bg-white dark:bg-[#0B0F17] border-b border-slate-200 dark:border-white/10" />}>
-        <WholesaleHeader />
-      </Suspense>
+        {/* 2. Dedicated Wholesale Header (Logo, Search, Login, Wishlist, Cart) */}
+        <Suspense fallback={<div className="h-16 bg-white dark:bg-[#0B0F17] border-b border-slate-200 dark:border-white/10" />}>
+          <WholesaleHeader />
+        </Suspense>
 
-      {/* ─── 3. Sub-Navigation Category Menu ─── */}
-      <Suspense fallback={<div className="h-10 bg-slate-50 dark:bg-[#080C14] border-b border-slate-200 dark:border-white/10" />}>
-        <WholesaleSubNav />
-      </Suspense>
+        {/* 3. Sub-Navigation Category Menu */}
+        <Suspense fallback={<div className="h-10 bg-slate-50 dark:bg-[#080C14] border-b border-slate-200 dark:border-white/10" />}>
+          <WholesaleSubNav />
+        </Suspense>
+      </header>
 
       {/* ─── 4. Main Wholesale Content Area ─── */}
       <main className="flex-1 relative z-10">
