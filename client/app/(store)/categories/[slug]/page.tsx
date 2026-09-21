@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { SlidersHorizontal, Leaf, Zap, Apple, Sparkles, ShieldCheck, ShoppingBag, Package } from 'lucide-react';
+import Image from 'next/image';
 import ProductCard from '@/components/product/ProductCard';
 import api from '@/lib/api';
 
@@ -87,13 +88,19 @@ export default function CategoryPage() {
         <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${info.topGlow} to-transparent`} />
         <div className="container-main">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 flex items-center justify-center text-emerald-600 dark:text-[#34D399] shrink-0 shadow-xs">
-              <IconComponent className="w-7 h-7" />
-            </div>
+            {category?.image ? (
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden relative border border-slate-200 dark:border-white/10 shrink-0 shadow-xs">
+                <Image src={category.image} alt={category.name || info.title} fill className="object-cover" />
+              </div>
+            ) : (
+              <div className="w-14 h-14 rounded-[2px] bg-slate-100 dark:bg-[#161E2E] border border-slate-200 dark:border-white/10 flex items-center justify-center text-emerald-600 dark:text-[#34D399] shrink-0 shadow-xs">
+                <IconComponent className="w-7 h-7" />
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2.5">
                 <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8]">
-                  {info.title}
+                  {category?.name || info.title}
                 </h1>
                 {data?.pagination?.total !== undefined && (
                   <span className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs px-2.5 py-0.5 rounded-[2px] font-mono">
