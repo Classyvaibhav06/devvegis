@@ -79,10 +79,11 @@ function OAuthCallbackContent() {
             role,
           });
         } else {
-          // Sync from the database neon_auth schema using sessionToken
+          // Sync from the database neon_auth schema using sessionToken or IP/user-agent session
           backendRes = await api.post('/auth/neon-sync', {
             sessionToken,
             role,
+            clientUserAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
           });
         }
 

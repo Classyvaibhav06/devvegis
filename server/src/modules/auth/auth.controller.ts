@@ -1143,7 +1143,7 @@ export const googleAuthCallback = async (req: AuthRequest, res: Response): Promi
  * Google OAuth: Synchronize authenticated session from neon_auth schema into DevVegis public.User
  */
 export const syncNeonAuth = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { sessionToken, role: requestedRole } = req.body;
+  const { sessionToken, role: requestedRole, clientUserAgent } = req.body;
 
   let neonUser: any = null;
 
@@ -1165,21 +1165,55 @@ export const syncNeonAuth = async (req: AuthRequest, res: Response): Promise<voi
     }
   }
 
-  // 2. If no sessionToken or not found, check the most recent user in neon_auth.user (within last 10 minutes)
+  // 2. If no sessionToken or not found, match by client IP and/or User-Agent in neon_auth.session
   if (!neonUser) {
+    const rawIp =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      (req.headers['x-real-ip'] as string)?.trim() ||
+      req.socket?.remoteAddress ||
+      req.ip ||
+      '';
+    const clientIp = rawIp.replace(/^::ffff:/, '');
+    const userAgent = (clientUserAgent || req.headers['user-agent'] || '').trim();
+
     try {
-      const recentUsers = await prisma.$queryRaw<any[]>`
-        SELECT id, name, email, image, "createdAt", "updatedAt"
-        FROM neon_auth.user
-        WHERE "updatedAt" > NOW() - INTERVAL '10 minutes'
-        ORDER BY "updatedAt" DESC
-        LIMIT 1
-      `;
-      if (recentUsers && recentUsers.length > 0) {
-        neonUser = recentUsers[0];
+      // First attempt: match recent session (last 10m) by client IP or exact user agent
+      if (clientIp || userAgent) {
+        const matchedSessions = await prisma.$queryRaw<any[]>`
+          SELECT s.*, u.id as "neonUserId", u.name, u.email, u.image 
+          FROM neon_auth.session s
+          JOIN neon_auth.user u ON s."userId" = u.id
+          WHERE s."createdAt" > NOW() - INTERVAL '10 minutes'
+            AND s."expiresAt" > NOW()
+            AND (
+              (${clientIp} != '' AND s."ipAddress" = ${clientIp})
+              OR (${userAgent} != '' AND s."userAgent" = ${userAgent})
+            )
+          ORDER BY s."createdAt" DESC
+          LIMIT 1
+        `;
+        if (matchedSessions && matchedSessions.length > 0) {
+          neonUser = matchedSessions[0];
+        }
+      }
+
+      // Second attempt: if IP/UA rotated (e.g. mobile carrier NAT), take the latest session created in last 5 minutes
+      if (!neonUser) {
+        const latestSessions = await prisma.$queryRaw<any[]>`
+          SELECT s.*, u.id as "neonUserId", u.name, u.email, u.image 
+          FROM neon_auth.session s
+          JOIN neon_auth.user u ON s."userId" = u.id
+          WHERE s."createdAt" > NOW() - INTERVAL '5 minutes'
+            AND s."expiresAt" > NOW()
+          ORDER BY s."createdAt" DESC
+          LIMIT 1
+        `;
+        if (latestSessions && latestSessions.length > 0) {
+          neonUser = latestSessions[0];
+        }
       }
     } catch (err) {
-      logger.warn('Error querying recent neon_auth user:', err);
+      logger.warn('Error querying recent neon_auth session:', err);
     }
   }
 
