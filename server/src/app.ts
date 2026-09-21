@@ -289,9 +289,18 @@ app.use('/api/v1/auth/resend-otp', otpSendLimiter);
 app.use('/api/v1/auth/forgot-password', otpSendLimiter);
 app.use('/api/v1/orders/:id/resend-otp', otpSendLimiter);
 
+app.use('/api/auth/send-otp', otpSendLimiter);
+app.use('/api/auth/resend-verification', otpSendLimiter);
+app.use('/api/auth/resend-otp', otpSendLimiter);
+app.use('/api/auth/forgot-password', otpSendLimiter);
+app.use('/api/orders/:id/resend-otp', otpSendLimiter);
+
 app.use('/api/v1/auth/verify-email', otpVerifyLimiter);
 app.use('/api/v1/auth/verify-email-otp', otpVerifyLimiter);
 app.use('/api/v1/auth/verify-otp', otpVerifyLimiter);
+app.use('/api/auth/verify-email', otpVerifyLimiter);
+app.use('/api/auth/verify-email-otp', otpVerifyLimiter);
+app.use('/api/auth/verify-otp', otpVerifyLimiter);
 
 // 3. General Public Auth & Identity
 app.use('/api/v1/auth', authLimiter);

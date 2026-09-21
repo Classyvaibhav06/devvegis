@@ -6,6 +6,7 @@ import { config } from '../../config/env';
 import { AppError } from '../../middleware/errorHandler';
 import { sendOrderOtpEmail } from '../../utils/email';
 import { logger } from '../../utils/logger';
+import { memoryCache } from '../../utils/cache';
 import { getPlatformSettingsService } from '../admin/admin.controller';
 
 export const getOrders = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -642,6 +643,12 @@ export const resendOrderOtp = async (req: AuthRequest, res: Response): Promise<v
   if (userRole === 'CUSTOMER' && order.userId !== userId) {
     throw new AppError('Unauthorized access to this order', 403);
   }
+
+  const cooldownKey = `order_otp_cooldown:${order.id}`;
+  if (memoryCache.get<boolean>(cooldownKey)) {
+    throw new AppError('Please wait 60 seconds before requesting another OTP email.', 429, 'OTP_COOLDOWN');
+  }
+  memoryCache.set(cooldownKey, true, 60);
 
   if (order.status === 'DELIVERED' || order.status === 'CANCELLED') {
     throw new AppError(`Cannot resend OTP for an order that is already ${order.status.toLowerCase()}`, 400);
