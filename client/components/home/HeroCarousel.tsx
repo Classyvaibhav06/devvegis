@@ -41,8 +41,8 @@ export default function HeroBanner() {
   const activeBanner = heroBanners[currentSlide];
 
   return (
-    <section className="relative overflow-hidden w-full min-h-[380px] sm:min-h-[460px] lg:min-h-[520px] flex items-center justify-center">
-      {/* Background Video */}
+    <section className="relative overflow-hidden w-full min-h-[400px] sm:min-h-[480px] md:min-h-[540px] lg:min-h-[600px] xl:min-h-[640px] flex items-center justify-center">
+      {/* Background Video with Responsive Framing (object-center on mobile, object-[center_18%] on desktop) */}
       <video
         autoPlay
         loop
@@ -50,17 +50,18 @@ export default function HeroBanner() {
         playsInline
         preload="auto"
         poster={activeBanner?.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80"}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover object-center md:object-[center_20%] lg:object-[center_18%] xl:object-[center_16%] transition-all duration-300"
       >
         <source src="/8851735-uhd_4096_2160_24fps.mp4" type="video/mp4" />
       </video>
 
       {/* Cinematic Tint & Gradient Overlays for High Legibility */}
-      <div className="absolute inset-0 bg-black/45 dark:bg-[#080C14]/65 backdrop-blur-[0.5px]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/55 dark:from-[#080C14] dark:via-black/35 dark:to-[#080C14]/70" />
+      <div className="absolute inset-0 bg-black/50 dark:bg-[#080C14]/70 backdrop-blur-[0.5px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.45)_0%,rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.85)_100%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(8,12,20,0.6)_0%,rgba(8,12,20,0.35)_55%,rgba(8,12,20,0.95)_100%)]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/60 dark:from-[#080C14] dark:via-black/45 dark:to-[#080C14]/80" />
 
       {/* Centered Content */}
-      <div className="relative z-10 p-6 sm:p-12 lg:p-16 max-w-3xl flex flex-col items-center text-center justify-center min-h-[380px] sm:min-h-[440px] mx-auto">
+      <div className="relative z-10 px-4 py-10 sm:px-8 sm:py-16 md:py-20 lg:py-24 max-w-3xl flex flex-col items-center text-center justify-center mx-auto my-auto w-full">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-300 border border-white/15 mb-3 shadow-xs">
           ✨ {activeBanner?.subtitle || '100% Certified Farm-Direct Produce'}
         </span>
