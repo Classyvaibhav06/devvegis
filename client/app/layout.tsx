@@ -66,8 +66,11 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/logo.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    apple: "/logo.png",
   },
 };
 
@@ -100,7 +103,7 @@ const jsonLdData = [
     "name": "DevVegis",
     "legalName": "DevVegis Technologies Pvt. Ltd.",
     "url": "https://devvegis.com",
-    "logo": "https://devvegis.com/favicon.ico",
+    "logo": "https://devvegis.com/logo.png",
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+91-1800-338-83447",

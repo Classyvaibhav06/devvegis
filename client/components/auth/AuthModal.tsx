@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -148,15 +149,15 @@ export default function AuthModal() {
             {/* Header */}
             <div className="px-6 pt-4 pb-3 flex items-start justify-between border-b border-slate-100 dark:border-white/[0.06]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center font-bold">
-                  <Leaf className="w-5 h-5" />
+                <div className="relative w-9 h-9 rounded-full overflow-hidden border border-emerald-500/30 shadow-xs shrink-0 bg-white">
+                  <Image src="/logo.png" alt="DevVegis Logo" fill sizes="36px" className="object-cover" />
                 </div>
                 <div>
                   <h3 className="font-heading font-bold text-base text-slate-900 dark:text-[#E8EEF8]">
                     {mode === 'signin' ? 'Sign In to DevVegis' : 'Create an Account'}
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-[#8B96A8]">
-                    {mode === 'signin' ? 'Farm-fresh produce delivered fast' : 'Unlock exclusive farm-gate savings'}
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    {mode === 'signin' ? 'JK & DK Daily Fresh Mart • Fast delivery' : 'JK & DK Daily Fresh Mart • Farm savings'}
                   </p>
                 </div>
               </div>

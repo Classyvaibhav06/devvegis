@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Leaf, LayoutDashboard, Package, Users, ShoppingBag, Tag, Image as ImageIcon, TruckIcon, BarChart3, Settings, ChevronRight, Warehouse, Layers } from 'lucide-react';
+import Image from 'next/image';
+import { LayoutDashboard, Package, Users, ShoppingBag, Tag, Image as ImageIcon, TruckIcon, BarChart3, Settings, ChevronRight, Warehouse, Layers } from 'lucide-react';
 import AdminGuard from '@/components/admin/AdminGuard';
 
 const navItems = [
@@ -23,15 +24,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Sidebar */}
         <aside className="w-56 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 fixed top-0 left-0 h-full z-30 hidden md:flex flex-col">
           <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-green rounded-xl flex items-center justify-center">
-                <Leaf className="w-4 h-4 text-white" />
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="relative w-9 h-9 rounded-full overflow-hidden border border-emerald-500/30 shadow-xs shrink-0 bg-white">
+                <Image src="/logo.png" alt="DevVegis Logo" fill sizes="36px" className="object-cover" />
               </div>
               <div>
                 <p className="font-heading font-bold text-sm leading-none">
-                  <span className="text-green-600">Dev</span><span className="text-gray-800 dark:text-gray-100">Vegis</span>
+                  <span className="text-emerald-600">Dev</span><span className="text-gray-800 dark:text-gray-100">Vegis</span>
                 </p>
-                <p className="text-xs text-gray-400">Admin Panel</p>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5">Admin • JK &amp; DK Mart</p>
               </div>
             </Link>
           </div>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -196,16 +197,27 @@ export function Footerdemo() {
             {/* Ambient decorative glow */}
             <div className="absolute -left-6 -top-6 h-36 w-36 rounded-full bg-emerald-500/15 dark:bg-emerald-500/10 blur-3xl pointer-events-none" />
 
-            <Link href="/" className="inline-flex items-center gap-2.5 mb-4 group">
-              <div className="w-9 h-9 bg-gradient-to-tr from-[#10B981] to-[#059669] rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-                <Leaf className="w-5 h-5 text-white" />
+            <Link href="/" className="inline-flex items-center gap-3 mb-4 group">
+              <div className="relative w-11 h-11 rounded-full overflow-hidden border border-emerald-500/30 shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0 bg-white dark:bg-[#121927]">
+                <Image
+                  src="/logo.png"
+                  alt="JK & DK Daily Fresh Mart - DevVegis"
+                  fill
+                  sizes="44px"
+                  className="object-cover"
+                />
               </div>
-              <div className="flex items-baseline leading-none">
-                <span className="font-heading font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
-                  Dev
-                </span>
-                <span className="font-heading font-extrabold text-2xl text-emerald-600 dark:text-emerald-400 tracking-tight">
-                  Vegis
+              <div className="flex flex-col">
+                <div className="flex items-baseline leading-none">
+                  <span className="font-heading font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
+                    Dev
+                  </span>
+                  <span className="font-heading font-extrabold text-2xl text-emerald-600 dark:text-emerald-400 tracking-tight">
+                    Vegis
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tracking-wide mt-1">
+                  JK &amp; DK Daily Fresh Mart
                 </span>
               </div>
             </Link>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -227,9 +228,16 @@ export default function Header() {
         <div className="flex items-center justify-between gap-3 md:gap-6 h-16 py-2">
           {/* Brand Logo */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#10B981] rounded-[2px] flex items-center justify-center shadow-sm group-hover:bg-[#059669] transition-colors duration-200">
-                <Leaf className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-emerald-500/25 shadow-sm group-hover:scale-105 transition-transform shrink-0 bg-white dark:bg-[#121927]">
+                <Image
+                  src="/logo.png"
+                  alt="JK & DK Daily Fresh Mart - DevVegis"
+                  fill
+                  sizes="40px"
+                  className="object-cover"
+                  priority
+                />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-baseline leading-none">
@@ -237,7 +245,7 @@ export default function Header() {
                   <span className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-[#10B981]">Vegis</span>
                 </div>
                 <span className="hidden sm:inline-block text-[10px] font-bold text-slate-500 dark:text-[#4E5A6B] uppercase tracking-wider">
-                  Farm Fresh & Organic
+                  JK &amp; DK Daily Fresh Mart
                 </span>
               </div>
             </Link>

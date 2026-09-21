@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Search, User, Heart, ShoppingBag, Store, Sun, Moon,
@@ -50,18 +51,29 @@ export default function WholesaleHeader({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 flex items-center justify-between gap-4 lg:gap-8">
         {/* ─── 1. Brand Logo ─── */}
         <div className="flex items-center gap-3 shrink-0">
-          <Link href="/wholesale" className="group flex flex-col">
-            <div className="flex items-baseline gap-1.5 leading-none">
-              <span className="font-heading font-black text-2xl sm:text-3xl tracking-tight text-slate-900 dark:text-white">
-                Dev<span className="text-[#10B981]">Vegis</span>
-              </span>
-              <span className="font-heading font-extrabold text-sm sm:text-base text-amber-500 tracking-wider">
-                WHOLESALE<sup className="text-[10px] ml-0.5 font-bold">®</sup>
+          <Link href="/wholesale" className="group flex items-center gap-2.5">
+            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-amber-500/30 shadow-sm shrink-0 bg-white dark:bg-[#121927] group-hover:scale-105 transition-transform">
+              <Image
+                src="/logo.png"
+                alt="JK & DK Daily Fresh Mart - DevVegis Wholesale"
+                fill
+                sizes="40px"
+                className="object-cover"
+              />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-1.5 leading-none">
+                <span className="font-heading font-black text-2xl sm:text-3xl tracking-tight text-slate-900 dark:text-white">
+                  Dev<span className="text-[#10B981]">Vegis</span>
+                </span>
+                <span className="font-heading font-extrabold text-sm sm:text-base text-amber-500 tracking-wider">
+                  WHOLESALE<sup className="text-[10px] ml-0.5 font-bold">®</sup>
+                </span>
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide mt-1">
+                JK &amp; DK Daily Fresh Mart · APMC Mandi B2B
               </span>
             </div>
-            <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide mt-1">
-              Bachat Ka Naya Tareeka! · APMC Mandi B2B
-            </span>
           </Link>
         </div>
 
