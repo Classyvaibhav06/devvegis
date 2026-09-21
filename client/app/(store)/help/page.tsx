@@ -18,7 +18,7 @@ const FAQS = [
   },
   {
     q: 'What is the minimum order value for free delivery?',
-    a: 'Free delivery is automatically applied to all orders above ₹199. Orders below ₹199 carry a nominal delivery partner fee of ₹25.',
+    a: 'Free delivery is automatically applied to all orders of ₹100 and above. Orders below ₹100 carry a nominal delivery partner fee of ₹40 (or as configured in platform rules).',
   },
   {
     q: 'How does the instant refund guarantee work?',

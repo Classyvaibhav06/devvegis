@@ -3,6 +3,7 @@ import prisma from '../../config/prisma';
 import { AuthRequest } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 import { config } from '../../config/env';
+import { getPlatformSettingsService } from '../admin/admin.controller';
 
 export const getCart = async (req: AuthRequest, res: Response): Promise<void> => {
   const items = await prisma.cartItem.findMany({
@@ -22,7 +23,10 @@ export const getCart = async (req: AuthRequest, res: Response): Promise<void> =>
     return sum;
   }, 0);
 
-  const deliveryFee = subtotal >= config.FREE_DELIVERY_ABOVE ? 0 : config.DELIVERY_FEE;
+  const platformSettings = await getPlatformSettingsService();
+  const freeThreshold = platformSettings.freeDeliveryThreshold ?? config.FREE_DELIVERY_ABOVE;
+  const baseFee = platformSettings.baseDeliveryFee ?? config.DELIVERY_FEE;
+  const deliveryFee = subtotal >= freeThreshold ? 0 : baseFee;
   const gstAmount = subtotal * config.GST_RATE;
   const total = subtotal + deliveryFee + gstAmount;
 
@@ -35,7 +39,8 @@ export const getCart = async (req: AuthRequest, res: Response): Promise<void> =>
       deliveryFee,
       gstAmount: Math.round(gstAmount * 100) / 100,
       total: Math.round(total * 100) / 100,
-      freeDeliveryAbove: config.FREE_DELIVERY_ABOVE,
+      freeDeliveryAbove: freeThreshold,
+      baseDeliveryFee: baseFee,
     },
   });
 };

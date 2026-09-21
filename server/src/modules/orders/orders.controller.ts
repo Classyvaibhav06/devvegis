@@ -6,6 +6,7 @@ import { config } from '../../config/env';
 import { AppError } from '../../middleware/errorHandler';
 import { sendOrderOtpEmail } from '../../utils/email';
 import { logger } from '../../utils/logger';
+import { getPlatformSettingsService } from '../admin/admin.controller';
 
 export const getOrders = async (req: AuthRequest, res: Response): Promise<void> => {
   const { page = '1', limit = '10', status } = req.query as Record<string, string>;
@@ -222,7 +223,10 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
     return sum + price * item.quantity;
   }, 0);
 
-  const deliveryFee = subtotal >= config.FREE_DELIVERY_ABOVE ? 0 : config.DELIVERY_FEE;
+  const platformSettings = await getPlatformSettingsService();
+  const freeThreshold = platformSettings.freeDeliveryThreshold ?? config.FREE_DELIVERY_ABOVE;
+  const baseFee = platformSettings.baseDeliveryFee ?? config.DELIVERY_FEE;
+  const deliveryFee = subtotal >= freeThreshold ? 0 : baseFee;
   const gstAmount = subtotal * config.GST_RATE;
 
   // Coupon validation

@@ -17,9 +17,11 @@ import { useAuthModalStore } from '@/store/authModalStore';
 import { useTheme } from '@/providers/themeProvider';
 import { cn, getInitials, formatCurrency } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
+import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import LocationModal from './LocationModal';
 
 export default function Header() {
+  const { freeDeliveryThreshold } = usePlatformSettings();
   const { openModal } = useAuthModalStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -214,7 +216,7 @@ export default function Header() {
             <span className="text-slate-300 dark:text-white/10">|</span>
             <span className="text-emerald-600 dark:text-[#34D399] font-bold flex items-center gap-1.5">
               <Sparkles className="w-3 h-3 text-emerald-500" />
-              <span>Free Delivery Above ₹199</span>
+              <span>Free Delivery Above ₹{freeDeliveryThreshold}</span>
             </span>
           </div>
         </div>

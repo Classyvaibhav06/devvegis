@@ -7,20 +7,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, Minus, Tag, ChevronRight, ShoppingBag, AlertCircle, Gift, ShoppingCart, Leaf, Zap, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCartStore } from '@/store/cartStore';
+import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { formatCurrency } from '@/lib/utils';
 
-const DELIVERY_FEE = 25;
-const FREE_DELIVERY_ABOVE = 199;
 const GST_RATE = 0.05;
 
 export default function CartPage() {
   const { items, itemCount, total, updateQuantity, removeItem, clearCart } = useCartStore();
+  const { freeDeliveryThreshold, baseDeliveryFee } = usePlatformSettings();
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
 
   const subtotal = total;
-  const deliveryFee = subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE;
+  const deliveryFee = subtotal >= freeDeliveryThreshold ? 0 : baseDeliveryFee;
   const discount = appliedCoupon?.discount || 0;
   const gst = Math.round(subtotal * GST_RATE * 100) / 100;
   const grandTotal = subtotal + deliveryFee - discount + gst;
@@ -210,7 +210,7 @@ export default function CartPage() {
               {deliveryFee > 0 && (
                 <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[2px] p-2.5">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  Add {formatCurrency(FREE_DELIVERY_ABOVE - subtotal)} more for free delivery
+                  Add {formatCurrency(Math.max(0, freeDeliveryThreshold - subtotal))} more for free delivery
                 </div>
               )}
               <div className="flex justify-between text-slate-600 dark:text-[#8B96A8]">

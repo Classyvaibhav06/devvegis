@@ -1,19 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Settings, Sliders, Database, CheckCircle2, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 
 export default function AdminSettingsPage() {
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     targetDeliveryTime: 12,
-    baseDeliveryFee: 25,
-    freeDeliveryThreshold: 199,
-    darkstoreRadiusKm: 5,
+    baseDeliveryFee: 40,
+    freeDeliveryThreshold: 100,
+    darkstoreRadiusKm: 8,
     instantDeliverySlot: '10-15 Min',
     eveningDeliverySlot: '6 PM - 9 PM',
     morningDeliverySlot: '7 AM - 9 AM',
@@ -29,7 +31,11 @@ export default function AdminSettingsPage() {
       setLoading(true);
       const res = await api.get('/admin/settings');
       if (res.data?.success && res.data?.data) {
-        setFormData((prev) => ({ ...prev, ...res.data.data }));
+        setFormData((prev) => ({
+          ...prev,
+          ...res.data.data,
+          targetDeliveryTime: res.data.data.targetDeliveryMinutes ?? prev.targetDeliveryTime,
+        }));
       }
     } catch (err: any) {
       console.error('Failed to load settings:', err);
@@ -42,8 +48,12 @@ export default function AdminSettingsPage() {
     e.preventDefault();
     try {
       setSaving(true);
-      const res = await api.post('/admin/settings', formData);
+      const res = await api.post('/admin/settings', {
+        ...formData,
+        targetDeliveryMinutes: formData.targetDeliveryTime,
+      });
       if (res.data?.success) {
+        queryClient.invalidateQueries({ queryKey: ['platform-settings'] });
         toast.success('Platform settings saved successfully and active live!');
       } else {
         toast.error('Failed to save settings');

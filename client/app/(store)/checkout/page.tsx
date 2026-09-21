@@ -97,9 +97,9 @@ export default function CheckoutPage() {
     },
   });
 
-  const freeThreshold = platformSettings?.freeDeliveryThreshold ?? 199;
-  const baseFee = platformSettings?.baseDeliveryFee ?? 25;
-  const deliveryFee = total > freeThreshold ? 0 : baseFee;
+  const freeThreshold = platformSettings?.freeDeliveryThreshold ?? 100;
+  const baseFee = platformSettings?.baseDeliveryFee ?? 40;
+  const deliveryFee = total >= freeThreshold ? 0 : baseFee;
   const handlingFee = 5;
   const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
   const grandTotal = Math.max(0, total - couponDiscount + deliveryFee + handlingFee + tip);

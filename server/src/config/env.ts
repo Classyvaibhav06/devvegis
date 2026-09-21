@@ -49,8 +49,8 @@ export const config = {
   AWS_BUCKET_NAME: process.env.AWS_BUCKET_NAME || 'uploads',
   
   // Delivery
-  DELIVERY_FEE: parseFloat(process.env.DELIVERY_FEE || '25'),
-  FREE_DELIVERY_ABOVE: parseFloat(process.env.FREE_DELIVERY_ABOVE || '199'),
+  DELIVERY_FEE: parseFloat(process.env.DELIVERY_FEE || '40'),
+  FREE_DELIVERY_ABOVE: parseFloat(process.env.FREE_DELIVERY_ABOVE || '100'),
   GST_RATE: parseFloat(process.env.GST_RATE || '0.05'), // 5% GST
 
   // Google OAuth
