@@ -28,6 +28,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useTheme } from "@/providers/themeProvider";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 // High-fidelity SVG Social Icons for modern web
 function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
@@ -111,17 +113,24 @@ function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) {
 }
 
 export function Footerdemo() {
+  const router = useRouter();
+  const { isAuthenticated, user } = useAuthStore();
+  const [mounted, setMounted] = React.useState(false);
   const { theme, setTheme, isDark } = useTheme();
   const [email, setEmail] = React.useState("");
-  const [isSubscribed, setIsSubscribed] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !email.includes("@")) return;
-    setIsSubscribed(true);
-    setTimeout(() => {
-      setEmail("");
-    }, 4000);
+    const trimmed = email.trim();
+    if (trimmed) {
+      router.push(`/login?email=${encodeURIComponent(trimmed)}`);
+    } else {
+      router.push('/login');
+    }
   };
 
   return (
@@ -229,34 +238,35 @@ export function Footerdemo() {
               India&apos;s direct farm-to-door ecosystem. Crisp hydroponic produce, native fruits, and bulk mandi crates harvested at dawn and delivered in 10-15 minutes.
             </p>
 
-            {/* Newsletter Subscription */}
-            <div className="relative max-w-md">
-              <form onSubmit={handleSubscribe} className="relative">
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email for harvest drops..."
-                  className="pr-12 h-11 rounded-full border-slate-300 dark:border-white/15 bg-white dark:bg-[#121927] text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-emerald-500 shadow-xs"
-                  required
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="absolute right-1.5 top-1.5 h-8 w-8 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-transform hover:scale-105"
-                  aria-label="Subscribe to DevVegis newsletter"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  <span className="sr-only">Subscribe</span>
-                </Button>
-              </form>
-              {isSubscribed && (
-                <div className="mt-2.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 animate-in fade-in slide-in-from-top-1">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Welcome to DevVegis Fresh Club! Check your inbox for ₹100 off.</span>
-                </div>
-              )}
-            </div>
+            {/* Newsletter Subscription: Only show to guests who are not logged in */}
+            {mounted && isAuthenticated ? (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-xs font-semibold text-emerald-700 dark:text-emerald-300 shadow-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>DevVegis Fresh Member • {user?.name || user?.email || 'Connected'}</span>
+              </div>
+            ) : (
+              <div className="relative max-w-md">
+                <form onSubmit={handleSubscribe} className="relative">
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email for harvest drops..."
+                    className="pr-12 h-11 rounded-full border-slate-300 dark:border-white/15 bg-white dark:bg-[#121927] text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-emerald-500 shadow-xs"
+                    required
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className="absolute right-1.5 top-1.5 h-8 w-8 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-transform hover:scale-105 cursor-pointer"
+                    aria-label="Subscribe to DevVegis newsletter"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    <span className="sr-only">Subscribe</span>
+                  </Button>
+                </form>
+              </div>
+            )}
 
             {/* Micro badge */}
             <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-700 dark:text-emerald-300">
