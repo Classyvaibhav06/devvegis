@@ -11,6 +11,8 @@ import {
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
+import { useAuthModalStore } from '@/store/authModalStore';
+import GoogleOAuthButton from '@/components/auth/GoogleOAuthButton';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -18,6 +20,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, total, clearCart } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
+  const { openModal } = useAuthModalStore();
   const queryClient = useQueryClient();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
@@ -141,13 +144,29 @@ export default function CheckoutPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="container-main py-20 text-center max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Please Sign In</h1>
-        <p className="text-gray-500 mb-6">You need to be signed in to place your DevVegis order.</p>
-        <Link href="/login" className="btn-primary inline-flex items-center gap-2">
-          <span>Sign In to Continue</span>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
+      <div className="container-main py-16 text-center max-w-md mx-auto px-4">
+        <div className="card p-8 border border-emerald-500/20 shadow-lg">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck className="w-7 h-7" />
+          </div>
+          <h1 className="text-2xl font-bold font-heading text-slate-900 dark:text-[#E8EEF8] mb-2">
+            Sign In to Checkout
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-[#8B96A8] mb-6">
+            Sign in to select your doorstep delivery address and complete your farm-fresh order.
+          </p>
+
+          <div className="space-y-3">
+            <button
+              onClick={() => openModal('signin')}
+              className="btn-primary w-full py-2.5 text-xs font-bold flex items-center justify-center gap-2"
+            >
+              <span>Sign In to Continue</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <GoogleOAuthButton mode="signin" />
+          </div>
+        </div>
       </div>
     );
   }

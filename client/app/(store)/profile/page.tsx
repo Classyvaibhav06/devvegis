@@ -10,6 +10,8 @@ import {
   Phone, Home, Briefcase, Building, X, CheckCircle2, Loader2
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useAuthModalStore } from '@/store/authModalStore';
+import GoogleOAuthButton from '@/components/auth/GoogleOAuthButton';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -45,6 +47,7 @@ const EMPTY_ADDRESS_FORM = {
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isAuthenticated, logout, updateUser } = useAuthStore();
+  const { openModal } = useAuthModalStore();
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<Tab>('profile');
@@ -203,12 +206,59 @@ export default function ProfilePage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="container-main py-20 text-center max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">My Account</h1>
-        <p className="text-gray-500 mb-6">Please sign in to access your DevVegis profile.</p>
-        <button onClick={() => router.push('/login')} className="btn-primary">
-          Sign In Now
-        </button>
+      <div className="container-main py-12 px-4 max-w-2xl mx-auto">
+        {/* Guest Hero Card */}
+        <div className="card p-8 text-center bg-gradient-to-b from-emerald-50/50 to-white dark:from-emerald-950/20 dark:to-[#0F1520] border border-emerald-500/20 shadow-xl rounded-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center font-heading text-2xl font-bold mx-auto mb-4 shadow-lg shadow-emerald-500/20">
+            <User className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] mb-2">
+            Welcome to DevVegis
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-[#8B96A8] max-w-md mx-auto mb-6">
+            Sign in to track your 12-minute live orders, manage saved delivery addresses, and unlock exclusive farm coupons.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto mb-8">
+            <button
+              onClick={() => openModal('signin')}
+              className="btn-primary w-full sm:w-auto py-2.5 px-6 text-sm font-bold shadow-md"
+            >
+              Sign In / Register
+            </button>
+            <div className="w-full sm:w-auto shrink-0">
+              <GoogleOAuthButton mode="signin" className="w-full sm:w-auto py-2.5 px-5" />
+            </div>
+          </div>
+
+          {/* Perks Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left border-t border-slate-100 dark:border-white/[0.08] pt-6">
+            <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-slate-100 dark:border-white/[0.05]">
+              <div className="text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 mb-1">
+                <span>⚡ 12-Min Delivery</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-[#8B96A8]">
+                Farm produce dispatched from local Indiranagar dark store.
+              </p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-slate-100 dark:border-white/[0.05]">
+              <div className="text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 mb-1">
+                <span>📍 Saved Addresses</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-[#8B96A8]">
+                Save home and work locations for 1-tap checkout.
+              </p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-slate-100 dark:border-white/[0.05]">
+              <div className="text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 mb-1">
+                <span>🛡️ Freshness Guarantee</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-[#8B96A8]">
+                Zero-question refunds if produce is below standard.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

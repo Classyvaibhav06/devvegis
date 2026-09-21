@@ -13,12 +13,14 @@ import {
 import api from '@/lib/api';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
+import { useAuthModalStore } from '@/store/authModalStore';
 import { useTheme } from '@/providers/themeProvider';
 import { cn, getInitials, formatCurrency } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import LocationModal from './LocationModal';
 
 export default function Header() {
+  const { openModal } = useAuthModalStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -477,12 +479,13 @@ export default function Header() {
                 </AnimatePresence>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="text-xs sm:text-sm font-bold bg-slate-100 dark:bg-[#161E2E] hover:bg-slate-200 dark:hover:bg-[#1C2637] border border-slate-200 dark:border-white/[0.07] hover:border-[#10B981]/40 text-slate-900 dark:text-[#E8EEF8] px-4 py-2 rounded-[2px] transition-all active:translate-y-0.5"
+              <button
+                type="button"
+                onClick={() => openModal('signin')}
+                className="text-xs sm:text-sm font-bold bg-slate-100 dark:bg-[#161E2E] hover:bg-slate-200 dark:hover:bg-[#1C2637] border border-slate-200 dark:border-white/[0.07] hover:border-[#10B981]/40 text-slate-900 dark:text-[#E8EEF8] px-4 py-2 rounded-[2px] transition-all active:translate-y-0.5 cursor-pointer"
               >
                 Login
-              </Link>
+              </button>
             )}
 
             {/* Mobile Menu Toggle */}
