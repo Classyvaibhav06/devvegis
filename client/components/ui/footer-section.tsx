@@ -300,17 +300,16 @@ export function Footerdemo() {
                 100% Organic & Hydroponics
               </Link>
               <Link
-                href="/ai-freshness"
-                className="block text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5"
-              >
-                <span>AI Freshness Scanner</span>
-                <span className="text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold px-1.5 py-0.5 rounded">NEW</span>
-              </Link>
-              <Link
-                href="/ai/recipe"
+                href="/categories"
                 className="block text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               >
-                AI Chef Recipe Journal
+                Exotic & Hydroponic Greens
+              </Link>
+              <Link
+                href="/categories"
+                className="block text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              >
+                Fresh Herbs & Seasonings
               </Link>
               <Link
                 href="/categories"
