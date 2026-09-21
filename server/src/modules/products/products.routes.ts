@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, authorize } from '../../middleware/auth';
+import { authenticate, authorize, optionalAuth } from '../../middleware/auth';
 import { uploadProduct } from '../../middleware/upload';
 import {
   getProducts, getProduct, getFeaturedProducts, getFlashDeals,
@@ -8,11 +8,11 @@ import {
 
 const router = Router();
 
-router.get('/', getProducts);
-router.get('/featured', getFeaturedProducts);
-router.get('/flash-deals', getFlashDeals);
-router.get('/search', searchProducts);
-router.get('/:slug', getProduct);
+router.get('/', optionalAuth, getProducts);
+router.get('/featured', optionalAuth, getFeaturedProducts);
+router.get('/flash-deals', optionalAuth, getFlashDeals);
+router.get('/search', optionalAuth, searchProducts);
+router.get('/:slug', optionalAuth, getProduct);
 router.post('/', authenticate, authorize('ADMIN'), (req, _res, next) => {
   (req as any).uploadFolder = 'products'; next();
 }, uploadProduct, createProduct);

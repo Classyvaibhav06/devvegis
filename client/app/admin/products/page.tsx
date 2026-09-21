@@ -36,7 +36,11 @@ export default function AdminProductsPage() {
     queryKey: ['admin-products', search, selectedCategory],
     queryFn: async () => {
       const res = await api.get('/products', {
-        params: { q: search, limit: 50 },
+        params: {
+          q: search || undefined,
+          categoryId: selectedCategory || undefined,
+          limit: 100,
+        },
       });
       return res.data.data;
     },
@@ -206,7 +210,7 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="p-4">
                       {(() => {
-                        const currentStock = p.inventory?.availableStock !== undefined ? p.inventory.availableStock : (p.stock || 0);
+                        const currentStock = p.inventory?.availableStock ?? p.stock ?? 0;
                         return (
                           <span className={`font-semibold ${currentStock <= 15 ? 'text-rose-600 font-bold' : 'text-green-600'}`}>
                             {currentStock} units
@@ -231,7 +235,7 @@ export default function AdminProductsPage() {
                             mrp: p.comparePrice || p.mrp || p.price + 10,
                             comparePrice: p.comparePrice || p.mrp || p.price + 10,
                             unit: p.unit || '500g',
-                            stock: p.inventory?.availableStock !== undefined ? p.inventory.availableStock : (p.stock || 50),
+                            stock: p.inventory?.availableStock ?? p.stock ?? 0,
                             isOrganic: p.isOrganic || false,
                             image: p.images?.[0]?.url || p.images?.[0] || '',
                           })}
@@ -298,20 +302,24 @@ export default function AdminProductsPage() {
                   <label className="text-xs font-semibold block mb-1">Selling Rate (₹)</label>
                   <input
                     type="number"
+                    step="any"
+                    min="0"
                     required
                     value={editingProduct.price}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                    className="input text-xs font-bold text-green-600"
+                    onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    className="input text-xs font-bold text-green-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 <div>
                   <label className="text-xs font-semibold block mb-1">MRP (₹)</label>
                   <input
                     type="number"
+                    step="any"
+                    min="0"
                     required
                     value={editingProduct.mrp}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, mrp: Number(e.target.value) })}
-                    className="input text-xs"
+                    onChange={(e) => setEditingProduct({ ...editingProduct, mrp: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    className="input text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
@@ -332,10 +340,11 @@ export default function AdminProductsPage() {
                   <label className="text-xs font-semibold block mb-1">Stock Units</label>
                   <input
                     type="number"
+                    min="0"
                     required
                     value={editingProduct.stock}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
-                    className="input text-xs"
+                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0 })}
+                    className="input text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
@@ -445,20 +454,24 @@ export default function AdminProductsPage() {
                   <label className="text-xs font-semibold block mb-1">Selling Rate (₹)</label>
                   <input
                     type="number"
+                    step="any"
+                    min="0"
                     required
                     value={newProduct.price}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                    className="input text-xs font-bold text-green-600"
+                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    className="input text-xs font-bold text-green-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 <div>
                   <label className="text-xs font-semibold block mb-1">MRP (₹)</label>
                   <input
                     type="number"
+                    step="any"
+                    min="0"
                     required
                     value={newProduct.mrp}
-                    onChange={(e) => setNewProduct({ ...newProduct, mrp: Number(e.target.value) })}
-                    className="input text-xs"
+                    onChange={(e) => setNewProduct({ ...newProduct, mrp: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    className="input text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
@@ -479,10 +492,11 @@ export default function AdminProductsPage() {
                   <label className="text-xs font-semibold block mb-1">Initial Stock Units</label>
                   <input
                     type="number"
+                    min="0"
                     required
                     value={newProduct.stock}
-                    onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
-                    className="input text-xs"
+                    onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0 })}
+                    className="input text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>

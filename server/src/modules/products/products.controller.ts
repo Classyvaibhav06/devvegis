@@ -132,7 +132,8 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
       ...rest,
       wholesalePrice: isWholesaleUser ? p.wholesalePrice : undefined,
       inStock,
-      ...(isAdmin ? { inventory: { availableStock: rawStock } } : {}),
+      stock: rawStock,
+      inventory: { availableStock: rawStock },
     };
   });
 
@@ -223,15 +224,18 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
     wholesalePrice: isWholesaleUser ? product.wholesalePrice : undefined,
     costPrice: isAdmin ? costPrice : undefined,
     inStock,
-    ...(isAdmin && inventory ? { inventory } : {}),
+    stock: rawStock,
+    inventory: { availableStock: rawStock },
     similar: similar.map((s: any) => {
       const { inventory: simInventory, costPrice: simCostPrice, ...simRest } = s;
+      const simStock = simInventory?.availableStock ?? 0;
       return {
         ...simRest,
         wholesalePrice: isWholesaleUser ? s.wholesalePrice : undefined,
         costPrice: isAdmin ? simCostPrice : undefined,
-        inStock: (simInventory?.availableStock ?? 0) > 0,
-        ...(isAdmin && simInventory ? { inventory: simInventory } : {}),
+        inStock: simStock > 0,
+        stock: simStock,
+        inventory: { availableStock: simStock },
       };
     }),
   };
@@ -503,6 +507,7 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
   });
 
   memoryCache.del('products_');
+  memoryCache.del('products_list_');
   memoryCache.del('product_slug_');
 
   res.status(201).json({ success: true, data: fullProduct || product });
@@ -591,6 +596,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
   }
 
   memoryCache.del('products_');
+  memoryCache.del('products_list_');
   memoryCache.del('product_slug_');
 
   const fullProduct = await prisma.product.findUnique({
@@ -607,12 +613,14 @@ export const deleteProduct = async (req: AuthRequest, res: Response): Promise<vo
     // Try permanent delete if item has not been ordered
     await prisma.product.delete({ where: { id } });
     memoryCache.del('products_');
+    memoryCache.del('products_list_');
     memoryCache.del('product_slug_');
     res.json({ success: true, message: 'Product deleted permanently' });
   } catch (err: any) {
     // If foreign key constraint (P2003) because orders exist, soft delete by unpublishing
     await prisma.product.update({ where: { id }, data: { isPublished: false } });
     memoryCache.del('products_');
+    memoryCache.del('products_list_');
     memoryCache.del('product_slug_');
     res.json({ success: true, message: 'Product archived and unpublished' });
   }
