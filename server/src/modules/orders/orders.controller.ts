@@ -14,7 +14,12 @@ export const getOrders = async (req: AuthRequest, res: Response): Promise<void> 
   const rawLimit = parseInt(limit) || 10;
   const take = Math.min(Math.max(1, rawLimit), 50); // Hard cap at 50 max to prevent DB flooding
   const skip = (pageNum - 1) * take;
-  const where: any = { userId: req.user!.id };
+  const where: any = {
+    OR: [
+      { userId: req.user!.id },
+      ...(req.user?.email ? [{ user: { email: req.user.email } }] : []),
+    ],
+  };
   if (status) where.status = status;
 
   const [orders, total] = await Promise.all([
@@ -41,11 +46,27 @@ export const getOrders = async (req: AuthRequest, res: Response): Promise<void> 
 };
 
 export const getOrder = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { id } = req.params;
-  const where: any = { id };
+  const rawId = String(req.params.id || '').trim();
+  const cleanId = rawId.replace(/^#/, '');
   const isAdminOrRider = ['ADMIN', 'RIDER'].includes(req.user?.role || '');
+
+  const where: any = {
+    OR: [
+      { id: cleanId },
+      { orderNumber: cleanId },
+      { orderNumber: rawId },
+    ],
+  };
+
   if (!isAdminOrRider) {
-    where.userId = req.user!.id;
+    where.AND = [
+      {
+        OR: [
+          { userId: req.user!.id },
+          ...(req.user?.email ? [{ user: { email: req.user.email } }] : []),
+        ],
+      },
+    ];
   }
 
   const order = await prisma.order.findFirst({
@@ -423,23 +444,42 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
 };
 
 export const cancelOrder = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const rawId = String(req.params.id || '').trim();
+  const cleanId = rawId.replace(/^#/, '');
   const { reason } = req.body;
 
-  const order = await prisma.order.findFirst({ where: { id, userId: req.user!.id } });
+  const order = await prisma.order.findFirst({
+    where: {
+      OR: [
+        { id: cleanId },
+        { orderNumber: cleanId },
+        { orderNumber: rawId },
+      ],
+      AND: [
+        {
+          OR: [
+            { userId: req.user!.id },
+            ...(req.user?.email ? [{ user: { email: req.user.email } }] : []),
+          ],
+        },
+      ],
+    },
+  });
   if (!order) throw new AppError('Order not found', 404);
   if (!['PENDING', 'CONFIRMED'].includes(order.status)) {
     throw new AppError('Order cannot be cancelled at this stage', 400);
   }
 
+  const orderId = order.id;
+
   await prisma.$transaction(async (tx) => {
     await tx.order.update({
-      where: { id },
+      where: { id: orderId },
       data: { status: 'CANCELLED', cancellationReason: reason, cancelledAt: new Date() },
     });
 
     // Release inventory
-    const items = await tx.orderItem.findMany({ where: { orderId: id } });
+    const items = await tx.orderItem.findMany({ where: { orderId } });
     for (const item of items) {
       await tx.inventory.update({
         where: { productId: item.productId },
@@ -450,7 +490,7 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<void
     // Refund wallet if used
     if (order.walletUsed > 0) {
       const wallet = await tx.wallet.update({
-        where: { userId: req.user!.id },
+        where: { userId: order.userId },
         data: { balance: { increment: order.walletUsed }, totalCredits: { increment: order.walletUsed } },
       });
       await tx.walletTransaction.create({
@@ -460,7 +500,7 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<void
           amount: order.walletUsed,
           balance: wallet.balance,
           description: `Refund for cancelled order #${order.orderNumber}`,
-          orderId: id,
+          orderId,
         },
       });
     }
@@ -471,11 +511,21 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<void
 
 // Admin/Rider: update order status
 export const updateOrderStatus = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const rawId = String(req.params.id || '').trim();
+  const cleanId = rawId.replace(/^#/, '');
   const { status, riderId, otp } = req.body;
 
-  const existingOrder = await prisma.order.findUnique({ where: { id } });
+  const existingOrder = await prisma.order.findFirst({
+    where: {
+      OR: [
+        { id: cleanId },
+        { orderNumber: cleanId },
+        { orderNumber: rawId },
+      ],
+    },
+  });
   if (!existingOrder) throw new AppError('Order not found', 404);
+  const id = existingOrder.id;
 
   if (status === 'DELIVERED' && otp) {
     const cleanDbOtp = String(existingOrder.deliveryOtp || '').trim();
@@ -566,12 +616,19 @@ export const getAllOrders = async (req: AuthRequest, res: Response): Promise<voi
 };
 
 export const resendOrderOtp = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const rawId = String(req.params.id || '').trim();
+  const cleanId = rawId.replace(/^#/, '');
   const userId = req.user!.id;
   const userRole = req.user!.role;
 
-  const order = await prisma.order.findUnique({
-    where: { id },
+  const order = await prisma.order.findFirst({
+    where: {
+      OR: [
+        { id: cleanId },
+        { orderNumber: cleanId },
+        { orderNumber: rawId },
+      ],
+    },
     include: {
       user: { select: { id: true, name: true, email: true } },
       address: true,

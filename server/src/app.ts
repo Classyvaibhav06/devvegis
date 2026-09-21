@@ -220,7 +220,38 @@ const otpVerifyLimiter = rateLimit({
 const couponValidateLimiter = createUserRateLimiter(15, 10, 'Too many coupon validations. Please wait 10 minutes.', 'COUPON_RATE_LIMITED');
 const cartLimiter = createUserRateLimiter(60, 1, 'Too many cart modifications. Please wait a moment.', 'CART_RATE_LIMITED');
 const wishlistLimiter = createUserRateLimiter(60, 1, 'Too many wishlist operations. Please wait a moment.', 'WISHLIST_RATE_LIMITED');
-const checkoutLimiter = createUserRateLimiter(30, 15, 'Too many checkout or payment requests. Please try again shortly.', 'CHECKOUT_RATE_LIMITED');
+const checkoutLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: false,
+  keyGenerator: getUserOrIpKey,
+  skip: (req) => req.method === 'GET', // Allow customers and riders to view and live-track orders without exhausting checkout limits
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many checkout or payment requests. Please try again shortly.',
+      code: 'CHECKOUT_RATE_LIMITED',
+    });
+  },
+});
+
+const orderTrackingLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 180, // 180 requests/min allows real-time live polling without obstruction
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: false,
+  keyGenerator: getUserOrIpKey,
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Live tracking polling too rapidly. Please slow down.',
+      code: 'TRACKING_RATE_LIMITED',
+    });
+  },
+});
 const uploadLimiter = createUserRateLimiter(20, 10, 'Too many file uploads. Please wait 10 minutes.', 'UPLOAD_RATE_LIMITED');
 const aiLimiter = createUserRateLimiter(10, 5, 'Too many AI requests. Please wait 5 minutes before generating again.', 'AI_RATE_LIMITED');
 const addressLimiter = createUserRateLimiter(30, 10, 'Too many address changes. Please wait 10 minutes.', 'ADDRESS_RATE_LIMITED');
@@ -284,6 +315,7 @@ app.use('/api/v1/coupons/validate', couponValidateLimiter);
 app.use('/api/v1/cart', cartLimiter);
 app.use('/api/v1/wishlist', wishlistLimiter);
 app.use('/api/v1/orders', checkoutLimiter);
+app.use('/api/v1/orders', orderTrackingLimiter);
 app.use('/api/v1/payments', checkoutLimiter);
 app.use('/api/v1/upload', uploadLimiter);
 app.use('/api/v1/ai', aiLimiter);

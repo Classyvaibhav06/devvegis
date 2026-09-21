@@ -16,16 +16,23 @@ const STATUSES = ['PENDING', 'CONFIRMED', 'PACKED', 'RIDER_ASSIGNED', 'ON_THE_WA
 
 export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
-  const orderId = resolvedParams.id;
+  const rawOrderId = resolvedParams.id;
+  const orderId = decodeURIComponent(rawOrderId || '').replace(/^#/, '').trim();
   const queryClient = useQueryClient();
 
   const { data: order, isLoading, error } = useQuery({
     queryKey: ['admin-order', orderId],
     queryFn: async () => {
-      const res = await api.get(`/orders/${orderId}`);
+      const res = await api.get(`/orders/${encodeURIComponent(orderId)}`);
       return res.data.data;
     },
-    refetchInterval: 3000, // Live poll every 3 seconds
+    refetchInterval: (query) => {
+      const currentOrder = query.state.data;
+      if (!currentOrder || ['DELIVERED', 'CANCELLED'].includes(currentOrder.status)) {
+        return false;
+      }
+      return 5000;
+    },
   });
 
   const { data: riders = [] } = useQuery({

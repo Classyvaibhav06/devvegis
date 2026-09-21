@@ -42,15 +42,37 @@ const TRACKING_STAGES = [
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
-  const orderId = resolvedParams.id;
+  const rawOrderId = resolvedParams.id;
+  const orderId = decodeURIComponent(rawOrderId || '').replace(/^#/, '').trim();
   const queryClient = useQueryClient();
   const [copiedOtp, setCopiedOtp] = useState(false);
   const [isResendingOtp, setIsResendingOtp] = useState(false);
 
+  const { data: order, isLoading, error, refetch } = useQuery({
+    queryKey: ['order', orderId],
+    queryFn: async () => {
+      const res = await api.get(`/orders/${encodeURIComponent(orderId)}`);
+      return res.data.data;
+    },
+    refetchInterval: (query) => {
+      const currentOrder = query.state.data;
+      if (!currentOrder || ['DELIVERED', 'CANCELLED'].includes(currentOrder.status)) {
+        return false;
+      }
+      return 5000; // Poll active orders every 5 seconds for smooth live tracking
+    },
+    retry: (failureCount, err: any) => {
+      if (err?.response?.status === 404) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const targetOrderId = order?.id || orderId;
+
   const handleResendOtpEmail = async () => {
     setIsResendingOtp(true);
     try {
-      await api.post(`/orders/${orderId}/resend-otp`);
+      await api.post(`/orders/${encodeURIComponent(targetOrderId)}/resend-otp`);
       toast.success('📬 Delivery OTP sent to your email via Resend!');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to resend OTP email.');
@@ -59,18 +81,9 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  const { data: order, isLoading, error } = useQuery({
-    queryKey: ['order', orderId],
-    queryFn: async () => {
-      const res = await api.get(`/orders/${orderId}`);
-      return res.data.data;
-    },
-    refetchInterval: 3000, // Live poll every 3 seconds for instant updates
-  });
-
   const cancelMutation = useMutation({
     mutationFn: async () => {
-      await api.patch(`/orders/${orderId}/cancel`);
+      await api.patch(`/orders/${encodeURIComponent(targetOrderId)}/cancel`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
@@ -100,7 +113,24 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     );
   }
 
+  const isRateLimited = (error as any)?.response?.status === 429;
+
   if (error || !order) {
+    if (isRateLimited) {
+      return (
+        <div className="container-main py-20 text-center max-w-md mx-auto">
+          <Clock className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-spin" />
+          <h1 className="text-xl font-bold mb-2">Live Tracking Busy</h1>
+          <p className="text-gray-500 mb-6">
+            Tracking updates are syncing. Click below to refresh your order status.
+          </p>
+          <button onClick={() => refetch()} className="btn-primary">
+            Refresh Status
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="container-main py-20 text-center max-w-md mx-auto">
         <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
