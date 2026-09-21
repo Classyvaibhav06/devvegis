@@ -30,7 +30,7 @@ export default function QualityPage() {
               No-Questions-Asked Instant Refund
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-[#8B96A8] leading-relaxed">
-              If an apple is bruised, spinach has wilted leaves, or produce arrives below your expectations, tap "Request Refund" in your Order History. Your DevVegis wallet will be credited within 60 seconds — no courier returns required.
+              If an apple is bruised, spinach has wilted leaves, or produce arrives below your expectations, tap "Request Refund" in your Order History. Your refund will be credited directly to your original payment method — no courier returns required.
             </p>
           </div>
         </div>

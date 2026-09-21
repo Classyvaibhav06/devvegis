@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Users, Search, Filter, ShieldCheck, UserCheck,
-  UserX, Mail, Phone, ShoppingBag, Wallet, CheckCircle2
+  UserX, Mail, Phone, ShoppingBag, CheckCircle2
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -100,7 +100,6 @@ export default function AdminUsersPage() {
                 <th className="p-4">Contact</th>
                 <th className="p-4">Role</th>
                 <th className="p-4">Orders</th>
-                <th className="p-4">Wallet</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Action</th>
               </tr>
@@ -108,13 +107,13 @@ export default function AdminUsersPage() {
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-400">
+                  <td colSpan={6} className="p-8 text-center text-gray-400">
                     Loading users database...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-500">
+                  <td colSpan={6} className="p-8 text-center text-gray-500">
                     No users found matching your search.
                   </td>
                 </tr>
@@ -166,10 +165,6 @@ export default function AdminUsersPage() {
 
                     <td className="p-4 font-semibold text-gray-800 dark:text-gray-200">
                       {u._count?.orders || 0}
-                    </td>
-
-                    <td className="p-4 font-semibold text-green-600">
-                      ₹{u.wallet?.balance || 0}
                     </td>
 
                     <td className="p-4">

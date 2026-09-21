@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { RotateCcw, Clock, ShieldCheck, Wallet, CheckCircle2 } from 'lucide-react';
+import { RotateCcw, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Refund & Cancellation Policy — Instant Wallet Credit | DevVegis',
-  description: 'DevVegis customer-first refund policy. 100% instant refund on compromised produce items within 2 hours of delivery.',
+  title: 'Refund & Cancellation Policy — Quick Resolution | DevVegis',
+  description: 'DevVegis customer-first refund policy. 100% resolution on compromised produce items within 2 hours of delivery.',
 };
 
 export default function RefundsPage() {
@@ -34,9 +34,8 @@ export default function RefundsPage() {
             2. Refund Processing Time
           </h2>
           <p>
-            • <strong>DevVegis Wallet:</strong> Processed instantly within 60 seconds of request verification.<br />
-            • <strong>Original Payment Method (UPI / Card / Net Banking):</strong> Processed within 3–5 business days as per standard RBI banking settlement cycles.<br />
-            • <strong>Cash on Delivery (COD):</strong> Credited directly to your DevVegis wallet for instant use on your next order.
+            • <strong>Original Payment Method (UPI / Card / Net Banking):</strong> Processed within 24–48 hours as per standard banking settlement cycles.<br />
+            • <strong>Cash on Delivery (COD):</strong> Refunded via direct UPI transfer or account credit upon verification by our customer support team.
           </p>
         </div>
 
