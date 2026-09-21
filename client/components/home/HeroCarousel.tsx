@@ -41,7 +41,7 @@ export default function HeroBanner() {
   const activeBanner = heroBanners[currentSlide];
 
   return (
-    <section className="relative overflow-hidden min-h-[380px] sm:min-h-[440px] lg:min-h-[500px] shadow-sm flex items-center justify-center rounded-[4px]">
+    <section className="relative overflow-hidden w-full min-h-[380px] sm:min-h-[460px] lg:min-h-[520px] flex items-center justify-center">
       {/* Background Video */}
       <video
         autoPlay
