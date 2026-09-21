@@ -47,6 +47,8 @@ execSync(
   `--define:process.env.AWS_ENDPOINT_URL_S3='${JSON.stringify(awsEndpointUrlS3)}' ` +
   `--define:process.env.AWS_REGION='${JSON.stringify(awsRegion)}' ` +
   `--define:process.env.AWS_BUCKET_NAME='${JSON.stringify(awsBucketName)}' ` +
+  `--define:process.env.JWT_ACCESS_EXPIRES_IN='"7d"' ` +
+  `--define:process.env.JWT_REFRESH_EXPIRES_IN='"30d"' ` +
   `--outfile=dist-function/index.mjs`,
   { stdio: 'inherit', cwd: root }
 );

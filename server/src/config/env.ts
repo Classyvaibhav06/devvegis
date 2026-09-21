@@ -17,8 +17,8 @@ export const config = {
   // JWT
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'devvegis_access_secret_dev_2024',
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'devvegis_refresh_secret_dev_2024',
-  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
-  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || '7d',
+  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   
   // CORS
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000',

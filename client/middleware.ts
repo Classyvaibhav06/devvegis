@@ -57,17 +57,10 @@ async function verifyJwt(token: string, secret: string): Promise<{ valid: boolea
 
 // ── Route configuration ───────────────────────────────────────────────────────
 
-/** Routes that require authentication */
+/** Strict Edge-protected administrative and rider routes */
 const PROTECTED_PREFIXES = [
   '/admin',
   '/rider',
-  '/profile',
-  '/orders',
-  '/checkout',
-  '/cart',
-  '/wishlist',
-  '/wallet',
-  '/notifications',
 ];
 
 /** Sensitive auth routes with stricter rate limits */
