@@ -24,7 +24,14 @@ export default function GoogleOAuthButton({
         process.env.NEXT_PUBLIC_NEON_AUTH_URL ||
         'https://ep-dark-smoke-a5bia8cy.neonauth.us-east-2.aws.neon.tech/neondb/auth';
 
-      const callbackURL = `${window.location.origin}/oauth-callback?role=${role}`;
+      // Always store role in localStorage before redirecting
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('devvegis_oauth_role', role);
+      }
+
+      // Use relative path for callbackURL so Neon Auth dynamically resolves against the current origin
+      // and works seamlessly across production, preview deployments, and local development
+      const callbackURL = `/oauth-callback?role=${role}`;
 
       // Call Neon Auth social sign-in to get the official Google OAuth consent URL
       const res = await fetch(`${authBase}/sign-in/social`, {
@@ -42,11 +49,6 @@ export default function GoogleOAuthButton({
       const data = await res.json();
 
       if (data.url) {
-        // Store intended role in localStorage for safety
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('devvegis_oauth_role', role);
-        }
-
         // Open real Google Account chooser / login screen
         window.location.href = data.url;
       } else {

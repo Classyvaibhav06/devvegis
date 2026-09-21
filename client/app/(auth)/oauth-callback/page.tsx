@@ -18,7 +18,10 @@ function OAuthCallbackContent() {
     if (hasProcessed.current) return;
     hasProcessed.current = true;
 
-    const errorParam = searchParams.get('oauth_error') || searchParams.get('error');
+    const errorParam =
+      searchParams.get('oauth_error') ||
+      searchParams.get('error') ||
+      searchParams.get('error_description');
     if (errorParam) {
       toast.error(`Google Login failed: ${decodeURIComponent(errorParam)}`);
       router.push('/login');
