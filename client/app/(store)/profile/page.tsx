@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, MapPin, Wallet, Tag, Share2, LogOut, ShieldCheck,
+  User, MapPin, Tag, Share2, LogOut, ShieldCheck,
   Plus, Trash2, Edit3, Copy, Check, Sparkles, ChevronRight,
   Phone, Home, Briefcase, Building, X, CheckCircle2, Loader2
 } from 'lucide-react';
@@ -13,7 +13,7 @@ import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
-type Tab = 'profile' | 'addresses' | 'wallet' | 'coupons' | 'refer';
+type Tab = 'profile' | 'addresses' | 'coupons' | 'refer';
 
 interface AddressItem {
   id: string;
@@ -75,14 +75,13 @@ export default function ProfilePage() {
         name: serverProfile.name || '',
         phone: serverProfile.phone || '',
       });
-      updateUser(serverProfile);
     } else if (user) {
-      setProfileForm({
-        name: user.name || '',
-        phone: user.phone || '',
-      });
+      setProfileForm((prev) => ({
+        name: prev.name || user.name || '',
+        phone: prev.phone || user.phone || '',
+      }));
     }
-  }, [serverProfile, user, updateUser]);
+  }, [serverProfile?.name, serverProfile?.phone, user?.name, user?.phone]);
 
   // Addresses Query
   const { data: addresses = [], isLoading: isLoadingAddresses } = useQuery({
@@ -90,16 +89,6 @@ export default function ProfilePage() {
     queryFn: async () => {
       const res = await api.get('/addresses');
       return res.data.data || [];
-    },
-    enabled: isAuthenticated,
-  });
-
-  // Wallet Query
-  const { data: walletData } = useQuery({
-    queryKey: ['wallet'],
-    queryFn: async () => {
-      const res = await api.get('/wallet');
-      return res.data.data;
     },
     enabled: isAuthenticated,
   });
@@ -216,7 +205,7 @@ export default function ProfilePage() {
     return (
       <div className="container-main py-20 text-center max-w-md mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">My Account</h1>
-        <p className="text-gray-500 mb-6">Please sign in to access your DevVegis profile and wallet.</p>
+        <p className="text-gray-500 mb-6">Please sign in to access your DevVegis profile.</p>
         <button onClick={() => router.push('/login')} className="btn-primary">
           Sign In Now
         </button>
@@ -225,7 +214,6 @@ export default function ProfilePage() {
   }
 
   const referralCode = user?.id ? `DEVVEGIS-${user.id.slice(0, 6).toUpperCase()}` : 'DEVVEGIS100';
-  const walletBalance = walletData?.balance ?? (user?.wallet?.balance ?? 0);
 
   return (
     <div className="container-main py-8">
@@ -260,7 +248,6 @@ export default function ProfilePage() {
             {[
               { id: 'profile' as const, label: 'Personal Information', icon: User },
               { id: 'addresses' as const, label: `Saved Addresses (${addresses.length})`, icon: MapPin },
-              { id: 'wallet' as const, label: `DevVegis Wallet (₹${walletBalance})`, icon: Wallet },
               { id: 'coupons' as const, label: 'Coupons & Offers', icon: Tag },
               { id: 'refer' as const, label: 'Refer & Earn', icon: Share2 },
             ].map((tab) => {
@@ -763,59 +750,7 @@ export default function ProfilePage() {
               </motion.div>
             )}
 
-            {/* Tab 3: DevVegis Wallet */}
-            {activeTab === 'wallet' && (
-              <motion.div
-                key="wallet"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="space-y-6"
-              >
-                <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-2xl p-6 shadow-green">
-                  <span className="text-xs uppercase tracking-wider text-green-100 font-semibold block mb-1">
-                    Available Wallet Balance
-                  </span>
-                  <div className="text-4xl font-heading font-extrabold mb-4">
-                    ₹{walletBalance}
-                  </div>
-                  <p className="text-xs text-green-100">
-                    Use your wallet for instant 1-tap checkout on fresh fruits & vegetables.
-                  </p>
-                </div>
-
-                <div className="card p-6">
-                  <h3 className="text-base font-heading font-bold text-gray-900 dark:text-gray-100 mb-4">
-                    Recent Wallet Transactions
-                  </h3>
-                  <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {[
-                      { id: 1, title: 'Cashback: Order #DV-8921', amt: '+₹50', type: 'credit', date: 'Yesterday' },
-                      { id: 2, title: 'Referral Bonus: John D.', amt: '+₹100', type: 'credit', date: '3 days ago' },
-                      { id: 3, title: 'Order Payment #DV-7640', amt: '-₹185', type: 'debit', date: '1 week ago' },
-                    ].map((tx) => (
-                      <div key={tx.id} className="py-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">
-                            {tx.title}
-                          </p>
-                          <p className="text-[10px] text-gray-400">{tx.date}</p>
-                        </div>
-                        <span
-                          className={`text-xs font-bold ${
-                            tx.type === 'credit' ? 'text-green-600' : 'text-rose-600'
-                          }`}
-                        >
-                          {tx.amt}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Tab 4: Coupons */}
+            {/* Tab 3: Coupons */}
             {activeTab === 'coupons' && (
               <motion.div
                 key="coupons"
@@ -854,7 +789,7 @@ export default function ProfilePage() {
               </motion.div>
             )}
 
-            {/* Tab 5: Refer & Earn */}
+            {/* Tab 4: Refer & Earn */}
             {activeTab === 'refer' && (
               <motion.div
                 key="refer"
@@ -870,7 +805,7 @@ export default function ProfilePage() {
                   Refer Friends, Earn ₹100!
                 </h3>
                 <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-                  Share your unique referral code. When your friend places their first DevVegis order, they get ₹50 off, and you get ₹100 directly in your DevVegis wallet!
+                  Share your unique referral code. When your friend places their first DevVegis order, they get ₹50 off, and you get ₹100 discount coupon on your next fresh produce order!
                 </p>
 
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl flex items-center justify-between mb-6">

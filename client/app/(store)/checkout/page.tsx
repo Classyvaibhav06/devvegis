@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  MapPin, Clock, CreditCard, Wallet, Banknote, ShieldCheck,
+  MapPin, Clock, CreditCard, Banknote, ShieldCheck,
   ChevronRight, Plus, Check, AlertCircle, Loader2, Sparkles, ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
@@ -22,7 +22,7 @@ export default function CheckoutPage() {
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [deliverySlot, setDeliverySlot] = useState<'INSTANT' | 'EVENING' | 'TOMORROW'>('INSTANT');
-  const [paymentMethod, setPaymentMethod] = useState<'RAZORPAY' | 'WALLET' | 'COD'>('RAZORPAY');
+  const [paymentMethod, setPaymentMethod] = useState<'RAZORPAY' | 'COD'>('RAZORPAY');
   const [tip, setTip] = useState<number>(10);
   const [couponCode, setCouponCode] = useState<string>('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
@@ -445,12 +445,6 @@ export default function CheckoutPage() {
                   icon: CreditCard,
                   title: 'Online Payment (UPI, Cards, NetBanking)',
                   desc: 'Powered by Razorpay sandbox with instant confirmation',
-                },
-                {
-                  id: 'WALLET' as const,
-                  icon: Wallet,
-                  title: `DevVegis Wallet (Balance: ₹${user?.wallet?.balance || 0})`,
-                  desc: 'Fast 1-tap checkout from your preloaded cashback balance',
                 },
                 {
                   id: 'COD' as const,

@@ -8,7 +8,7 @@ import {
   Search, ShoppingCart, Heart, Bell, User, Menu, X, MapPin,
   ChevronDown, Package, LogOut, Settings, Headphones,
   Sparkles, Leaf, History, Zap, Store, ShieldCheck,
-  Sun, Moon, CheckCheck, Info, AlertCircle, Apple, Wallet
+  Sun, Moon, CheckCheck, Info, AlertCircle, Apple
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useCartStore } from '@/store/cartStore';
@@ -442,12 +442,6 @@ export default function Header() {
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-[#8B96A8] truncate">{user?.email}</p>
-                        {user?.wallet && (
-                          <span className="inline-flex items-center gap-1 mt-1.5 text-xs bg-emerald-500/15 text-emerald-600 dark:text-[#34D399] border border-emerald-500/30 px-2 py-0.5 rounded-[2px] font-bold">
-                            <Wallet className="w-3 h-3 text-emerald-600 dark:text-[#34D399]" />
-                            <span>₹{user.wallet.balance}</span>
-                          </span>
-                        )}
                       </div>
 
                       {[
