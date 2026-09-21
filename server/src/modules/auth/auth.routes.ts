@@ -3,7 +3,7 @@ import { authenticate } from '../../middleware/auth';
 import {
   register, login, refreshToken, logout, verifyEmail, resendVerificationEmail,
   getVerificationStatus,
-  forgotPassword, resetPassword, sendPhoneOtp, verifyPhoneOtp, getMe,
+  forgotPassword, resetPassword, verifyResetToken, sendPhoneOtp, verifyPhoneOtp, getMe,
   googleAuth, googleAuthRedirect, googleAuthCallback, syncNeonAuth
 } from './auth.controller';
 
@@ -20,6 +20,7 @@ router.get('/verification-status', getVerificationStatus);
 router.post('/resend-verification', resendVerificationEmail);
 router.post('/resend-otp', resendVerificationEmail);
 router.post('/forgot-password', forgotPassword);
+router.get('/verify-reset-token', verifyResetToken);
 router.post('/reset-password', resetPassword);
 router.post('/send-otp', sendPhoneOtp);
 router.post('/verify-otp', verifyPhoneOtp);

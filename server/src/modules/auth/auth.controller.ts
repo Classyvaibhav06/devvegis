@@ -557,27 +557,48 @@ export const forgotPassword = async (req: AuthRequest, res: Response): Promise<v
   // Always return success to prevent user enumeration
   if (user) {
     const resetToken = uuidv4();
+    const expiresAt = Date.now() + 60 * 60 * 1000; // Strictly 1 hour from now
+
     await prisma.user.update({
       where: { id: user.id },
-      data: { emailVerifyToken: resetToken }, // Reuse field for reset
+      data: { emailVerifyToken: `RESET:${resetToken}:${expiresAt}` },
     });
 
+    // Determine correct app URL: prefer caller origin on devvegis.com over default localhost
+    const reqOrigin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : '');
+    const baseUrl = reqOrigin && (reqOrigin.includes('devvegis.com') || reqOrigin.includes('localhost'))
+      ? reqOrigin.replace(/\/$/, '')
+      : (config.APP_URL || 'https://devvegis.com').replace(/\/$/, '');
+
+    const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+
     sendEmail({
-      to: email,
+      to: cleanEmail,
       subject: '🔐 DevVegis — Password Reset Request',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #16a34a; padding: 20px; text-align: center;">
-            <h1 style="color: white;">🥦 DevVegis</h1>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+          <div style="background: #10b981; padding: 24px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">DevVegis</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 4px 0 0; font-size: 13px;">Security & Account Protection</p>
           </div>
-          <div style="padding: 30px;">
-            <h2>Reset Your Password</h2>
-            <p>Click the button below to reset your password. This link expires in 1 hour.</p>
-            <a href="${config.APP_URL}/reset-password?token=${resetToken}" 
-               style="background: #16a34a; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; margin: 20px 0;">
-              Reset Password
-            </a>
-            <p style="color: #6b7280; font-size: 14px;">If you didn't request this, please ignore this email.</p>
+          <div style="padding: 32px; background: #ffffff; color: #1e293b;">
+            <h2 style="font-size: 18px; margin: 0 0 12px; color: #0f172a;">Reset Your Password</h2>
+            <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 20px;">
+              Hello ${user.name || 'there'},<br />
+              We received a request to reset the password for your DevVegis account (<strong>${cleanEmail}</strong>). Click the button below to choose a new password:
+            </p>
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${resetUrl}" 
+                 style="background: #10b981; color: white; padding: 14px 32px; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">
+                Reset My Password
+              </a>
+            </div>
+            <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 8px;">
+              ⏱ <strong>Note:</strong> This secure reset link is valid for <strong>1 hour</strong> only and can only be used once.
+            </p>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.5; margin: 16px 0 0; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+              If you didn't request this password reset, no action is needed. Your account remains completely secure.
+            </p>
           </div>
         </div>
       `,
@@ -587,21 +608,111 @@ export const forgotPassword = async (req: AuthRequest, res: Response): Promise<v
   res.json({ success: true, message: 'If this email exists, a reset link has been sent.' });
 };
 
+export const verifyResetToken = async (req: AuthRequest, res: Response): Promise<void> => {
+  const token = String(req.query.token || '').trim();
+  if (!token) {
+    throw new AppError('Reset token is required', 400, 'INVALID_TOKEN');
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { emailVerifyToken: { startsWith: `RESET:${token}:` } },
+        { emailVerifyToken: token },
+      ],
+    },
+    select: { id: true, email: true, emailVerifyToken: true },
+  });
+
+  if (!user || !user.emailVerifyToken) {
+    throw new AppError('Invalid or expired reset link. Please request a new one.', 400, 'INVALID_TOKEN');
+  }
+
+  if (user.emailVerifyToken.startsWith('RESET:')) {
+    const parts = user.emailVerifyToken.split(':');
+    if (parts.length === 3 && Date.now() > Number(parts[2])) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerifyToken: null },
+      });
+      throw new AppError('Password reset link has expired. Please request a new one.', 400, 'TOKEN_EXPIRED');
+    }
+  }
+
+  res.json({
+    success: true,
+    data: { email: user.email },
+    message: 'Reset token is valid',
+  });
+};
+
 export const resetPassword = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { token, password } = req.body;
+  const { token, password, turnstileToken } = req.body;
 
-  const user = await prisma.user.findFirst({ where: { emailVerifyToken: token } });
+  if (turnstileToken || config.NODE_ENV === 'production') {
+    const turnstileResult = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!turnstileResult.success) {
+      throw new AppError(turnstileResult.error || 'Security verification failed', 400, 'BOT_VERIFICATION_FAILED');
+    }
+  }
 
-  if (!user) throw new AppError('Invalid or expired reset link', 400, 'INVALID_TOKEN');
+  // Rate limiting per IP to prevent brute-force attacks on reset tokens
+  const ipKey = `reset_pwd_ip_${req.ip}`;
+  const ipAttempts = memoryCache.get<number>(ipKey) || 0;
+  if (ipAttempts >= 10) {
+    throw new AppError('Too many password reset attempts. Please try again after 15 minutes.', 429, 'RATE_LIMITED');
+  }
+  memoryCache.set(ipKey, ipAttempts + 1, 900);
+
+  const cleanToken = String(token || '').trim();
+  if (!cleanToken) {
+    throw new AppError('Invalid reset token', 400, 'INVALID_TOKEN');
+  }
+
+  if (!password || typeof password !== 'string' || password.length < 8) {
+    throw new AppError('Password must be at least 8 characters long.', 400, 'WEAK_PASSWORD');
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { emailVerifyToken: { startsWith: `RESET:${cleanToken}:` } },
+        { emailVerifyToken: cleanToken },
+      ],
+    },
+  });
+
+  if (!user || !user.emailVerifyToken) {
+    throw new AppError('Invalid or expired reset link. Please request a new one.', 400, 'INVALID_TOKEN');
+  }
+
+  // Check 1-hour expiration timestamp
+  if (user.emailVerifyToken.startsWith('RESET:')) {
+    const parts = user.emailVerifyToken.split(':');
+    if (parts.length === 3 && Date.now() > Number(parts[2])) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerifyToken: null },
+      });
+      throw new AppError('Password reset link has expired. Please request a new one.', 400, 'TOKEN_EXPIRED');
+    }
+  }
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { password: hashedPassword, emailVerifyToken: null, refreshToken: null },
+    data: {
+      password: hashedPassword,
+      emailVerifyToken: null,
+      refreshToken: null,
+      isEmailVerified: true,
+    },
   });
 
-  res.json({ success: true, message: 'Password reset successfully. Please login.' });
+  logger.info(`[AUTH] Password successfully reset for user ${user.email}`);
+
+  res.json({ success: true, message: 'Password reset successfully. Please sign in with your new password.' });
 };
 
 export const sendPhoneOtp = async (req: AuthRequest, res: Response): Promise<void> => {

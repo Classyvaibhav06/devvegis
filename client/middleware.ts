@@ -75,6 +75,7 @@ const SENSITIVE_AUTH_PREFIXES = [
   '/login',
   '/register',
   '/forgot-password',
+  '/reset-password',
   '/verify-email',
 ];
 
