@@ -68,7 +68,6 @@ const PROTECTED_PREFIXES = [
   '/wishlist',
   '/wallet',
   '/notifications',
-  '/oauth-callback',
 ];
 
 /** Sensitive auth routes with stricter rate limits */

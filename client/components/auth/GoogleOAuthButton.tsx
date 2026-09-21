@@ -35,6 +35,7 @@ export default function GoogleOAuthButton({
         body: JSON.stringify({
           provider: 'google',
           callbackURL,
+          newUserCallbackURL: callbackURL,
         }),
       });
 
@@ -49,10 +50,13 @@ export default function GoogleOAuthButton({
         // Open real Google Account chooser / login screen
         window.location.href = data.url;
       } else {
-        toast.error(data.message || 'Failed to initialize Google OAuth session.');
+        const errorMsg = data.error || data.message || 'Failed to initialize Google OAuth session.';
+        console.error('Neon Auth Google error:', data);
+        toast.error(errorMsg);
         setLoading(false);
       }
     } catch (err: any) {
+      console.error('Google OAuth init network error:', err);
       toast.error('Network error initiating Google login. Please try again.');
       setLoading(false);
     }

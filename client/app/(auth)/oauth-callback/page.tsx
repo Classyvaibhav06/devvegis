@@ -58,6 +58,12 @@ function OAuthCallbackContent() {
           console.warn('Direct Neon get-session check:', sessionErr);
         }
 
+        const sessionToken =
+          searchParams.get('token') ||
+          searchParams.get('session_token') ||
+          searchParams.get('sessionToken') ||
+          undefined;
+
         // 2. Synchronize with DevVegis backend
         setStatusText('Securing your account and generating session...');
         let backendRes: any;
@@ -70,8 +76,9 @@ function OAuthCallbackContent() {
             role,
           });
         } else {
-          // If cookies were blocked, sync from the database neon_auth schema
+          // Sync from the database neon_auth schema using sessionToken
           backendRes = await api.post('/auth/neon-sync', {
+            sessionToken,
             role,
           });
         }
@@ -84,20 +91,20 @@ function OAuthCallbackContent() {
           localStorage.removeItem('devvegis_oauth_role');
         }
 
-        // Route to appropriate section
-        if (user.role === 'ADMIN') {
-          router.push('/admin');
-        } else if (user.role === 'RIDER') {
-          router.push('/rider');
-        } else if (user.role === 'WHOLESALE_BUYER') {
-          router.push('/wholesale');
-        } else {
-          router.push('/');
-        }
+        // Full document navigation so Edge middleware immediately sees the new cookie
+        const destination =
+          user.role === 'ADMIN'
+            ? '/admin'
+            : user.role === 'RIDER'
+            ? '/rider'
+            : user.role === 'WHOLESALE_BUYER'
+            ? '/wholesale'
+            : '/';
+        window.location.href = destination;
       } catch (err: any) {
         console.error('OAuth sync error:', err);
         toast.error(err.response?.data?.message || 'Failed to complete Google Sign-in. Please try again.');
-        router.push('/login');
+        window.location.href = '/login';
       }
     };
 
