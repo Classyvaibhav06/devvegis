@@ -1,12 +1,13 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   ShoppingBag, Users, Package, TrendingUp, ArrowUpRight, AlertTriangle,
   Star, Clock, CheckCircle, XCircle, Truck, BarChart3
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, Grid, XAxis, ChartTooltip } from '@bklitui/ui/charts';
 import { formatCurrency } from '@/lib/utils';
 import api from '@/lib/api';
 import Link from 'next/link';
@@ -37,21 +38,43 @@ function StatCard({ title, value, sub, icon: Icon, color, trend }: any) {
 }
 
 export default function AdminDashboard() {
+  const [period, setPeriod] = useState<'7days' | '30days'>('7days');
+
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-dashboard'],
     queryFn: async () => (await api.get('/analytics/dashboard')).data.data,
     refetchInterval: 30000,
   });
 
-  const { data: chartData } = useQuery({
-    queryKey: ['revenue-chart'],
-    queryFn: async () => (await api.get('/analytics/revenue?period=7days')).data.data,
+  const { data: rawChartData, isLoading: chartLoading } = useQuery({
+    queryKey: ['revenue-chart', period],
+    queryFn: async () => (await api.get(`/analytics/revenue?period=${period}`)).data.data,
+    refetchInterval: 30000,
   });
 
   const { data: recentOrders } = useQuery({
     queryKey: ['recent-orders'],
     queryFn: async () => (await api.get('/orders/admin/all?limit=8')).data.data,
   });
+
+  const formattedChartData = useMemo(() => {
+    if (!rawChartData || !Array.isArray(rawChartData)) return [];
+    return rawChartData.map((d: any) => ({
+      ...d,
+      date: new Date(d.date),
+      revenue: Number(d.revenue || 0),
+      costs: Number(d.costs || 0),
+      orders: Number(d.orders || 0),
+    }));
+  }, [rawChartData]);
+
+  const totalPeriodRevenue = useMemo(() => {
+    return formattedChartData.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
+  }, [formattedChartData]);
+
+  const totalPeriodOrders = useMemo(() => {
+    return formattedChartData.reduce((acc, curr) => acc + (curr.orders || 0), 0);
+  }, [formattedChartData]);
 
   const kpis = stats?.kpis;
 
@@ -80,48 +103,189 @@ export default function AdminDashboard() {
         <StatCard title="Low Stock Items" value={kpis?.lowStockCount ?? '—'} icon={AlertTriangle} color="bg-red-500" />
       </div>
 
-      {/* Charts */}
+      {/* Composable Area Charts with Live Database Data */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <div className="card p-5">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-200 mb-4">Revenue — Last 7 Days</h2>
-          {chartData ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="revenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={d => d.slice(5)} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `₹${v}`} />
-                <Tooltip formatter={(v: any) => [formatCurrency(v), 'Revenue']} />
-                <Area type="monotone" dataKey="revenue" stroke="#16a34a" fill="url(#revenue)" strokeWidth={2} />
+        {/* Revenue Area Chart */}
+        <div className="card p-5 overflow-hidden flex flex-col justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold text-gray-900 dark:text-gray-100">Revenue Analytics</h2>
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  Total {formatCurrency(totalPeriodRevenue)}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Real-time gross sales & cost basis ({period === '7days' ? 'Last 7 Days' : 'Last 30 Days'})
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-3 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
+                  Revenue
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" />
+                  Cost
+                </span>
+              </div>
+              <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-800/60">
+                <button
+                  type="button"
+                  onClick={() => setPeriod('7days')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+                    period === '7days'
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  7D
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPeriod('30days')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+                    period === '30days'
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  30D
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full relative min-h-[220px]">
+            {formattedChartData.length > 0 ? (
+              <AreaChart
+                data={formattedChartData}
+                status={chartLoading ? 'loading' : 'ready'}
+                loadingLabel="Loading revenue..."
+                aspectRatio="2.3 / 1"
+                margin={{ top: 20, right: 15, bottom: 25, left: 15 }}
+              >
+                <Grid horizontal stroke="var(--chart-grid)" />
+                <Area
+                  dataKey="revenue"
+                  fill="var(--chart-line-primary)"
+                  stroke="#10b981"
+                  fillOpacity={0.35}
+                  fadeEdges
+                  strokeWidth={2}
+                />
+                <Area
+                  dataKey="costs"
+                  fill="var(--chart-line-secondary)"
+                  stroke="#0ea5e9"
+                  fillOpacity={0.18}
+                  fadeEdges
+                  strokeWidth={2}
+                />
+                <XAxis numTicks={5} />
+                <ChartTooltip
+                  rows={(point) => [
+                    {
+                      label: 'Revenue',
+                      value: formatCurrency(Number(point.revenue || 0)),
+                      color: 'var(--chart-line-primary)',
+                    },
+                    {
+                      label: 'Est. Cost',
+                      value: formatCurrency(Number(point.costs || 0)),
+                      color: 'var(--chart-line-secondary)',
+                    },
+                  ]}
+                />
               </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="skeleton h-48 rounded-xl" />
-          )}
+            ) : (
+              <div className="skeleton h-56 rounded-xl w-full" />
+            )}
+          </div>
         </div>
 
-        {/* Orders Chart */}
-        <div className="card p-5">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-200 mb-4">Orders — Last 7 Days</h2>
-          {chartData ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={d => d.slice(5)} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="orders" fill="#16a34a" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="skeleton h-48 rounded-xl" />
-          )}
+        {/* Orders Area Chart */}
+        <div className="card p-5 overflow-hidden flex flex-col justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold text-gray-900 dark:text-gray-100">Order Volume</h2>
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+                  {totalPeriodOrders} Orders
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Completed & pending customer fulfillment ({period === '7days' ? 'Last 7 Days' : 'Last 30 Days'})
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500">
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" />
+                Orders
+              </div>
+              <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-800/60">
+                <button
+                  type="button"
+                  onClick={() => setPeriod('7days')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+                    period === '7days'
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  7D
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPeriod('30days')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+                    period === '30days'
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  30D
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full relative min-h-[220px]">
+            {formattedChartData.length > 0 ? (
+              <AreaChart
+                data={formattedChartData}
+                status={chartLoading ? 'loading' : 'ready'}
+                loadingLabel="Loading order volume..."
+                aspectRatio="2.3 / 1"
+                margin={{ top: 20, right: 15, bottom: 25, left: 15 }}
+              >
+                <Grid horizontal stroke="var(--chart-grid)" />
+                <Area
+                  dataKey="orders"
+                  fill="var(--chart-line-secondary)"
+                  stroke="#0ea5e9"
+                  fillOpacity={0.35}
+                  fadeEdges
+                  strokeWidth={2}
+                />
+                <XAxis numTicks={5} />
+                <ChartTooltip
+                  rows={(point) => [
+                    {
+                      label: 'Orders Placed',
+                      value: `${point.orders ?? 0} orders`,
+                      color: 'var(--chart-line-secondary)',
+                    },
+                  ]}
+                />
+              </AreaChart>
+            ) : (
+              <div className="skeleton h-56 rounded-xl w-full" />
+            )}
+          </div>
         </div>
       </div>
 

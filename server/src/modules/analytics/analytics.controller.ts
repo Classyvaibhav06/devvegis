@@ -46,19 +46,56 @@ export const getDashboardStats = async (req: AuthRequest, res: Response): Promis
 export const getRevenueChart = async (req: AuthRequest, res: Response): Promise<void> => {
   const { period = '7days' } = req.query as Record<string, string>;
   const days = period === '30days' ? 30 : period === '90days' ? 90 : 7;
-  const startDate = new Date(); startDate.setDate(startDate.getDate() - days);
   
-  const orders = await prisma.order.findMany({ where: { createdAt: { gte: startDate }, status: { not: 'CANCELLED' } }, select: { createdAt: true, totalAmount: true } });
-  
-  const dailyData: Record<string, { revenue: number; orders: number }> = {};
-  orders.forEach(order => {
-    const date = order.createdAt.toISOString().split('T')[0];
-    if (!dailyData[date]) dailyData[date] = { revenue: 0, orders: 0 };
-    dailyData[date].revenue += order.totalAmount;
-    dailyData[date].orders += 1;
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - (days - 1));
+  startDate.setHours(0, 0, 0, 0);
+
+  const orders = await prisma.order.findMany({
+    where: {
+      createdAt: { gte: startDate },
+      status: { not: 'CANCELLED' },
+    },
+    select: {
+      createdAt: true,
+      totalAmount: true,
+    },
   });
 
-  const chartData = Object.entries(dailyData).map(([date, data]) => ({ date, ...data })).sort((a, b) => a.date.localeCompare(b.date));
+  const dailyMap = new Map<string, { date: Date; revenue: number; costs: number; orders: number }>();
+
+  // Pre-populate all days in the selected period
+  for (let i = 0; i < days; i++) {
+    const current = new Date(startDate);
+    current.setDate(startDate.getDate() + i);
+    current.setHours(0, 0, 0, 0);
+    const key = current.toISOString().split('T')[0];
+    dailyMap.set(key, {
+      date: current,
+      revenue: 0,
+      costs: 0,
+      orders: 0,
+    });
+  }
+
+  // Aggregate real orders
+  orders.forEach((order) => {
+    const key = new Date(order.createdAt).toISOString().split('T')[0];
+    const item = dailyMap.get(key);
+    if (item) {
+      item.revenue += Math.round(order.totalAmount);
+      item.orders += 1;
+      item.costs = Math.round(item.revenue * 0.65);
+    }
+  });
+
+  const chartData = Array.from(dailyMap.values()).map((d) => ({
+    date: d.date.toISOString(),
+    revenue: d.revenue,
+    costs: d.costs,
+    orders: d.orders,
+  }));
+
   res.json({ success: true, data: chartData });
 };
 

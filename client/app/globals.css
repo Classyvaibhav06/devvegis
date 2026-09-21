@@ -45,8 +45,25 @@
   --radius-sm:      2px;
   --radius-xs:      0px;
   --shadow-sm:      0 1px 3px rgba(0,0,0,0.06);
-  --shadow:         0 4px 20px rgba(0,0,0,0.05);
   --shadow-brand:   0 0 24px rgba(16,185,129,0.18);
+
+  /* Composable Chart Tokens */
+  --chart-background: #ffffff;
+  --chart-foreground: #0f172a;
+  --chart-foreground-muted: #64748b;
+  --chart-line-primary: #10b981;
+  --chart-line-secondary: #0ea5e9;
+  --chart-crosshair: #10b981;
+  --chart-grid: rgba(226, 232, 240, 0.8);
+  --chart-tooltip-foreground: #0f172a;
+  --chart-tooltip-muted: #64748b;
+  --chart-marker-background: #ffffff;
+  --chart-marker-border: #e2e8f0;
+  --chart-marker-foreground: #0f172a;
+  --chart-marker-badge-background: #000000;
+  --chart-marker-badge-foreground: #ffffff;
+  --chart-segment-background: rgba(16, 185, 129, 0.08);
+  --chart-segment-line: rgba(16, 185, 129, 0.35);
 }
 
 /* ─── Pet-Pooja Signature Obsidian & Neon Emerald Tokens (Dark Mode) ── */
@@ -89,6 +106,24 @@
   --shadow-sm:      0 2px 8px rgba(0,0,0,0.35);
   --shadow:         0 8px 30px rgba(0,0,0,0.5);
   --shadow-brand:   0 0 24px rgba(16,185,129,0.22);
+  
+  /* Composable Chart Tokens (Dark Mode) */
+  --chart-background: #0f172a;
+  --chart-foreground: #f8fafc;
+  --chart-foreground-muted: #94a3b8;
+  --chart-line-primary: #10b981;
+  --chart-line-secondary: #38bdf8;
+  --chart-crosshair: #34d399;
+  --chart-grid: rgba(51, 65, 85, 0.4);
+  --chart-tooltip-foreground: #f8fafc;
+  --chart-tooltip-muted: #94a3b8;
+  --chart-marker-background: #1e293b;
+  --chart-marker-border: #334155;
+  --chart-marker-foreground: #f8fafc;
+  --chart-marker-badge-background: #ffffff;
+  --chart-marker-badge-foreground: #0f172a;
+  --chart-segment-background: rgba(16, 185, 129, 0.12);
+  --chart-segment-line: rgba(16, 185, 129, 0.45);
 }
 
 /* ─── Base Styles ─────────────────────────── */
