@@ -41,40 +41,41 @@ export default function HeroBanner() {
   const activeBanner = heroBanners[currentSlide];
 
   return (
-    <section className="relative overflow-hidden min-h-[340px] sm:min-h-[400px] lg:min-h-[460px] shadow-sm flex items-center justify-center">
-      {/* Background Image */}
-      <Image
-        src={
-          activeBanner?.imageUrl ||
-          'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80'
-        }
-        alt={activeBanner?.title || 'Fresh grocery background'}
-        fill
-        className="object-cover transition-all duration-700"
-        sizes="100vw"
-        priority
-      />
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-white/90 sm:bg-white/80 dark:bg-[#080C14]/90 sm:dark:bg-[#080C14]/80 backdrop-blur-[2px]" />
+    <section className="relative overflow-hidden min-h-[380px] sm:min-h-[440px] lg:min-h-[500px] shadow-sm flex items-center justify-center rounded-[4px]">
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster={activeBanner?.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80"}
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/8851735-uhd_4096_2160_24fps.mp4" type="video/mp4" />
+      </video>
+
+      {/* Cinematic Tint & Gradient Overlays for High Legibility */}
+      <div className="absolute inset-0 bg-black/45 dark:bg-[#080C14]/65 backdrop-blur-[0.5px]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/55 dark:from-[#080C14] dark:via-black/35 dark:to-[#080C14]/70" />
 
       {/* Centered Content */}
-      <div className="relative z-10 p-6 sm:p-12 lg:p-16 max-w-3xl flex flex-col items-center text-center justify-center min-h-[340px] sm:min-h-[400px] mx-auto">
-        {activeBanner?.subtitle && (
-          <span className="inline-block text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-2">
-            {activeBanner.subtitle}
-          </span>
-        )}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] leading-[1.12] tracking-tight">
+      <div className="relative z-10 p-6 sm:p-12 lg:p-16 max-w-3xl flex flex-col items-center text-center justify-center min-h-[380px] sm:min-h-[440px] mx-auto">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-300 border border-white/15 mb-3 shadow-xs">
+          ✨ {activeBanner?.subtitle || '100% Certified Farm-Direct Produce'}
+        </span>
+
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-heading font-extrabold text-white leading-[1.12] tracking-tight drop-shadow-md">
           {activeBanner?.title ? (
             activeBanner.title
           ) : (
             <>
               Farm-Fresh Produce.<br />
-              Delivered in <span className="text-emerald-600 dark:text-emerald-400">Minutes.</span>
+              Delivered in <span className="text-emerald-400">Minutes.</span>
             </>
           )}
         </h1>
-        <p className="text-slate-600 dark:text-[#8B96A8] text-xs sm:text-base md:text-lg mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto">
+        <p className="text-white/90 text-xs sm:text-base md:text-lg mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto drop-shadow-sm font-medium">
           {activeBanner?.subtitle
             ? `Exclusive fresh stock directly sourced and delivered to your kitchen with speed and quality.`
             : 'DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and hydroponic greens harvested at dawn.'}
@@ -84,7 +85,7 @@ export default function HeroBanner() {
           <div className="mt-5 sm:mt-8 flex justify-center">
             <Link
               href={activeBanner.linkValue}
-              className="inline-flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white dark:text-[#080C14] px-7 py-3.5 rounded-[2px] text-sm font-bold transition-all shadow-xs hover:gap-3 active:translate-y-0.5"
+              className="inline-flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white dark:text-[#080C14] px-7 py-3.5 rounded-[2px] text-sm font-bold transition-all shadow-md hover:gap-3 active:translate-y-0.5"
             >
               <span>Explore Collection</span>
               <ArrowRight className="w-4 h-4" />
@@ -95,7 +96,7 @@ export default function HeroBanner() {
           <div className="mt-5 sm:mt-8 flex justify-center">
             <Link
               href="/categories"
-              className="inline-flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white dark:text-[#080C14] px-7 py-3.5 rounded-[2px] text-sm font-bold transition-all shadow-xs hover:gap-3 active:translate-y-0.5"
+              className="inline-flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white dark:text-[#080C14] px-7 py-3.5 rounded-[2px] text-sm font-bold transition-all shadow-md hover:gap-3 active:translate-y-0.5"
             >
               <span>Explore Fresh Harvest</span>
               <ArrowRight className="w-4 h-4" />
@@ -105,16 +106,16 @@ export default function HeroBanner() {
           /* Centered Newsletter Input (Guest Only) */
           <form
             onSubmit={handleSubscribe}
-            className="flex flex-col sm:flex-row items-stretch sm:items-center mt-5 sm:mt-8 w-full max-w-md shadow-xs rounded-[2px] overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white sm:dark:bg-[#161E2E] border border-slate-200 dark:border-white/[0.08]"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center mt-5 sm:mt-8 w-full max-w-md shadow-lg rounded-[2px] overflow-hidden gap-1.5 sm:gap-0 bg-transparent sm:bg-white/95 sm:backdrop-blur-md border border-white/20"
           >
-            <div className="flex items-center bg-white dark:bg-[#161E2E] px-4 py-3 gap-2.5 rounded-[2px] sm:rounded-none flex-1">
-              <Mail className="w-4 h-4 text-slate-400 dark:text-[#4E5A6B] shrink-0" />
+            <div className="flex items-center bg-white/95 dark:bg-[#161E2E]/95 px-4 py-3 gap-2.5 rounded-[2px] sm:rounded-none flex-1">
+              <Mail className="w-4 h-4 text-slate-500 dark:text-[#4E5A6B] shrink-0" />
               <input
                 type="email"
                 placeholder="Your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-400 dark:placeholder-[#4E5A6B] outline-none w-full"
+                className="bg-transparent text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8] placeholder-slate-500 dark:placeholder-[#4E5A6B] outline-none w-full"
               />
             </div>
             <button
