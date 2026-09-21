@@ -7,12 +7,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, MapPin, Tag, Share2, LogOut, ShieldCheck,
   Plus, Trash2, Edit3, Copy, Check, Sparkles, ChevronRight,
-  Phone, Home, Briefcase, Building, X, CheckCircle2, Loader2
+  Phone, Home, Briefcase, Building, X, CheckCircle2, Loader2, LocateFixed
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useAuthModalStore } from '@/store/authModalStore';
 import GoogleOAuthButton from '@/components/auth/GoogleOAuthButton';
 import api from '@/lib/api';
+import { detectCurrentPosition } from '@/lib/geolocation';
 import { toast } from 'sonner';
 
 type Tab = 'profile' | 'addresses' | 'coupons' | 'refer';
@@ -28,6 +29,8 @@ interface AddressItem {
   city: string;
   state: string;
   pincode: string;
+  latitude?: number | null;
+  longitude?: number | null;
   isDefault: boolean;
 }
 
@@ -38,9 +41,11 @@ const EMPTY_ADDRESS_FORM = {
   addressLine1: '',
   addressLine2: '',
   landmark: '',
-  city: 'Bengaluru',
-  state: 'Karnataka',
-  pincode: '560001',
+  city: '',
+  state: '',
+  pincode: '',
+  latitude: null as number | null,
+  longitude: null as number | null,
   isDefault: false,
 };
 
@@ -54,6 +59,7 @@ export default function ProfilePage() {
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
@@ -188,12 +194,37 @@ export default function ProfilePage() {
       addressLine1: addr.addressLine1 || '',
       addressLine2: addr.addressLine2 || '',
       landmark: addr.landmark || '',
-      city: addr.city || 'Bengaluru',
-      state: addr.state || 'Karnataka',
+      city: addr.city || '',
+      state: addr.state || '',
       pincode: addr.pincode || '',
+      latitude: addr.latitude || null,
+      longitude: addr.longitude || null,
       isDefault: addr.isDefault || false,
     });
     setShowAddressForm(true);
+  };
+
+  const handleDetectLocation = async () => {
+    setIsDetectingLocation(true);
+    try {
+      const loc = await detectCurrentPosition();
+      setAddressForm((prev) => ({
+        ...prev,
+        city: loc.city || prev.city,
+        state: loc.state || prev.state,
+        pincode: loc.pincode || prev.pincode,
+        addressLine2: loc.suburb || loc.road || prev.addressLine2,
+        landmark: loc.landmark || prev.landmark,
+        addressLine1: prev.addressLine1 ? prev.addressLine1 : (loc.road || ''),
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      }));
+      toast.success('Current location captured! Please verify and enter your flat/house number.');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to capture current location');
+    } finally {
+      setIsDetectingLocation(false);
+    }
   };
 
   const handleCopyReferral = () => {
@@ -495,6 +526,38 @@ export default function ProfilePage() {
                         >
                           <X className="w-4 h-4" />
                         </button>
+                      </div>
+
+                      {/* Direct Capture Current Position Button */}
+                      <div className="space-y-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={handleDetectLocation}
+                          disabled={isDetectingLocation}
+                          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-green-600/30 bg-green-600/10 hover:bg-green-600/20 active:scale-[0.99] text-green-700 dark:text-green-300 font-semibold text-xs sm:text-sm transition-all shadow-sm group"
+                        >
+                          {isDetectingLocation ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin text-green-600" />
+                              <span>Detecting GPS & reverse geocoding address...</span>
+                            </>
+                          ) : (
+                            <>
+                              <LocateFixed className="w-4 h-4 text-green-600 group-hover:scale-110 transition-transform" />
+                              <span>Use Current Location (Auto-fill via GPS)</span>
+                            </>
+                          )}
+                        </button>
+
+                        {addressForm.latitude && addressForm.longitude && (
+                          <div className="flex items-center justify-between text-[11px] px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                            <div className="flex items-center gap-1.5">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>GPS coordinates mapped: <strong>{addressForm.latitude.toFixed(4)}, {addressForm.longitude.toFixed(4)}</strong></span>
+                            </div>
+                            <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-md">High Accuracy</span>
+                          </div>
+                        )}
                       </div>
 
                       <form

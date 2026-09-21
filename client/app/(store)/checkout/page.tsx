@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   MapPin, Clock, CreditCard, Banknote, ShieldCheck,
-  ChevronRight, Plus, Check, AlertCircle, Loader2, Sparkles, ArrowLeft
+  ChevronRight, Plus, Check, AlertCircle, Loader2, Sparkles, ArrowLeft,
+  LocateFixed, CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
@@ -14,6 +15,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useAuthModalStore } from '@/store/authModalStore';
 import GoogleOAuthButton from '@/components/auth/GoogleOAuthButton';
 import api from '@/lib/api';
+import { detectCurrentPosition } from '@/lib/geolocation';
 import { toast } from 'sonner';
 
 export default function CheckoutPage() {
@@ -31,16 +33,43 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [showNewAddress, setShowNewAddress] = useState(false);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [newAddressForm, setNewAddressForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
     addressLine1: '',
+    addressLine2: '',
     landmark: '',
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    pincode: '560001',
-    label: 'HOME',
+    city: '',
+    state: '',
+    pincode: '',
+    label: 'Home',
+    latitude: null as number | null,
+    longitude: null as number | null,
   });
+
+  const handleDetectCheckoutLocation = async () => {
+    setIsDetectingLocation(true);
+    try {
+      const loc = await detectCurrentPosition();
+      setNewAddressForm((prev) => ({
+        ...prev,
+        city: loc.city || prev.city,
+        state: loc.state || prev.state,
+        pincode: loc.pincode || prev.pincode,
+        addressLine2: loc.suburb || loc.road || prev.addressLine2,
+        landmark: loc.landmark || prev.landmark,
+        addressLine1: prev.addressLine1 ? prev.addressLine1 : (loc.road || ''),
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      }));
+      toast.success('Current location captured! Please verify and enter your flat/house number.');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to capture current location');
+    } finally {
+      setIsDetectingLocation(false);
+    }
+  };
 
   // Fetch saved addresses
   const { data: addresses = [], isLoading: isLoadingAddresses } = useQuery({
@@ -273,35 +302,77 @@ export default function CheckoutPage() {
 
             {/* New Address Form */}
             {showNewAddress && (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  createAddressMutation.mutate(newAddressForm);
-                }}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2"
-              >
-                <div>
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={newAddressForm.name}
-                    onChange={(e) => setNewAddressForm({ ...newAddressForm, name: e.target.value })}
-                    className="input"
-                    placeholder="Recipient's Name"
-                  />
+              <div className="space-y-4 pt-2">
+                {/* Direct Capture Current Position Button */}
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleDetectCheckoutLocation}
+                    disabled={isDetectingLocation}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-green-600/30 bg-green-600/10 hover:bg-green-600/20 active:scale-[0.99] text-green-700 dark:text-green-300 font-semibold text-xs transition-all shadow-sm group"
+                  >
+                    {isDetectingLocation ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-green-600" />
+                        <span>Detecting GPS & auto-filling address...</span>
+                      </>
+                    ) : (
+                      <>
+                        <LocateFixed className="w-4 h-4 text-green-600 group-hover:scale-110 transition-transform" />
+                        <span>Use Current Location (Auto-fill via GPS)</span>
+                      </>
+                    )}
+                  </button>
+
+                  {newAddressForm.latitude && newAddressForm.longitude && (
+                    <div className="flex items-center justify-between text-[11px] px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>GPS coordinates mapped: <strong>{newAddressForm.latitude.toFixed(4)}, {newAddressForm.longitude.toFixed(4)}</strong></span>
+                      </div>
+                      <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-md">High Accuracy</span>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    required
-                    value={newAddressForm.phone}
-                    onChange={(e) => setNewAddressForm({ ...newAddressForm, phone: e.target.value })}
-                    className="input"
-                    placeholder="10-digit mobile"
-                  />
-                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!/^\d{10}$/.test(newAddressForm.phone.trim())) {
+                      toast.error('Please enter a valid 10-digit phone number');
+                      return;
+                    }
+                    if (!/^\d{6}$/.test(newAddressForm.pincode.trim())) {
+                      toast.error('Please enter a valid 6-digit postal pincode');
+                      return;
+                    }
+                    createAddressMutation.mutate(newAddressForm);
+                  }}
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                >
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newAddressForm.name}
+                      onChange={(e) => setNewAddressForm({ ...newAddressForm, name: e.target.value })}
+                      className="input text-xs"
+                      placeholder="Recipient's Name"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Phone Number (10 digits) *</label>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      required
+                      value={newAddressForm.phone}
+                      onChange={(e) => setNewAddressForm({ ...newAddressForm, phone: e.target.value.replace(/\D/g, '') })}
+                      className="input font-mono text-xs"
+                      placeholder="9876543210"
+                    />
+                  </div>
                   <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Tag As</label>
                     <div className="flex gap-2">
@@ -310,9 +381,9 @@ export default function CheckoutPage() {
                           type="button"
                           key={l}
                           onClick={() => setNewAddressForm({ ...newAddressForm, label: l })}
-                          className={`px-3 py-1 rounded-[2px] text-xs font-semibold transition-all ${
+                          className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
                             newAddressForm.label.toUpperCase() === l.toUpperCase()
-                              ? 'bg-green-600 text-white'
+                              ? 'bg-green-600 text-white shadow-sm'
                               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                           }`}
                         >
@@ -328,8 +399,18 @@ export default function CheckoutPage() {
                       required
                       value={newAddressForm.addressLine1}
                       onChange={(e) => setNewAddressForm({ ...newAddressForm, addressLine1: e.target.value })}
-                      className="input"
+                      className="input text-xs"
                       placeholder="Flat 402, Green Meadows Apartment, 12th Main Road"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Area, Street, Sector (Optional)</label>
+                    <input
+                      type="text"
+                      value={newAddressForm.addressLine2}
+                      onChange={(e) => setNewAddressForm({ ...newAddressForm, addressLine2: e.target.value })}
+                      className="input text-xs"
+                      placeholder="e.g. Indiranagar 2nd Stage"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -338,7 +419,7 @@ export default function CheckoutPage() {
                       type="text"
                       value={newAddressForm.landmark}
                       onChange={(e) => setNewAddressForm({ ...newAddressForm, landmark: e.target.value })}
-                      className="input"
+                      className="input text-xs"
                       placeholder="Near Metro Station / Next to Cafe"
                     />
                   </div>
@@ -349,10 +430,22 @@ export default function CheckoutPage() {
                       required
                       value={newAddressForm.city}
                       onChange={(e) => setNewAddressForm({ ...newAddressForm, city: e.target.value })}
-                      className="input"
+                      className="input text-xs"
+                      placeholder="e.g. Bengaluru"
                     />
                   </div>
                   <div>
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">State *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newAddressForm.state}
+                      onChange={(e) => setNewAddressForm({ ...newAddressForm, state: e.target.value })}
+                      className="input text-xs"
+                      placeholder="e.g. Karnataka"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-700 dark:text-gray-300 block mb-1">Pincode (6 digits) *</label>
                     <input
                       type="text"
@@ -360,28 +453,29 @@ export default function CheckoutPage() {
                       required
                       value={newAddressForm.pincode}
                       onChange={(e) => setNewAddressForm({ ...newAddressForm, pincode: e.target.value.replace(/\D/g, '') })}
-                      className="input font-mono"
+                      className="input font-mono text-xs"
                       placeholder="560001"
                     />
                   </div>
-                <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowNewAddress(false)}
-                    className="btn-secondary text-xs py-2 px-4"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={createAddressMutation.isPending}
-                    className="btn-primary text-xs py-2 px-4 flex items-center gap-1.5"
-                  >
-                    {createAddressMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    <span>Save & Select</span>
-                  </button>
-                </div>
-              </form>
+                  <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowNewAddress(false)}
+                      className="btn-secondary text-xs py-2 px-4"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={createAddressMutation.isPending}
+                      className="btn-primary text-xs py-2 px-4 flex items-center gap-1.5"
+                    >
+                      {createAddressMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                      <span>Save & Select</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
             )}
           </div>
 
