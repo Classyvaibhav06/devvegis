@@ -62,7 +62,7 @@ export default function CategoryPage() {
   });
 
   const categoryMeta: Record<string, { title: string; icon: any; desc: string; topGlow: string }> = {
-    vegetables: { title: 'Fresh Vegetables', icon: Leaf, desc: 'Crisp, farm-fresh vegetables delivered daily in 12 minutes', topGlow: 'from-emerald-500' },
+    vegetables: { title: 'Fresh Vegetables', icon: Leaf, desc: 'Crisp, farm-fresh vegetables delivered fast to your doorstep', topGlow: 'from-emerald-500' },
     fruits: { title: 'Fresh Fruits', icon: Apple, desc: 'Sweet and juicy fruits naturally ripened and orchard-fresh', topGlow: 'from-rose-500' },
     'leafy-greens': { title: 'Leafy Greens', icon: Leaf, desc: 'Washed, crisp and nutrient-rich hydroponic greens', topGlow: 'from-teal-500' },
     organic: { title: 'Organic Produce', icon: ShieldCheck, desc: '100% certified organic, zero pesticide residue', topGlow: 'from-emerald-500' },

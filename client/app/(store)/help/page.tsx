@@ -4,13 +4,13 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Help Center & Frequently Asked Questions (FAQ) | DevVegis',
-  description: 'Find answers to common questions about DevVegis 12-minute express grocery delivery, payment options, order tracking, and refund policies.',
+  description: 'Find answers to common questions about DevVegis express grocery delivery, payment options, order tracking, and refund policies.',
 };
 
 const FAQS = [
   {
     q: 'How fast does DevVegis deliver groceries in Bengaluru?',
-    a: 'DevVegis delivers farm-fresh groceries within 10 to 15 minutes across major Bengaluru hubs including Indiranagar, Koramangala, HSR Layout, Whitefield, and Bellandur through our hyper-local network of temperature-controlled dark stores.',
+    a: 'DevVegis delivers farm-fresh groceries rapidly across major Bengaluru hubs including Indiranagar, Koramangala, HSR Layout, Whitefield, and Bellandur through our hyper-local network of temperature-controlled dark stores.',
   },
   {
     q: 'Are DevVegis vegetables and fruits 100% organic?',
@@ -22,7 +22,7 @@ const FAQS = [
   },
   {
     q: 'How does the instant refund guarantee work?',
-    a: 'If any produce item arrives damaged or below your freshness standards, simply navigate to your Orders page and select "Request Refund". The full item value is credited to your DevVegis Wallet within 60 seconds without return pickups.',
+    a: 'If any produce item arrives damaged or below your freshness standards, simply navigate to your Orders page and select "Request Refund". The full item value is refunded directly within 60 seconds without return pickups.',
   },
   {
     q: 'How does B2B wholesale Mandi purchasing work on DevVegis?',

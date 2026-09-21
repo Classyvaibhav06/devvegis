@@ -210,7 +210,7 @@ export default function CartPage() {
               {deliveryFee > 0 && (
                 <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[2px] p-2.5">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  Add {formatCurrency(FREE_DELIVERY_ABOVE - subtotal)} more for free 12-min delivery
+                  Add {formatCurrency(FREE_DELIVERY_ABOVE - subtotal)} more for free delivery
                 </div>
               )}
               <div className="flex justify-between text-slate-600 dark:text-[#8B96A8]">

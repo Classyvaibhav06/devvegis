@@ -69,7 +69,7 @@ export default function HeroBanner() {
           ) : (
             <>
               Farm-Fresh Produce.<br />
-              Delivered in <span className="text-emerald-600 dark:text-emerald-400">12 Minutes.</span>
+              Delivered in <span className="text-emerald-600 dark:text-emerald-400">Minutes.</span>
             </>
           )}
         </h1>
@@ -318,7 +318,7 @@ export function PromoBanners() {
 // ─── Trust Strip ───
 export function TrustStrip() {
   const items = [
-    { icon: Clock, label: '12-Min Express', desc: 'Cold-chain dispatch', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/15' },
+    { icon: Clock, label: 'Express Delivery', desc: 'Cold-chain dispatch', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/15' },
     { icon: Leaf, label: '100% Farm Direct', desc: 'Harvested at dawn', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-500/15' },
     { icon: ShieldCheck, label: 'Zero Chemicals', desc: 'Lab tested organic', color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-500/15' },
     { icon: Truck, label: 'Free Delivery', desc: 'Above ₹199', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-500/15' },

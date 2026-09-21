@@ -5,8 +5,8 @@ import HeroBanner, { FeaturedCategories, PromoBanners, TrustStrip } from '@/comp
 import PopularProducts from '@/components/home/PopularProducts';
 
 export const metadata: Metadata = {
-  title: 'DevVegis — Farm-Fresh Organic Grocery in 12 Minutes',
-  description: 'Order crisp vegetables, sweet fruits, hydroponic greens, and organic groceries online. Direct from farm to kitchen in 12 minutes.',
+  title: 'DevVegis — Farm-Fresh Organic Grocery Delivered Fast',
+  description: 'Order crisp vegetables, sweet fruits, hydroponic greens, and organic groceries online. Direct from farm to kitchen with express doorstep delivery.',
 };
 
 export default function HomePage() {

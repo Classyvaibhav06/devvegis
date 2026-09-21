@@ -209,7 +209,7 @@ export default function Header() {
             <span className="text-slate-300 dark:text-white/10">|</span>
             <span className="flex items-center gap-1.5 text-slate-600 dark:text-[#8B96A8]">
               <Zap className="w-3 h-3 text-[#10B981] fill-[#10B981]" />
-              <span>12-Min Delivery Dispatch</span>
+              <span>Express Delivery Dispatch</span>
             </span>
             <span className="text-slate-300 dark:text-white/10">|</span>
             <span className="text-emerald-600 dark:text-[#34D399] font-bold flex items-center gap-1.5">
@@ -235,7 +235,7 @@ export default function Header() {
                   <span className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-[#10B981]">Vegis</span>
                 </div>
                 <span className="hidden sm:inline-block text-[10px] font-bold text-slate-500 dark:text-[#4E5A6B] uppercase tracking-wider">
-                  Farm Fresh in 12 Mins
+                  Farm Fresh & Organic
                 </span>
               </div>
             </Link>
@@ -244,7 +244,7 @@ export default function Header() {
             <div className="hidden xl:flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-white/[0.07] text-left">
               <div className="bg-emerald-500/15 text-emerald-600 dark:text-[#34D399] border border-emerald-500/30 text-[10px] font-extrabold px-2 py-0.5 rounded-[2px] uppercase tracking-wider flex items-center gap-1 shrink-0">
                 <Zap className="w-2.5 h-2.5 fill-current" />
-                <span>12 MINS</span>
+                <span>EXPRESS</span>
               </div>
               <button
                 type="button"
@@ -600,7 +600,7 @@ export default function Header() {
                 <span className="text-xs font-bold text-slate-800 dark:text-[#E8EEF8] truncate max-w-[200px]">{location}</span>
               </div>
               <div className="bg-emerald-500/15 text-emerald-600 dark:text-[#34D399] text-[10px] font-extrabold px-2 py-0.5 rounded-[2px]">
-                12 MINS
+                EXPRESS
               </div>
             </div>
 

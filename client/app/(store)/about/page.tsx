@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Leaf, Truck, ShieldCheck, Award, HeartHandshake, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'About DevVegis — Farm to Kitchen in 12 Minutes | Our Mission & Sourcing',
-  description: 'Learn how DevVegis connects certified Indian organic farm clusters to urban kitchens in under 12 minutes through hyper-local cold-chain dark stores.',
+  title: 'About DevVegis — Farm to Kitchen Express | Our Mission & Sourcing',
+  description: 'Learn how DevVegis connects certified Indian organic farm clusters to urban kitchens through hyper-local cold-chain dark stores.',
 };
 
 export default function AboutPage() {
@@ -18,7 +18,7 @@ export default function AboutPage() {
         </div>
         <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-slate-900 dark:text-[#E8EEF8] tracking-tight">
           Pioneering Freshness. <br />
-          <span className="text-emerald-600 dark:text-emerald-400">Farm Direct in 12 Minutes.</span>
+          <span className="text-emerald-600 dark:text-emerald-400">Farm Direct to Your Doorstep.</span>
         </h1>
         <p className="text-slate-600 dark:text-[#8B96A8] text-sm sm:text-base leading-relaxed">
           DevVegis was founded on a simple conviction: produce eaten the same morning it was harvested has 4x higher vitamin retention, peak crispness, and zero chemical preservatives. By bridging rural farming belts with Bengaluru dark stores via temperature-controlled logistics, we deliver dawn harvests right to your doorstep.

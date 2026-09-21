@@ -156,7 +156,7 @@ export default function AuthModal() {
                     {mode === 'signin' ? 'Sign In to DevVegis' : 'Create an Account'}
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-[#8B96A8]">
-                    {mode === 'signin' ? 'Farm-fresh produce in 12 minutes' : 'Unlock exclusive farm-gate savings'}
+                    {mode === 'signin' ? 'Farm-fresh produce delivered fast' : 'Unlock exclusive farm-gate savings'}
                   </p>
                 </div>
               </div>

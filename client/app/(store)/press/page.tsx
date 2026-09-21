@@ -11,7 +11,7 @@ export default function PressPage() {
     {
       date: 'August 2026',
       outlet: 'AgriTech India Weekly',
-      title: 'DevVegis Achieves 12-Minute Cold-Chain Delivery Milestone Across Bengaluru Dark Stores',
+      title: 'DevVegis Achieves Express Cold-Chain Delivery Milestone Across Bengaluru Dark Stores',
       desc: 'How proprietary reefer fleet telemetry and morning APMC Mandi linkages enable zero-wilt grocery delivery.',
     },
     {

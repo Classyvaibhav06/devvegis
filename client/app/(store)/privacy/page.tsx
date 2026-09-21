@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <section className="space-y-2">
           <h2 className="font-heading font-bold text-base text-slate-900 dark:text-[#E8EEF8]">2. How We Use Your Data</h2>
           <p>
-            We use your data solely to fulfill and dispatch your fresh grocery orders within our 12-minute window, calculate exact delivery routing for our rider fleet, generate automated GST invoices, process wallet transactions, and notify you regarding order status.
+            We use your data solely to fulfill and dispatch your fresh grocery orders with express speed, calculate exact delivery routing for our rider fleet, generate automated GST invoices, and notify you regarding order status.
           </p>
         </section>
 

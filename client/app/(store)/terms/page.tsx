@@ -33,7 +33,7 @@ export default function TermsPage() {
         <section className="space-y-2">
           <h2 className="font-heading font-bold text-base text-slate-900 dark:text-[#E8EEF8]">3. Delivery Times & Slots</h2>
           <p>
-            Our 12-minute express delivery is an operational target supported by our dark store proximity. Delivery times may vary during adverse weather conditions, peak Bangalore traffic congestion, or public holidays.
+            Our express delivery is an operational dispatch priority supported by our dark store proximity. Delivery times may vary during adverse weather conditions, peak traffic congestion, or public holidays.
           </p>
         </section>
 

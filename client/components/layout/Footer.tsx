@@ -41,7 +41,7 @@ export default function Footer() {
                 <Zap className="w-5 h-5 fill-current" />
               </div>
               <div>
-                <h4 className="font-heading font-bold text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8]">12-Minute Express</h4>
+                <h4 className="font-heading font-bold text-xs sm:text-sm text-slate-900 dark:text-[#E8EEF8]">Express Delivery</h4>
                 <p className="text-[11px] text-slate-500 dark:text-[#8B96A8]">From cold-chain dark stores</p>
               </div>
             </div>
@@ -95,7 +95,7 @@ export default function Footer() {
             </Link>
 
             <p className="text-xs text-slate-600 dark:text-[#8B96A8] leading-relaxed">
-              India&apos;s premium quick-commerce produce market. Delivering crisp, organic, and ethically farmed fruits and vegetables directly to urban kitchens in 12 minutes.
+              India&apos;s premium quick-commerce produce market. Delivering crisp, organic, and ethically farmed fruits and vegetables directly to urban kitchens in minutes.
             </p>
 
             <div className="flex items-center gap-2 pt-1">

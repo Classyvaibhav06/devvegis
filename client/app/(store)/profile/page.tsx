@@ -216,7 +216,7 @@ export default function ProfilePage() {
             Welcome to DevVegis
           </h1>
           <p className="text-sm text-slate-600 dark:text-[#8B96A8] max-w-md mx-auto mb-6">
-            Sign in to track your 12-minute live orders, manage saved delivery addresses, and unlock exclusive farm coupons.
+            Sign in to track your live orders, manage saved delivery addresses, and unlock exclusive farm coupons.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto mb-8">
@@ -235,10 +235,10 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left border-t border-slate-100 dark:border-white/[0.08] pt-6">
             <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-slate-100 dark:border-white/[0.05]">
               <div className="text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 mb-1">
-                <span>⚡ 12-Min Delivery</span>
+                <span>⚡ Express Delivery</span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-[#8B96A8]">
-                Farm produce dispatched from local Indiranagar dark store.
+                Farm produce dispatched quickly from local dark store.
               </p>
             </div>
             <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-slate-100 dark:border-white/[0.05]">
@@ -458,7 +458,7 @@ export default function ProfilePage() {
                         Saved Delivery Addresses
                       </h3>
                       <p className="text-xs text-gray-500">
-                        Manage delivery locations for 10-minute instant orders
+                        Manage delivery locations for fast doorstep orders
                       </p>
                     </div>
 

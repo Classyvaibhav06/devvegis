@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | DevVegis",
   },
   description:
-    "Order crisp vegetables, sweet fruits, hydroponic greens, and organic produce online in Bengaluru. Lightning-fast 12-minute delivery direct from farm to kitchen.",
+    "Order crisp vegetables, sweet fruits, hydroponic greens, and organic produce online in Bengaluru. Fast express delivery direct from farm to kitchen.",
   keywords: ["grocery delivery", "fresh vegetables", "fruits online", "organic vegetables", "quick commerce", "devvegis", "Bangalore grocery delivery"],
   authors: [{ name: "DevVegis Technologies Pvt. Ltd." }],
   creator: "DevVegis",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: "https://devvegis.com",
     title: "DevVegis — Fresh Fruits & Vegetables Delivered in Minutes",
-    description: "Order fresh fruits & vegetables online in Bengaluru. 12-minute express delivery from farm to doorstep.",
+    description: "Order fresh fruits & vegetables online in Bengaluru. Express delivery direct from farm to doorstep.",
     siteName: "DevVegis",
     images: [
       {
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "DevVegis — Fresh Grocery Delivery",
-    description: "Order fresh fruits & vegetables. Quick delivery in 12 minutes.",
+    description: "Order fresh fruits & vegetables with quick doorstep delivery.",
     creator: "@devvegis",
     images: ["https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&h=630&q=85"],
   },
