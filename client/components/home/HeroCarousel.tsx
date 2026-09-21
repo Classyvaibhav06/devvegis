@@ -55,18 +55,17 @@ export default function HeroBanner() {
         <source src="/8851735-uhd_4096_2160_24fps.mp4" type="video/mp4" />
       </video>
 
-      {/* Cinematic Tint & Gradient Overlays for High Legibility */}
-      <div className="absolute inset-0 bg-black/50 dark:bg-[#080C14]/70 backdrop-blur-[0.5px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.45)_0%,rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.85)_100%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(8,12,20,0.6)_0%,rgba(8,12,20,0.35)_55%,rgba(8,12,20,0.95)_100%)]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/60 dark:from-[#080C14] dark:via-black/45 dark:to-[#080C14]/80" />
+      {/* High-Transparency Overlay to Make Video Vivid & Visible */}
+      <div className="absolute inset-0 bg-black/20 dark:bg-black/30" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/25 dark:from-[#080C14]/70 dark:via-transparent dark:to-black/30" />
 
       {/* Centered Content */}
       <div className="relative z-10 px-4 py-10 sm:px-8 sm:py-16 md:py-20 lg:py-24 max-w-3xl flex flex-col items-center text-center justify-center mx-auto my-auto w-full">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-300 border border-white/15 mb-3 shadow-xs">
+        <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-300 border border-white/20 mb-3 shadow-md">
           ✨ {activeBanner?.subtitle || '100% Certified Farm-Direct Produce'}
         </span>
 
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-heading font-extrabold text-white leading-[1.12] tracking-tight drop-shadow-md">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-heading font-extrabold text-white leading-[1.12] tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
           {activeBanner?.title ? (
             activeBanner.title
           ) : (
@@ -76,7 +75,7 @@ export default function HeroBanner() {
             </>
           )}
         </h1>
-        <p className="text-white/90 text-xs sm:text-base md:text-lg mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto drop-shadow-sm font-medium">
+        <p className="text-white text-xs sm:text-base md:text-lg mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] font-medium">
           {activeBanner?.subtitle
             ? `Exclusive fresh stock directly sourced and delivered to your kitchen with speed and quality.`
             : 'DevVegis connects certified organic farm clusters directly to your kitchen. Crisp vegetables, sweet fruits, and hydroponic greens harvested at dawn.'}
