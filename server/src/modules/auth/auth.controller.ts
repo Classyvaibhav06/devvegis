@@ -1177,13 +1177,13 @@ export const syncNeonAuth = async (req: AuthRequest, res: Response): Promise<voi
     const userAgent = (clientUserAgent || req.headers['user-agent'] || '').trim();
 
     try {
-      // First attempt: match recent session (last 10m) by client IP or exact user agent
+      // First attempt: match recent session (last 30m) by client IP or exact user agent
       if (clientIp || userAgent) {
         const matchedSessions = await prisma.$queryRaw<any[]>`
           SELECT s.*, u.id as "neonUserId", u.name, u.email, u.image 
           FROM neon_auth.session s
           JOIN neon_auth.user u ON s."userId" = u.id
-          WHERE s."createdAt" > NOW() - INTERVAL '10 minutes'
+          WHERE s."createdAt" > NOW() - INTERVAL '30 minutes'
             AND s."expiresAt" > NOW()
             AND (
               (${clientIp} != '' AND s."ipAddress" = ${clientIp})
@@ -1197,13 +1197,13 @@ export const syncNeonAuth = async (req: AuthRequest, res: Response): Promise<voi
         }
       }
 
-      // Second attempt: if IP/UA rotated (e.g. mobile carrier NAT), take the latest session created in last 5 minutes
+      // Second attempt: if IP/UA rotated (e.g. mobile carrier NAT), take the latest session created in last 15 minutes
       if (!neonUser) {
         const latestSessions = await prisma.$queryRaw<any[]>`
           SELECT s.*, u.id as "neonUserId", u.name, u.email, u.image 
           FROM neon_auth.session s
           JOIN neon_auth.user u ON s."userId" = u.id
-          WHERE s."createdAt" > NOW() - INTERVAL '5 minutes'
+          WHERE s."createdAt" > NOW() - INTERVAL '15 minutes'
             AND s."expiresAt" > NOW()
           ORDER BY s."createdAt" DESC
           LIMIT 1
