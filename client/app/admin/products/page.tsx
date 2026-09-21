@@ -19,7 +19,18 @@ export default function AdminProductsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
-  const [newProduct, setNewProduct] = useState({
+  const [newProduct, setNewProduct] = useState<{
+    name: string;
+    slug: string;
+    description: string;
+    price: string | number;
+    mrp: string | number;
+    unit: string;
+    stock: string | number;
+    isOrganic: boolean;
+    categoryId: string;
+    image: string;
+  }>({
     name: '',
     slug: '',
     description: '',
@@ -55,7 +66,7 @@ export default function AdminProductsPage() {
   });
 
   const createProductMutation = useMutation({
-    mutationFn: async (payload: typeof newProduct) => {
+    mutationFn: async (payload: any) => {
       const res = await api.post('/products', {
         ...payload,
         images: [payload.image],
@@ -282,7 +293,12 @@ export default function AdminProductsPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                updateProductMutation.mutate(editingProduct);
+                updateProductMutation.mutate({
+                  ...editingProduct,
+                  price: editingProduct.price === '' ? 0 : (parseFloat(String(editingProduct.price)) || 0),
+                  mrp: editingProduct.mrp === '' ? 0 : (parseFloat(String(editingProduct.mrp)) || 0),
+                  stock: editingProduct.stock === '' ? 0 : (parseInt(String(editingProduct.stock), 10) || 0),
+                });
               }}
               className="space-y-4"
             >
@@ -305,8 +321,10 @@ export default function AdminProductsPage() {
                     step="any"
                     min="0"
                     required
-                    value={editingProduct.price}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    placeholder="0"
+                    value={editingProduct.price ?? ''}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
                     className="input text-xs font-bold text-green-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
@@ -317,8 +335,10 @@ export default function AdminProductsPage() {
                     step="any"
                     min="0"
                     required
-                    value={editingProduct.mrp}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, mrp: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    placeholder="0"
+                    value={editingProduct.mrp ?? ''}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, mrp: e.target.value })}
                     className="input text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
@@ -342,8 +362,10 @@ export default function AdminProductsPage() {
                     type="number"
                     min="0"
                     required
-                    value={editingProduct.stock}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0 })}
+                    placeholder="0"
+                    value={editingProduct.stock ?? ''}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: e.target.value })}
                     className="input text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
@@ -407,7 +429,12 @@ export default function AdminProductsPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                createProductMutation.mutate(newProduct);
+                createProductMutation.mutate({
+                  ...newProduct,
+                  price: newProduct.price === '' ? 0 : (parseFloat(String(newProduct.price)) || 0),
+                  mrp: newProduct.mrp === '' ? 0 : (parseFloat(String(newProduct.mrp)) || 0),
+                  stock: newProduct.stock === '' ? 0 : (parseInt(String(newProduct.stock), 10) || 0),
+                });
               }}
               className="space-y-3"
             >
@@ -457,8 +484,10 @@ export default function AdminProductsPage() {
                     step="any"
                     min="0"
                     required
-                    value={newProduct.price}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    placeholder="0"
+                    value={newProduct.price ?? ''}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
                     className="input text-xs font-bold text-green-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
@@ -469,8 +498,10 @@ export default function AdminProductsPage() {
                     step="any"
                     min="0"
                     required
-                    value={newProduct.mrp}
-                    onChange={(e) => setNewProduct({ ...newProduct, mrp: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    placeholder="0"
+                    value={newProduct.mrp ?? ''}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setNewProduct({ ...newProduct, mrp: e.target.value })}
                     className="input text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
@@ -494,8 +525,10 @@ export default function AdminProductsPage() {
                     type="number"
                     min="0"
                     required
-                    value={newProduct.stock}
-                    onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0 })}
+                    placeholder="0"
+                    value={newProduct.stock ?? ''}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
                     className="input text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
