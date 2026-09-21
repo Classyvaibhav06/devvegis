@@ -21,6 +21,46 @@ const parseProductUnit = (unitStr?: string): ProductUnit => {
   return ProductUnit.GRAM;
 };
 
+export const formatProductWeight = (unit: string, weight?: number | null): string => {
+  if (weight !== null && weight !== undefined && !isNaN(weight) && weight > 0) {
+    const upper = String(unit || '').toUpperCase();
+    if (upper === 'KG' || (weight >= 1000 && weight % 1000 === 0)) {
+      return `${weight / 1000} kg`;
+    }
+    if (upper === 'KG' || weight >= 1000) {
+      return `${(weight / 1000).toFixed(1).replace(/\.0$/, '')} kg`;
+    }
+    if (upper === 'PIECE') {
+      return `${weight} pc`;
+    }
+    if (upper === 'DOZEN') {
+      return `${weight} dozen`;
+    }
+    if (upper === 'BUNDLE') {
+      return `${weight} bundle`;
+    }
+    if (upper === 'LITRE') {
+      return weight >= 1000 ? `${weight / 1000} L` : `${weight} ml`;
+    }
+    return `${weight}g`;
+  }
+  switch (String(unit || '').toUpperCase()) {
+    case 'KG':
+      return '1 kg';
+    case 'PIECE':
+      return '1 pc';
+    case 'DOZEN':
+      return '1 dozen';
+    case 'BUNDLE':
+      return '1 bundle';
+    case 'LITRE':
+      return '1 L';
+    case 'GRAM':
+    default:
+      return '500g';
+  }
+};
+
 export const getProducts = async (req: AuthRequest, res: Response): Promise<void> => {
   const {
     page = '1', limit = '20', categoryId, categorySlug, search,
@@ -127,9 +167,13 @@ export const getProducts = async (req: AuthRequest, res: Response): Promise<void
   const sanitizedProducts = products.map((p: any) => {
     const rawStock = p.inventory?.availableStock ?? 0;
     const inStock = rawStock > 0;
+    const displayUnit = formatProductWeight(p.unit, p.weight);
     const { inventory, ...rest } = p;
     return {
       ...rest,
+      unit: displayUnit,
+      displayUnit,
+      rawUnit: p.unit,
       wholesalePrice: isWholesaleUser ? p.wholesalePrice : undefined,
       inStock,
       stock: rawStock,
@@ -219,8 +263,12 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
   const inStock = rawStock > 0;
   const { inventory, costPrice, ...restProduct } = product;
 
+  const displayUnit = formatProductWeight(product.unit, product.weight);
   const productPayload = {
     ...restProduct,
+    unit: displayUnit,
+    displayUnit,
+    rawUnit: product.unit,
     wholesalePrice: isWholesaleUser ? product.wholesalePrice : undefined,
     costPrice: isAdmin ? costPrice : undefined,
     inStock,
@@ -229,8 +277,12 @@ export const getProduct = async (req: AuthRequest, res: Response): Promise<void>
     similar: similar.map((s: any) => {
       const { inventory: simInventory, costPrice: simCostPrice, ...simRest } = s;
       const simStock = simInventory?.availableStock ?? 0;
+      const simDisplayUnit = formatProductWeight(s.unit, s.weight);
       return {
         ...simRest,
+        unit: simDisplayUnit,
+        displayUnit: simDisplayUnit,
+        rawUnit: s.unit,
         wholesalePrice: isWholesaleUser ? s.wholesalePrice : undefined,
         costPrice: isAdmin ? simCostPrice : undefined,
         inStock: simStock > 0,
@@ -264,10 +316,16 @@ export const getFeaturedProducts = async (req: AuthRequest, res: Response): Prom
     orderBy: { rating: 'desc' },
   });
 
-  memoryCache.set(cacheKey, products, 120); // 2 minutes
+  const formatted = products.map((p: any) => ({
+    ...p,
+    unit: formatProductWeight(p.unit, p.weight),
+    displayUnit: formatProductWeight(p.unit, p.weight),
+  }));
+
+  memoryCache.set(cacheKey, formatted, 120); // 2 minutes
   res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.setHeader('X-Cache', 'MISS');
-  res.json({ success: true, data: products });
+  res.json({ success: true, data: formatted });
 };
 
 export const getFlashDeals = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -295,10 +353,16 @@ export const getFlashDeals = async (req: AuthRequest, res: Response): Promise<vo
     orderBy: { discountPercentage: 'desc' },
   });
 
-  memoryCache.set(cacheKey, products, 120); // 2 minutes
+  const formatted = products.map((p: any) => ({
+    ...p,
+    unit: formatProductWeight(p.unit, p.weight),
+    displayUnit: formatProductWeight(p.unit, p.weight),
+  }));
+
+  memoryCache.set(cacheKey, formatted, 120); // 2 minutes
   res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.setHeader('X-Cache', 'MISS');
-  res.json({ success: true, data: products });
+  res.json({ success: true, data: formatted });
 };
 
 export const searchProducts = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -367,9 +431,15 @@ export const searchProducts = async (req: AuthRequest, res: Response): Promise<v
     prisma.product.count({ where }),
   ]);
 
+  const formatted = products.map((p: any) => ({
+    ...p,
+    unit: formatProductWeight(p.unit, p.weight),
+    displayUnit: formatProductWeight(p.unit, p.weight),
+  }));
+
   res.json({
     success: true,
-    data: products,
+    data: formatted,
     pagination: { page: parseInt(page), limit: take, total, totalPages: Math.ceil(total / take) },
   });
 };
@@ -431,8 +501,10 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
   } else if (typeof unit === 'string') {
     const matchKg = unit.match(/^(\d+(?:\.\d+)?)\s*kg$/i);
     const matchG = unit.match(/^(\d+(?:\.\d+)?)\s*g(?:rams?)?$/i);
+    const matchNum = unit.match(/^(\d+(?:\.\d+)?)$/);
     if (matchKg) parsedWeight = parseFloat(matchKg[1]) * 1000;
     else if (matchG) parsedWeight = parseFloat(matchG[1]);
+    else if (matchNum) parsedWeight = parseFloat(matchNum[1]);
   }
 
   const product = await prisma.product.create({
@@ -506,9 +578,7 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
     include: { images: true, inventory: true, category: true },
   });
 
-  memoryCache.del('products_');
-  memoryCache.del('products_list_');
-  memoryCache.del('product_slug_');
+  memoryCache.clear();
 
   res.status(201).json({ success: true, data: fullProduct || product });
 };
@@ -545,11 +615,19 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
   }
   if (sku !== undefined) updateData.sku = sku;
   if (barcode !== undefined) updateData.barcode = barcode || null;
-  if (unit !== undefined) updateData.unit = parseProductUnit(unit);
-  if (description !== undefined) updateData.description = description;
-  if (shortDescription !== undefined) updateData.shortDescription = shortDescription;
-  if (weight !== undefined) {
-    updateData.weight = weight !== '' && weight !== null ? parseFloat(weight) : null;
+  if (unit !== undefined) {
+    updateData.unit = parseProductUnit(unit);
+    if (weight === undefined || weight === '' || weight === null) {
+      const matchKg = String(unit).match(/^(\d+(?:\.\d+)?)\s*kg$/i);
+      const matchG = String(unit).match(/^(\d+(?:\.\d+)?)\s*g(?:rams?)?$/i);
+      const matchNum = String(unit).match(/^(\d+(?:\.\d+)?)$/);
+      if (matchKg) updateData.weight = parseFloat(matchKg[1]) * 1000;
+      else if (matchG) updateData.weight = parseFloat(matchG[1]);
+      else if (matchNum) updateData.weight = parseFloat(matchNum[1]);
+    }
+  }
+  if (weight !== undefined && weight !== '' && weight !== null) {
+    updateData.weight = parseFloat(weight);
   }
   if (origin !== undefined) updateData.origin = origin;
   if (minOrderQty !== undefined && minOrderQty !== '') updateData.minOrderQty = parseInt(minOrderQty, 10);
@@ -595,9 +673,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     }
   }
 
-  memoryCache.del('products_');
-  memoryCache.del('products_list_');
-  memoryCache.del('product_slug_');
+  memoryCache.clear();
 
   const fullProduct = await prisma.product.findUnique({
     where: { id },

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Plus, Minus, Star, ShoppingCart } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatProductWeight } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -19,6 +19,7 @@ const FILTER_TABS = [
 
 function DealCard({ product }: { product: any }) {
   const { items, addItem, updateQuantity } = useCartStore();
+  const displayUnit = formatProductWeight(product);
   const cartItem = items.find(i => i.id === product.id);
   const quantity = cartItem?.quantity || 0;
   const imageUrl = product.images?.[0]?.url || 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?w=500&q=80';
@@ -32,7 +33,7 @@ function DealCard({ product }: { product: any }) {
       name: product.name,
       price: finalPrice,
       image: imageUrl,
-      unit: product.unit,
+      unit: displayUnit,
     });
     toast.success(`${product.name} added!`, { duration: 1500 });
   };
@@ -46,7 +47,7 @@ function DealCard({ product }: { product: any }) {
         </div>
       )}
 
-      {/* Image */}
+      {/* Image with Weight Tag */}
       <Link href={`/products/${product.slug}`}>
         <div className="relative aspect-square rounded-[4px] overflow-hidden bg-slate-50 dark:bg-[#161E2E] mb-3">
           <Image
@@ -56,9 +57,9 @@ function DealCard({ product }: { product: any }) {
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 640px) 50vw, 25vw"
           />
-          {product.unit && (
+          {displayUnit && (
             <div className="absolute bottom-1.5 left-1.5 bg-white/90 dark:bg-[#080C14]/85 backdrop-blur-sm text-slate-800 dark:text-[#E8EEF8] text-[10px] font-bold px-2 py-0.5 rounded-[2px] border border-slate-200/80 dark:border-white/10 font-mono">
-              {product.unit}
+              {displayUnit}
             </div>
           )}
         </div>

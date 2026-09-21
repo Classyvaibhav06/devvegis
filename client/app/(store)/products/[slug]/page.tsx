@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
 import { useCartStore } from '@/store/cartStore';
-import { formatCurrency, getDiscountedPrice } from '@/lib/utils';
+import { formatCurrency, getDiscountedPrice, formatProductWeight } from '@/lib/utils';
 import api from '@/lib/api';
 
 export default function ProductDetailPage() {
@@ -29,6 +29,7 @@ export default function ProductDetailPage() {
   });
 
   const product = data;
+  const displayUnit = formatProductWeight(product);
   const cartItem = items.find(i => i.id === product?.id);
   const quantity = cartItem?.quantity || 0;
   const finalPrice = product?.discountPercentage
@@ -37,7 +38,7 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!product) return;
-    addItem({ id: product.id, name: product.name, price: finalPrice, image: product.images?.[0]?.url, unit: product.unit });
+    addItem({ id: product.id, name: product.name, price: finalPrice, image: product.images?.[0]?.url, unit: displayUnit });
     toast.success(`${product.name} added to cart`, { duration: 2000 });
   };
 
@@ -148,7 +149,7 @@ export default function ProductDetailPage() {
           <div className="flex items-center gap-3">
             <span className="text-3xl font-extrabold text-green-600">{formatCurrency(finalPrice)}</span>
             {product.comparePrice && <span className="text-lg text-gray-400 line-through">{formatCurrency(product.comparePrice)}</span>}
-            <span className="text-sm text-gray-500">/ {product.unit}</span>
+            <span className="text-sm text-gray-500 font-mono">/ {displayUnit}</span>
           </div>
 
           {/* Stock */}
@@ -180,7 +181,7 @@ export default function ProductDetailPage() {
                   <Minus className="w-5 h-5" />
                 </button>
                 <span className="text-white font-bold text-lg px-6 font-mono">{quantity}</span>
-                <button onClick={() => addItem({ id: product.id, name: product.name, price: finalPrice, image: images[0]?.url, unit: product.unit })} className="p-3 text-white hover:bg-green-700 transition-colors cursor-pointer">
+                <button onClick={() => addItem({ id: product.id, name: product.name, price: finalPrice, image: images[0]?.url, unit: displayUnit })} className="p-3 text-white hover:bg-green-700 transition-colors cursor-pointer">
                   <Plus className="w-5 h-5" />
                 </button>
               </div>

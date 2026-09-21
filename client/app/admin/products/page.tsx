@@ -10,7 +10,7 @@ import Image from 'next/image';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import S3ImageUploader from '@/components/ui/S3ImageUploader';
-import { resolveImageUrl } from '@/lib/utils';
+import { resolveImageUrl, formatProductWeight } from '@/lib/utils';
 
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
@@ -216,7 +216,7 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="p-4">
                       <span className="font-mono font-bold px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs">
-                        {p.unit || '500g'}
+                        {formatProductWeight(p)}
                       </span>
                     </td>
                     <td className="p-4">
@@ -245,7 +245,7 @@ export default function AdminProductsPage() {
                             price: p.price,
                             mrp: p.comparePrice || p.mrp || p.price + 10,
                             comparePrice: p.comparePrice || p.mrp || p.price + 10,
-                            unit: p.unit || '500g',
+                            unit: formatProductWeight(p),
                             stock: p.inventory?.availableStock ?? p.stock ?? 0,
                             isOrganic: p.isOrganic || false,
                             image: p.images?.[0]?.url || p.images?.[0] || '',
@@ -293,8 +293,18 @@ export default function AdminProductsPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                let parsedWeight: number | null = null;
+                const unitStr = String(editingProduct.unit || '').trim();
+                const matchKg = unitStr.match(/^(\d+(?:\.\d+)?)\s*kg$/i);
+                const matchG = unitStr.match(/^(\d+(?:\.\d+)?)\s*g(?:rams?)?$/i);
+                const matchNum = unitStr.match(/^(\d+(?:\.\d+)?)$/);
+                if (matchKg) parsedWeight = parseFloat(matchKg[1]) * 1000;
+                else if (matchG) parsedWeight = parseFloat(matchG[1]);
+                else if (matchNum) parsedWeight = parseFloat(matchNum[1]);
+
                 updateProductMutation.mutate({
                   ...editingProduct,
+                  ...(parsedWeight !== null && { weight: parsedWeight }),
                   price: editingProduct.price === '' ? 0 : (parseFloat(String(editingProduct.price)) || 0),
                   mrp: editingProduct.mrp === '' ? 0 : (parseFloat(String(editingProduct.mrp)) || 0),
                   stock: editingProduct.stock === '' ? 0 : (parseInt(String(editingProduct.stock), 10) || 0),
@@ -429,8 +439,18 @@ export default function AdminProductsPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                let parsedWeight: number | null = null;
+                const unitStr = String(newProduct.unit || '').trim();
+                const matchKg = unitStr.match(/^(\d+(?:\.\d+)?)\s*kg$/i);
+                const matchG = unitStr.match(/^(\d+(?:\.\d+)?)\s*g(?:rams?)?$/i);
+                const matchNum = unitStr.match(/^(\d+(?:\.\d+)?)$/);
+                if (matchKg) parsedWeight = parseFloat(matchKg[1]) * 1000;
+                else if (matchG) parsedWeight = parseFloat(matchG[1]);
+                else if (matchNum) parsedWeight = parseFloat(matchNum[1]);
+
                 createProductMutation.mutate({
                   ...newProduct,
+                  ...(parsedWeight !== null && { weight: parsedWeight }),
                   price: newProduct.price === '' ? 0 : (parseFloat(String(newProduct.price)) || 0),
                   mrp: newProduct.mrp === '' ? 0 : (parseFloat(String(newProduct.mrp)) || 0),
                   stock: newProduct.stock === '' ? 0 : (parseInt(String(newProduct.stock), 10) || 0),

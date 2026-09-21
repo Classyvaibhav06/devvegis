@@ -7,7 +7,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Heart, Star, Leaf, Zap, Plus, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCartStore } from '@/store/cartStore';
-import { cn, formatCurrency, getDiscountedPrice, resolveImageUrl } from '@/lib/utils';
+import { cn, formatCurrency, getDiscountedPrice, resolveImageUrl, formatProductWeight } from '@/lib/utils';
 
 interface Product {
   id: string;
@@ -17,6 +17,7 @@ interface Product {
   comparePrice?: number;
   discountPercentage?: number;
   unit: string;
+  weight?: number;
   images: { url: string; alt?: string }[];
   isOrganic?: boolean;
   isFreshToday?: boolean;
@@ -38,6 +39,7 @@ export default function ProductCard({ product, variant = 'default', showWishlist
   const [addedAnim, setAddedAnim] = useState(false);
   const { items, addItem, updateQuantity } = useCartStore();
 
+  const displayUnit = formatProductWeight(product);
   const cartItem = items.find(i => i.id === product.id);
   const quantity = cartItem?.quantity || 0;
   const imageUrl = resolveImageUrl(product.images?.[0]?.url);
@@ -56,7 +58,7 @@ export default function ProductCard({ product, variant = 'default', showWishlist
       name: product.name,
       price: finalPrice,
       image: imageUrl,
-      unit: product.unit,
+      unit: displayUnit,
     });
 
     setAddedAnim(true);
@@ -80,7 +82,7 @@ export default function ProductCard({ product, variant = 'default', showWishlist
           <div className="relative w-18 h-18 rounded-[4px] overflow-hidden shrink-0 bg-slate-100 dark:bg-[#161E2E] border border-slate-200/80 dark:border-white/10">
             <Image src={imageUrl} alt={product.name} fill className="object-cover" sizes="72px" />
             <div className="absolute bottom-1 left-1 bg-white/90 dark:bg-[#080C14]/85 text-slate-800 dark:text-[#E8EEF8] text-[10px] font-bold px-1.5 py-0.5 rounded-[2px] border border-slate-200/80 dark:border-white/10">
-              {product.unit}
+              {displayUnit}
             </div>
           </div>
           <div className="flex-1 min-w-0">
@@ -161,7 +163,7 @@ export default function ProductCard({ product, variant = 'default', showWishlist
 
           {/* EXACT GRAMS / PIECES UNIT BADGE */}
           <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 bg-white/95 dark:bg-[#080C14]/90 backdrop-blur-md text-slate-800 dark:text-[#E8EEF8] text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-[2px] shadow-xs border border-slate-200/80 dark:border-white/10 flex items-center gap-1 z-10 font-mono">
-            <span>{product.unit || '500g'}</span>
+            <span>{displayUnit}</span>
           </div>
 
           {/* Out of stock overlay */}
@@ -204,7 +206,7 @@ export default function ProductCard({ product, variant = 'default', showWishlist
             </span>
           ) : (
             <span className="text-[9px] sm:text-[10px] font-medium text-slate-400 dark:text-[#8B96A8]">
-              {product.unit}
+              {displayUnit}
             </span>
           )}
         </div>
@@ -253,7 +255,7 @@ export default function ProductCard({ product, variant = 'default', showWishlist
                       name: product.name,
                       price: finalPrice,
                       image: imageUrl,
-                      unit: product.unit,
+                      unit: displayUnit,
                     });
                   }}
                   className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center hover:bg-black/20 rounded-[2px] transition-colors active:scale-90"

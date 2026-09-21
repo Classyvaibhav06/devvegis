@@ -126,3 +126,74 @@ export function resolveImageUrl(url?: string | null): string {
 
   return cleaned;
 }
+
+/**
+ * Formats a product's unit and weight for display in cards and product pages.
+ * Handles database enums (GRAM, KG, PIECE, etc.) combined with numeric weight (e.g. 200 -> "200g", 50 -> "50g", 1000 -> "1 kg").
+ */
+export function formatProductWeight(
+  product?: { unit?: string; weight?: number | string | null } | string | null,
+  fallbackWeight?: number | string | null
+): string {
+  if (!product) return '500g';
+
+  let unitStr = '';
+  let weightNum: number | null = null;
+
+  if (typeof product === 'object') {
+    unitStr = String(product.unit || '').trim();
+    const rawW = product.weight ?? fallbackWeight;
+    weightNum = rawW !== null && rawW !== undefined && rawW !== '' ? parseFloat(String(rawW)) : null;
+  } else if (typeof product === 'string') {
+    unitStr = product.trim();
+    if (fallbackWeight !== null && fallbackWeight !== undefined && fallbackWeight !== '') {
+      weightNum = parseFloat(String(fallbackWeight));
+    }
+  }
+
+  // If a valid positive weight was entered/stored:
+  if (weightNum !== null && !isNaN(weightNum) && weightNum > 0) {
+    const upper = unitStr.toUpperCase();
+    if (upper === 'KG' || (weightNum >= 1000 && weightNum % 1000 === 0)) {
+      return `${weightNum / 1000} kg`;
+    }
+    if (upper === 'KG' || weightNum >= 1000) {
+      return `${(weightNum / 1000).toFixed(1).replace(/\.0$/, '')} kg`;
+    }
+    if (upper === 'PIECE') {
+      return `${weightNum} pc`;
+    }
+    if (upper === 'DOZEN') {
+      return `${weightNum} dozen`;
+    }
+    if (upper === 'BUNDLE') {
+      return `${weightNum} bundle`;
+    }
+    if (upper === 'LITRE') {
+      return weightNum >= 1000 ? `${weightNum / 1000} L` : `${weightNum} ml`;
+    }
+    return `${weightNum}g`;
+  }
+
+  // If unit string already contains numeric quantities (e.g. "500g", "250g", "1 kg", "6 pcs")
+  if (/\d/.test(unitStr)) {
+    return unitStr;
+  }
+
+  // Fallback for bare database enums without weight
+  switch (unitStr.toUpperCase()) {
+    case 'KG':
+      return '1 kg';
+    case 'PIECE':
+      return '1 pc';
+    case 'DOZEN':
+      return '1 dozen';
+    case 'BUNDLE':
+      return '1 bundle';
+    case 'LITRE':
+      return '1 L';
+    case 'GRAM':
+    default:
+      return '500g';
+  }
+}
